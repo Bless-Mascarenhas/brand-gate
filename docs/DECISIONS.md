@@ -13,3 +13,6 @@ This document records one line per significant technical decision and the ration
 - **2026-10-24**: Deterministic rule engine executes ahead of any LLM calls with 100% hard authority; any critical gate failure instantly blocks the post and prevents adversarial prompt overrides.
 - **2026-10-24**: Contrast math strictly follows WCAG 2.1 relative luminance, proving the planted Marigold on Paper conflict (1.7:1 vs required 4.5:1) which brand precedence resolves in favor of AR.
 - **2026-10-24**: Emoji counting implements Intl.Segmenter with grapheme granularity, accurately counting multi-codepoint flags and skin-tone modifiers.
+- **2026-10-24**: Unified multi-provider abstraction (`callLLM`) integrates Gemini SDK with xAI and NVIDIA NIM OpenAI-compatible clients with 45s timeouts, 1 retry backoff, and full LlmCallLog audit receipts.
+- **2026-10-24**: Dual-layer JSON resilience handles code-fences, trailing commas, and prompt repair re-attempts before falling back to Replay mode suggestion.
+- **2026-10-24**: User-supplied social posts and uploads are strictly encapsulated inside `<post>` XML delimiters with an explicit untrusted data directive, neutralizing prompt-injection overrides.

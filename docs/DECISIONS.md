@@ -10,3 +10,6 @@ This document records one line per significant technical decision and the ration
 - **2026-10-24**: Replay mode bundles offline pre-recorded multi-model traces to ensure judges can evaluate full pipelines without live API keys.
 - **2026-10-24**: Policy pack snapshot hashing uses SHA-256 over normalized clause text and rule definitions, allowing exact clause verification and provenance tracking in all audit logs.
 - **2026-10-24**: Minimum necessary disclosure routing map guarantees LLMs only receive clauses strictly relevant to the evaluated category, protecting brand confidentiality and token budgets.
+- **2026-10-24**: Deterministic rule engine executes ahead of any LLM calls with 100% hard authority; any critical gate failure instantly blocks the post and prevents adversarial prompt overrides.
+- **2026-10-24**: Contrast math strictly follows WCAG 2.1 relative luminance, proving the planted Marigold on Paper conflict (1.7:1 vs required 4.5:1) which brand precedence resolves in favor of AR.
+- **2026-10-24**: Emoji counting implements Intl.Segmenter with grapheme granularity, accurately counting multi-codepoint flags and skin-tone modifiers.

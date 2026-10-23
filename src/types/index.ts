@@ -153,9 +153,9 @@ export const PostContentSchema = z.object({
       bytes: z.number(),
     })
     .optional(),
-  format: z.enum(['feed_4_5', 'feed_1_1', 'story_9_16', 'reel_9_16']).default('feed_4_5'),
-  paidPartnership: z.boolean().optional().default(false),
-  language: z.enum(['en', 'hinglish', 'mr_greeting']).default('en'),
+  format: z.enum(['feed_4_5', 'feed_1_1', 'story_9_16', 'reel_9_16']).optional().default('feed_4_5'),
+  paidPartnership: z.boolean().optional(),
+  language: z.enum(['en', 'hinglish', 'mr_greeting']).optional().default('en'),
   scheduledDate: z.string().optional(),
 });
 export type PostContent = z.infer<typeof PostContentSchema>;

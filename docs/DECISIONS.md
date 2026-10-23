@@ -8,3 +8,5 @@ This document records one line per significant technical decision and the ration
 - **2026-10-24**: Compositing overlays (wordmark SVG, CTA bands) on HTML5 canvas in the browser avoids sharp serverless font rendering bugs.
 - **2026-10-24**: Storage adapter interface abstracts browser IndexedDB (`idb-keyval`) for local zero-config testing and optional Supabase cloud storage.
 - **2026-10-24**: Replay mode bundles offline pre-recorded multi-model traces to ensure judges can evaluate full pipelines without live API keys.
+- **2026-10-24**: Policy pack snapshot hashing uses SHA-256 over normalized clause text and rule definitions, allowing exact clause verification and provenance tracking in all audit logs.
+- **2026-10-24**: Minimum necessary disclosure routing map guarantees LLMs only receive clauses strictly relevant to the evaluated category, protecting brand confidentiality and token budgets.

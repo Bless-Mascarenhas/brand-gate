@@ -1,0 +1,40 @@
+{
+  "region": "IN",
+  "currency": {
+    "symbol": "₹",
+    "code": "INR",
+    "format": "₹{amount} (incl. GST)"
+  },
+  "languages": ["en", "hinglish", "mr_greeting"],
+  "cityTiers": {
+    "tier1": ["Mumbai", "Delhi NCR", "Bengaluru", "Hyderabad", "Chennai", "Kolkata", "Pune", "Ahmedabad"],
+    "tier2": ["Jaipur", "Surat", "Lucknow", "Chandigarh", "Indore", "Nagpur", "Bhopal", "Visakhapatnam", "Kochi"],
+    "tier3": ["Other Indian Towns and Districts"]
+  },
+  "festivals": [
+    {
+      "id": "fest_diwali",
+      "name": "Diwali",
+      "dates": "2026-10-20 to 2026-11-10",
+      "approvedGreetings": ["Shubh Diwali!", "Happy Diwali, yaaron!"]
+    },
+    {
+      "id": "fest_eid",
+      "name": "Eid al-Fitr",
+      "dates": "2026-03-20 to 2026-03-23",
+      "approvedGreetings": ["Eid Mubarak!"]
+    },
+    {
+      "id": "fest_christmas",
+      "name": "Christmas",
+      "dates": "2026-12-20 to 2026-12-26",
+      "approvedGreetings": ["Merry Christmas!"]
+    },
+    {
+      "id": "fest_holi",
+      "name": "Holi",
+      "dates": "2026-03-03 to 2026-03-05",
+      "approvedGreetings": ["Happy Holi!"]
+    }
+  ]
+}

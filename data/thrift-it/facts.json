@@ -1,0 +1,176 @@
+[
+  {
+    "id": "FACT-SHIP-001",
+    "clauseId": "AF-001",
+    "key": "free_shipping_threshold",
+    "value": 999,
+    "unit": "INR",
+    "validFrom": "2026-08-01",
+    "validTo": null,
+    "status": "active",
+    "aliases": ["free shipping", "free delivery", "zero shipping"],
+    "assertionPatterns": [
+      {
+        "regex": "(?:free\\s+shipping|free\\s+delivery)(?:\\s+above|\\s+over|\\s+on\\s+orders\\s+above)?\\s*(?:₹|INR|rs\\.?)\\s*(\\d+)",
+        "captureIndex": 1,
+        "expected": 999
+      }
+    ]
+  },
+  {
+    "id": "FACT-SHIP-002",
+    "clauseId": "AF-001",
+    "key": "stale_free_shipping_threshold",
+    "value": 799,
+    "unit": "INR",
+    "validFrom": "2026-01-01",
+    "validTo": "2026-07-31",
+    "status": "superseded",
+    "aliases": ["old shipping threshold", "stale shipping"],
+    "assertionPatterns": []
+  },
+  {
+    "id": "FACT-CAMP-001",
+    "clauseId": "AF-002",
+    "key": "diwali_thrift_fest",
+    "value": 30,
+    "unit": "percent_max",
+    "validFrom": "2026-10-20",
+    "validTo": "2026-11-10",
+    "status": "active",
+    "aliases": ["Diwali Thrift Fest", "Diwali Fest", "Diwali sale", "festive drop"],
+    "assertionPatterns": [
+      {
+        "regex": "diwali\\s+thrift\\s+fest.*?up\\s+to\\s+(\\d+)%\\s+off",
+        "captureIndex": 1,
+        "expected": 30
+      }
+    ]
+  },
+  {
+    "id": "FACT-CAMP-002",
+    "clauseId": "AF-003",
+    "key": "monsoon_clearance",
+    "value": 40,
+    "unit": "percent_flat",
+    "validFrom": "2026-07-01",
+    "validTo": "2026-09-15",
+    "status": "expired",
+    "aliases": ["Monsoon Clearance", "Monsoon Sale", "Monsoon end of season"],
+    "assertionPatterns": []
+  },
+  {
+    "id": "FACT-PRICE-001",
+    "clauseId": "AF-004",
+    "key": "tees_starting_price",
+    "value": 299,
+    "unit": "INR",
+    "validFrom": "2026-08-01",
+    "validTo": null,
+    "status": "active",
+    "aliases": ["tees", "t-shirts", "vintage tees"],
+    "assertionPatterns": [
+      {
+        "regex": "(?:tees|t-shirts)\\s+(?:from|starting\\s+at)\\s*(?:₹|INR|rs\\.?)\\s*(\\d+)",
+        "captureIndex": 1,
+        "expected": 299
+      }
+    ]
+  },
+  {
+    "id": "FACT-PRICE-002",
+    "clauseId": "AF-004",
+    "key": "jeans_starting_price",
+    "value": 599,
+    "unit": "INR",
+    "validFrom": "2026-08-01",
+    "validTo": null,
+    "status": "active",
+    "aliases": ["jeans", "denim", "trousers"],
+    "assertionPatterns": [
+      {
+        "regex": "(?:jeans|denim)\\s+(?:from|starting\\s+at|at)\\s*(?:₹|INR|rs\\.?)\\s*(\\d+)",
+        "captureIndex": 1,
+        "expected": 599
+      }
+    ]
+  },
+  {
+    "id": "FACT-PRICE-003",
+    "clauseId": "AF-004",
+    "key": "jackets_starting_price",
+    "value": 899,
+    "unit": "INR",
+    "validFrom": "2026-08-01",
+    "validTo": null,
+    "status": "active",
+    "aliases": ["jackets", "outerwear", "bomber jackets"],
+    "assertionPatterns": [
+      {
+        "regex": "(?:jackets|outerwear)\\s+(?:from|starting\\s+at)\\s*(?:₹|INR|rs\\.?)\\s*(\\d+)",
+        "captureIndex": 1,
+        "expected": 899
+      }
+    ]
+  },
+  {
+    "id": "FACT-RET-001",
+    "clauseId": "AF-005",
+    "key": "return_window_days",
+    "value": 7,
+    "unit": "days",
+    "validFrom": "2026-08-01",
+    "validTo": null,
+    "status": "active",
+    "aliases": ["return window", "returns", "exchange period"],
+    "assertionPatterns": []
+  },
+  {
+    "id": "FACT-PAY-001",
+    "clauseId": "AF-006",
+    "key": "cod_max_limit",
+    "value": 3000,
+    "unit": "INR",
+    "validFrom": "2026-08-01",
+    "validTo": null,
+    "status": "active",
+    "aliases": ["COD threshold", "cash on delivery maximum"],
+    "assertionPatterns": []
+  },
+  {
+    "id": "FACT-DELIV-001",
+    "clauseId": "AF-007",
+    "key": "metro_delivery_days_min",
+    "value": 3,
+    "unit": "business_days",
+    "validFrom": "2026-08-01",
+    "validTo": null,
+    "status": "active",
+    "aliases": ["metro delivery min"],
+    "assertionPatterns": []
+  },
+  {
+    "id": "FACT-DELIV-002",
+    "clauseId": "AF-007",
+    "key": "metro_delivery_days_max",
+    "value": 6,
+    "unit": "business_days",
+    "validFrom": "2026-08-01",
+    "validTo": null,
+    "status": "active",
+    "aliases": ["metro delivery max"],
+    "assertionPatterns": []
+  },
+  {
+    "id": "FACT-POP-001",
+    "clauseId": "AF-010",
+    "key": "bandra_popup_days",
+    "value": "Fri-Sun",
+    "unit": "days_of_week",
+    "validFrom": "2026-08-01",
+    "validTo": null,
+    "status": "active",
+    "aliases": ["Bandra pop-up schedule", "Bandra store opening"],
+    "assertionPatterns": []
+  }
+]

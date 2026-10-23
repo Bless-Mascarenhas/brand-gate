@@ -1,0 +1,57 @@
+[
+  {
+    "id": "ASSET-PALETTE-001",
+    "name": "Brand Color Palette",
+    "type": "palette",
+    "data": {
+      "teal": { "hex": "#0E7C7B", "name": "Thrift Teal", "usage": "Primary brand color" },
+      "marigold": { "hex": "#F2A900", "name": "Marigold", "usage": "CTA buttons and accent hyphen" },
+      "ink": { "hex": "#1B1B1F", "name": "Ink", "usage": "Typography and dark background bands" },
+      "paper": { "hex": "#FAF6EE", "name": "Paper", "usage": "Backgrounds and neutral overlays" },
+      "chili": { "hex": "#D7263D", "name": "Chili", "usage": "Urgent alert badges only" }
+    }
+  },
+  {
+    "id": "ASSET-WORDMARK-001",
+    "name": "Official Wordmark SVG",
+    "type": "svg",
+    "data": {
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 60' width='240' height='60'><rect width='240' height='60' fill='none'/><text x='10' y='42' font-family='Inter, sans-serif' font-weight='900' font-size='34' fill='#1B1B1F' letter-spacing='-1'>Thrift<tspan fill='#F2A900'>-</tspan>It</text></svg>",
+      "viewBox": "0 0 240 60",
+      "width": 240,
+      "height": 60,
+      "clearSpace": 34
+    }
+  },
+  {
+    "id": "ASSET-HASHTAGS-001",
+    "name": "Approved Hashtags Registry",
+    "type": "hashtags",
+    "data": {
+      "primary": "#ThriftIt",
+      "approved": [
+        "#ThriftIt",
+        "#PreLovedFashion",
+        "#CuratedVintage",
+        "#MumbaiThrift",
+        "#BandraVintage",
+        "#DiwaliThriftFest",
+        "#CircularStyle",
+        "#VintageDenim"
+      ],
+      "maxAllowed": 8
+    }
+  },
+  {
+    "id": "ASSET-GREETINGS-001",
+    "name": "Approved Festival Greetings",
+    "type": "greetings",
+    "data": {
+      "diwali": ["Shubh Diwali!", "Happy Diwali, yaaron!", "Bright festive styles this Diwali!"],
+      "eid": ["Eid Mubarak!", "Festive greetings this Eid!"],
+      "christmas": ["Merry Christmas!", "Festive cheer this season!"],
+      "holi": ["Happy Holi!", "Splash of vintage colors this Holi!"],
+      "new_year": ["Happy New Year!", "Fresh vintage drops for the New Year!"]
+    }
+  }
+]

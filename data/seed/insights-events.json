@@ -302,7 +302,7 @@
     ],
     "hallucinations": [
       {
-        "model": "Reviewer A (XAI_MODEL)",
+        "model": "Reviewer A (GROQ_MODEL)",
         "reason": "clauseQuote not found in the cited clause"
       }
     ]
@@ -403,7 +403,7 @@
     "findings": [],
     "hallucinations": [
       {
-        "model": "Reviewer A (XAI_MODEL)",
+        "model": "Reviewer A (GROQ_MODEL)",
         "reason": "clauseId does not exist in the policy pack"
       }
     ]
@@ -513,7 +513,7 @@
     ],
     "hallucinations": [
       {
-        "model": "Reviewer A (XAI_MODEL)",
+        "model": "Reviewer A (GROQ_MODEL)",
         "reason": "postQuote not found in the stated field"
       }
     ]
@@ -628,7 +628,7 @@
     ],
     "hallucinations": [
       {
-        "model": "Reviewer A (XAI_MODEL)",
+        "model": "Reviewer A (GROQ_MODEL)",
         "reason": "clauseId does not exist in the policy pack"
       }
     ]
@@ -1344,7 +1344,7 @@
     ],
     "hallucinations": [
       {
-        "model": "Reviewer A (XAI_MODEL)",
+        "model": "Reviewer A (GROQ_MODEL)",
         "reason": "postQuote not found in the stated field"
       }
     ]
@@ -2084,7 +2084,7 @@
     ],
     "hallucinations": [
       {
-        "model": "Reviewer A (XAI_MODEL)",
+        "model": "Reviewer A (GROQ_MODEL)",
         "reason": "clauseQuote not found in the cited clause"
       }
     ]
@@ -2193,7 +2193,7 @@
         "category": "claims",
         "severity": "major",
         "agreement": "disputed",
-        "source": "grok",
+        "source": "groq",
         "quote": "shop consciously"
       }
     ],
@@ -2515,7 +2515,7 @@
     ],
     "hallucinations": [
       {
-        "model": "Reviewer A (XAI_MODEL)",
+        "model": "Reviewer A (GROQ_MODEL)",
         "reason": "postQuote not found in the stated field"
       }
     ]
@@ -3065,7 +3065,7 @@
     ],
     "hallucinations": [
       {
-        "model": "Reviewer A (XAI_MODEL)",
+        "model": "Reviewer A (GROQ_MODEL)",
         "reason": "clauseQuote not found in the cited clause"
       }
     ]
@@ -3661,7 +3661,7 @@
         "category": "tone",
         "severity": "minor",
         "agreement": "disputed",
-        "source": "grok",
+        "source": "groq",
         "quote": "yaar this drop is lowkey insane"
       }
     ],
@@ -3955,7 +3955,7 @@
     "findings": [],
     "hallucinations": [
       {
-        "model": "Reviewer A (XAI_MODEL)",
+        "model": "Reviewer A (GROQ_MODEL)",
         "reason": "postQuote not found in the stated field"
       }
     ]
@@ -4056,7 +4056,7 @@
         "category": "tone",
         "severity": "major",
         "agreement": "disputed",
-        "source": "grok",
+        "source": "groq",
         "quote": "yaar this drop is lowkey insane"
       }
     ],
@@ -4258,7 +4258,7 @@
         "category": "claims",
         "severity": "minor",
         "agreement": "disputed",
-        "source": "grok",
+        "source": "groq",
         "quote": "shop consciously"
       }
     ],
@@ -4354,7 +4354,7 @@
     "findings": [],
     "hallucinations": [
       {
-        "model": "Reviewer A (XAI_MODEL)",
+        "model": "Reviewer A (GROQ_MODEL)",
         "reason": "postQuote not found in the stated field"
       }
     ]
@@ -4447,7 +4447,7 @@
         "category": "claims",
         "severity": "minor",
         "agreement": "agreed",
-        "source": "grok",
+        "source": "groq",
         "quote": "shop consciously"
       }
     ],
@@ -4750,7 +4750,7 @@
         "category": "regional",
         "severity": "minor",
         "agreement": "disputed",
-        "source": "grok",
+        "source": "groq",
         "quote": "diya and rangoli backdrop"
       }
     ],
@@ -5164,7 +5164,7 @@
         "category": "regional",
         "severity": "minor",
         "agreement": "disputed",
-        "source": "grok",
+        "source": "groq",
         "quote": "diya and rangoli backdrop"
       }
     ],
@@ -5652,7 +5652,7 @@
         "category": "regional",
         "severity": "major",
         "agreement": "agreed",
-        "source": "grok",
+        "source": "groq",
         "quote": "diya and rangoli backdrop"
       }
     ],
@@ -5872,7 +5872,7 @@
         "category": "claims",
         "severity": "major",
         "agreement": "agreed",
-        "source": "grok",
+        "source": "groq",
         "quote": "shop consciously"
       }
     ],
@@ -6875,7 +6875,7 @@
         "category": "tone",
         "severity": "minor",
         "agreement": "disputed",
-        "source": "grok",
+        "source": "groq",
         "quote": "desi chic vibes only"
       }
     ],
@@ -6983,7 +6983,7 @@
     ],
     "hallucinations": [
       {
-        "model": "Reviewer A (XAI_MODEL)",
+        "model": "Reviewer A (GROQ_MODEL)",
         "reason": "clauseId does not exist in the policy pack"
       }
     ]
@@ -7835,7 +7835,7 @@
         "category": "regional",
         "severity": "minor",
         "agreement": "disputed",
-        "source": "grok",
+        "source": "groq",
         "quote": "diya and rangoli backdrop"
       }
     ],
@@ -8031,7 +8031,7 @@
         "category": "tone",
         "severity": "major",
         "agreement": "disputed",
-        "source": "grok",
+        "source": "groq",
         "quote": "yaar this drop is lowkey insane"
       }
     ],
@@ -8318,7 +8318,7 @@
     "findings": [],
     "hallucinations": [
       {
-        "model": "Reviewer A (XAI_MODEL)",
+        "model": "Reviewer A (GROQ_MODEL)",
         "reason": "clauseQuote not found in the cited clause"
       }
     ]
@@ -8583,7 +8583,7 @@
         "category": "regional",
         "severity": "major",
         "agreement": "disputed",
-        "source": "grok",
+        "source": "groq",
         "quote": "diya and rangoli backdrop"
       }
     ],
@@ -8895,7 +8895,7 @@
         "category": "regional",
         "severity": "minor",
         "agreement": "agreed",
-        "source": "grok",
+        "source": "groq",
         "quote": "diya and rangoli backdrop"
       }
     ],
@@ -8989,7 +8989,7 @@
         "category": "regional",
         "severity": "major",
         "agreement": "agreed",
-        "source": "grok",
+        "source": "groq",
         "quote": "diya and rangoli backdrop"
       }
     ],
@@ -9383,7 +9383,7 @@
         "category": "tone",
         "severity": "minor",
         "agreement": "agreed",
-        "source": "grok",
+        "source": "groq",
         "quote": "yaar this drop is lowkey insane"
       }
     ],
@@ -9578,7 +9578,7 @@
     ],
     "hallucinations": [
       {
-        "model": "Reviewer A (XAI_MODEL)",
+        "model": "Reviewer A (GROQ_MODEL)",
         "reason": "postQuote not found in the stated field"
       }
     ]

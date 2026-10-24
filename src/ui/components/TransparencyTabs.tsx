@@ -104,7 +104,7 @@ function ModelsTab() {
           ['Google Gemini (text)', <code key="g">GEMINI_TEXT_MODEL</code>, 'Post drafting (Build), fix suggestions, Compare columns A/B, clarification drafts', 'Brief, routed clause texts and active facts (draft); post + findings (fix); brief + all 8 policy docs (Compare B); one clause + evidence (clarify)', providers.gemini, retention],
           ['Google Gemini (vision)', <code key="v">GEMINI_VISION_MODEL</code>, 'Perceive: structured description of an uploaded image', 'Re-encoded JPEG (max 1080 px, EXIF/GPS removed)', providers.gemini, retention],
           ['Google Gemini (image)', <code key="i">GEMINI_IMAGE_MODEL</code>, 'Base image for Build drafts', 'Image prompt text only', 'needs GEMINI_API_KEY + GEMINI_IMAGE_MODEL (not shown in the status chip)', retention],
-          ['Reviewer A: OpenAI-compatible endpoint (XAI_BASE_URL — xAI, or Groq in the recorded runs)', <code key="x">XAI_MODEL</code>, 'Reviewer A; fallback drafter if Gemini takes over 10 s', 'Post + clauses routed to tone/terminology/messaging/claims/regional', providers.xai, retention],
+          ['Reviewer A: GPT-OSS via Groq', <code key="x">GROQ_MODEL</code>, 'Reviewer A; fallback drafter if Gemini takes over 10 s', 'Post + clauses routed to tone/terminology/messaging/claims/regional', providers.groq, retention],
           ['NVIDIA', <code key="n">NVIDIA_MODEL</code>, 'Reviewer B; cross-examination in thorough mode', 'Post + routed clauses; Reviewer A’s verified findings (cross-check)', providers.nvidia, retention],
           ['Upstash Redis (optional)', <code key="u">UPSTASH_REDIS_REST_URL</code>, 'Rate-limit and daily-budget counters', 'Counter keys containing the client IP and the date; no post content', 'server-only', retention],
           ['Supabase (optional)', <code key="s">SUPABASE_URL</code>, 'Shared key-value storage instead of browser IndexedDB', 'Workflow records, insight events, drafts (only if enabled)', 'server-only', retention],
@@ -122,10 +122,10 @@ function DisclosureTab() {
       <Table
         head={['Artefact', 'Produced by', 'Where it is badged']}
         rows={[
-          ['Draft caption, hashtags, alt text, voice-over script', 'Gemini (or xAI fallback)', 'Build draft card and final card'],
+          ['Draft caption, hashtags, alt text, voice-over script', 'Gemini (or GPT-OSS fallback)', 'Build draft card and final card'],
           ['Base image', 'Gemini image model; wordmark and offer band composited in the browser', 'Build draft card'],
           ['Fix suggestions', 'Gemini (rule dictionary when offline)', 'Verify → Fix Suggestions'],
-          ['Reviewer findings', 'xAI and NVIDIA, then verified by code', 'Verify findings show source model and agreement'],
+          ['Reviewer findings', 'GPT-OSS and NVIDIA, then verified by code', 'Verify findings show source model and agreement'],
           ['Clarification suggestions', 'Gemini, or a deterministic template when offline (labelled as such)', 'Insights → Ambiguity Index'],
           ['Benchmark labels and synthetic posts', 'Written with AI assistance; not human-reviewed (0/60)', 'Compare → Benchmark'],
           ['Illustrative Compare fixtures', 'Hand-written examples, not model output', 'Replay badge “Illustrative fixture”'],
@@ -145,11 +145,11 @@ function DataFlowTab() {
           ['Ingest & purpose extraction', 'No', '—', 'Deterministic, in the browser'],
           ['Perceive (image)', 'Yes', 'Our server → Gemini vision', 'Server re-encodes the image and strips EXIF/GPS before forwarding'],
           ['Deterministic gates', 'Yes', 'Our server (/api/gates)', 'No model involved'],
-          ['Independent review', 'Yes', 'Our server → xAI and NVIDIA', 'Post wrapped in <post> delimiters as untrusted data, routed clauses only'],
+          ['Independent review', 'Yes', 'Our server → GPT-OSS and NVIDIA', 'Post wrapped in <post> delimiters as untrusted data, routed clauses only'],
           ['Citation verifier, consensus, scoring', 'No', '—', 'Pure TypeScript in the browser'],
           ['Cross-examination (thorough)', 'Yes', 'Our server → NVIDIA', 'Reviewer A’s verified findings + routed clauses'],
-          ['Build drafting / image', 'Yes', 'Our server → Gemini (xAI fallback)', 'Brief, routed clauses, active facts; image prompt'],
-          ['Compare live run', 'Yes', 'Our server → Gemini, xAI, NVIDIA', 'Column B sends all 8 policy documents by design (that is what it measures)'],
+          ['Build drafting / image', 'Yes', 'Our server → Gemini (GPT-OSS fallback)', 'Brief, routed clauses, active facts; image prompt'],
+          ['Compare live run', 'Yes', 'Our server → Gemini, GPT-OSS, NVIDIA', 'Column B sends all 8 policy documents by design (that is what it measures)'],
           ['Workflow, comments, audit log, insights, feedback', 'No (default)', 'Browser IndexedDB', 'With NEXT_PUBLIC_STORAGE_MODE=supabase: our server (/api/storage) → Supabase'],
           ['Replay mode', 'No model calls', 'Our server (/api/replay) reads recorded files', 'Works without any API key'],
         ]}

@@ -49,7 +49,7 @@ Left sidebar sections (final order):
 
 ## 3. Tech stack and Vercel constraints
 
-- Next.js (latest stable, App Router), TypeScript strict, Tailwind CSS, `lucide-react`, `recharts`, `zod`, `diff`, `vitest`, `idb-keyval`, `sharp` (server, Node runtime only), `@google/genai` (Gemini), `openai` SDK (used for the OpenAI-compatible xAI and NVIDIA endpoints).
+- Next.js (latest stable, App Router), TypeScript strict, Tailwind CSS, `lucide-react`, `recharts`, `zod`, `diff`, `vitest`, `idb-keyval`, `sharp` (server, Node runtime only), `@google/genai` (Gemini), `openai` SDK (used for the OpenAI-compatible GPT-OSS and NVIDIA endpoints).
 - All API routes: `export const runtime = 'nodejs'; export const maxDuration = 60;` (confirm what the Vercel plan allows; design every step to finish in well under 30 s).
 - **No persistent server filesystem on Vercel.** The seed policy pack ships in the repo as read-only files. User edits, drafts, runs, comments and history live in the browser (IndexedDB/localStorage) behind a storage adapter interface. Implement an optional Supabase adapter (Phase 8) behind the same interface, enabled only when env vars exist.
 - **Stateless server, stepwise pipeline.** The server exposes small single-purpose endpoints (perceive, gates, review, crosscheck, adjudicate, fix, generate, image). The CLIENT-side orchestrator (a state machine in a `usePipeline` hook) calls them in sequence and streams a live trace. This avoids function timeouts.
@@ -66,9 +66,9 @@ GEMINI_API_KEY=
 GEMINI_TEXT_MODEL=
 GEMINI_VISION_MODEL=
 GEMINI_IMAGE_MODEL=
-XAI_API_KEY=
-XAI_BASE_URL=https://api.x.ai/v1
-XAI_MODEL=
+GROQ_API_KEY=
+GROQ_BASE_URL=https://api.x.ai/v1
+GROQ_MODEL=
 NVIDIA_API_KEY=
 NVIDIA_BASE_URL=https://integrate.api.nvidia.com/v1
 NVIDIA_MODEL=
@@ -93,7 +93,7 @@ app/
   (shell)/layout.tsx                # sidebar + topbar (role switcher, demo date, mode badge)
   start/ company/ build/ verify/ compare/ workflow/ insights/ transparency/
   api/
-    llm/review/route.ts             # reviewer call (provider = grok | nvidia)
+    llm/review/route.ts             # reviewer call (provider = groq | nvidia)
     llm/crosscheck/route.ts
     llm/generate/route.ts           # Gemini text: post package
     llm/image/route.ts              # Gemini image
@@ -143,7 +143,7 @@ interface PostContent {
 interface Purpose { summary: string; product?: string; offer?: string; cta?: string; audience?: string; requiredElements: string[]; }
 
 interface Finding {
-  id: string; source: 'gate'|'grok'|'nvidia'|'crosscheck';
+  id: string; source: 'gate'|'groq'|'nvidia'|'crosscheck';
   category: Category; severity: Severity;
   clauseId: string; clauseQuote: string;       // must be substring of clause.text (normalised)
   postField: 'caption'|'hashtags'|'alt_text'|'image'|'meta'; postQuote: string; // must be substring of the field
@@ -154,7 +154,7 @@ interface Finding {
 }
 interface Verdict { status: 'BLOCKED'|'REVISE'|'READY_FOR_HUMAN'; score: number; gatesFailed: string[]; needsHuman: string[]; hallucinationsBlocked: number; }
 interface RunTrace { id; packHash; mode:'fast'|'thorough'; steps: TraceEvent[]; llmCalls: LlmCallLog[]; verdict: Verdict; findings: Finding[]; }
-interface LlmCallLog { provider:'gemini'|'xai'|'nvidia'; model:string; purpose:string; clauseIdsSent:string[]; tokensIn?:number; tokensOut?:number; ms:number; ok:boolean; }
+interface LlmCallLog { provider:'gemini'|'groq'|'nvidia'; model:string; purpose:string; clauseIdsSent:string[]; tokensIn?:number; tokensOut?:number; ms:number; ok:boolean; }
 ```
 
 ---
@@ -217,7 +217,7 @@ Write a unit test that computes the real contrast of Marigold on Paper and asser
 ## 9. LLM layer (`src/llm`)
 
 One `callLLM({ provider, system, user, schema, purpose, clauseIdsSent })` that:
-- supports providers `gemini` (via `@google/genai`), `xai` and `nvidia` (via `openai` SDK with `baseURL`, model from env);
+- supports providers `gemini` (via `@google/genai`), `groq` and `nvidia` (via `openai` SDK with `baseURL`, model from env);
 - requests JSON output (use the provider's JSON mode if available), extracts JSON tolerant of code fences, validates with zod, and does ONE repair re-prompt on failure;
 - applies a 45 s timeout, one retry with backoff on 429/5xx, and records an `LlmCallLog`;
 - enforces the daily call budget and the access code at the route level;
@@ -234,7 +234,7 @@ Category → documents routing map in `src/kb/routing.ts` (for example tone → 
 1. **Ingest** the post. Extract `Purpose` (LLM, Gemini text).
 2. **Perceive** (only if an image exists): Gemini vision returns structured JSON `{ visibleText[], garmentDescription, setting, peoplePresent, logoVisible, otherBrandLogosVisible[], heavyFilters, textLegibility, claimsInImage[] }`. In code, compute aspect ratio, byte size and dominant colours (downsample with sharp, k-means in TypeScript). Perception output feeds gates and reviewers as structured text, so the text-only reviewers never need to see pixels.
 3. **Gates**: run the rule engine. Hard-gate findings are final and not debatable.
-4. **Independent review (round 0)**: Grok reviewer and NVIDIA reviewer run in parallel on the soft categories (tone, messaging, visual feel, regional fit, subtle claims) with routed clauses. Neither sees the other's output.
+4. **Independent review (round 0)**: GPT-OSS reviewer and NVIDIA reviewer run in parallel on the soft categories (tone, messaging, visual feel, regional fit, subtle claims) with routed clauses. Neither sees the other's output.
 5. **Citation verifier**: drop and count any finding whose `clauseId` does not exist, whose `clauseQuote` is not in that clause (normalise whitespace, case, quotes, punctuation; allow token-Jaccard ≥ 0.9 fallback), or whose `postQuote` is not in the stated field.
 6. **Cross-examination (round 1)**: each reviewer receives the OTHER's verified findings and labels each `agree | disagree(reason, clause) `, and may add new verified findings. In `thorough` mode, unresolved disagreements get ONE rebuttal round. `fast` mode skips rebuttal.
 7. **Consensus (code)**: both agree → `agreed`. One source only → `single_source` (kept if minor or below; if major or critical it is flagged `needsHuman`). Disagreement → `disputed` (zero penalty, shown to the human with both arguments, logged to the clause for Insights).
@@ -317,7 +317,7 @@ All charts from stored runs and events (seeded history of about 120 events label
 
 Clean, professional, light theme with a dark-mode toggle, readable at laptop width, usable on mobile. App name configurable (`APP_NAME`, default "Brand Gate"). Distinguish the app's UI colours from the Thrift-It brand palette.
 
-- **Start here**: hero statement; three-column "Bare AI / AI with policies / Governed" teaser; interactive architecture diagram (SVG) with nodes: Content sources → Gates → Reviewer A (Grok) / Reviewer B (NVIDIA) → Citation verifier → Consensus → Verdict → Human approval → Publish; Knowledge Base feeding Gates and Reviewers; Gemini (perception, generation). A "Guided tour" with 5 steps that navigates the app and highlights features. A "Run the 90-second demo" button that plays a recorded run from `data/replay/`.
+- **Start here**: hero statement; three-column "Bare AI / AI with policies / Governed" teaser; interactive architecture diagram (SVG) with nodes: Content sources → Gates → Reviewer A (GPT-OSS) / Reviewer B (NVIDIA) → Citation verifier → Consensus → Verdict → Human approval → Publish; Knowledge Base feeding Gates and Reviewers; Gemini (perception, generation). A "Guided tour" with 5 steps that navigates the app and highlights features. A "Run the 90-second demo" button that plays a recorded run from `data/replay/`.
 - **Company**: tabs for the 8 documents (rendered markdown, clause anchors, version/effective date, edit mode with version history), Facts (table with validity status badges), Rules (table with clause links, type, severity, coverage), Assets (palette swatches, wordmark, hashtags). Edits re-index clauses and bump the pack hash.
 - **Build**: section 12.
 - **Verify**: left: input panel (caption, hashtags, alt text, image upload, format, paid-partnership toggle, language, "load sample post" dropdown with the 12 samples from section 21, mode fast/thorough). Right: live stepper, verdict banner, score gauge, hard-gate checklist, findings table (category, severity, clause link, post quote highlighted in the post, explanation, suggested fix with diff, agreement chips, "verified" badge, which models), collapsible debate transcript, data-flow panel, "Apply safe fixes", "Re-verify", "Send to review".

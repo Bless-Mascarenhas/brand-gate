@@ -179,7 +179,7 @@ export type DisputeNote = z.infer<typeof DisputeNoteSchema>;
 
 export const FindingSchema = z.object({
   id: z.string(),
-  source: z.enum(['gate', 'grok', 'nvidia', 'crosscheck']),
+  source: z.enum(['gate', 'groq', 'nvidia', 'crosscheck']),
   category: CategorySchema,
   severity: SeveritySchema,
   clauseId: z.string(),
@@ -216,7 +216,7 @@ export const TraceEventSchema = z.object({
 export type TraceEvent = z.infer<typeof TraceEventSchema>;
 
 export const LlmCallLogSchema = z.object({
-  provider: z.enum(['gemini', 'xai', 'nvidia']),
+  provider: z.enum(['gemini', 'groq', 'nvidia']),
   model: z.string(),
   purpose: z.string(),
   clauseIdsSent: z.array(z.string()),

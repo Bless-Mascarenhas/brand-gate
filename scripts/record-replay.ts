@@ -30,12 +30,12 @@ import { LlmCallLog, PostContent } from '@/src/types';
 
 const args = process.argv.slice(2);
 const demoDate = process.env.DEMO_TODAY || '2026-10-24';
-const keys = { gemini: Boolean(process.env.GEMINI_API_KEY), xai: Boolean(process.env.XAI_API_KEY), nvidia: Boolean(process.env.NVIDIA_API_KEY) };
+const keys = { gemini: Boolean(process.env.GEMINI_API_KEY), groq: Boolean(process.env.GROQ_API_KEY), nvidia: Boolean(process.env.NVIDIA_API_KEY) };
 const forceDeterministic = args.includes('--deterministic');
-/** --reviewers xai,nvidia (default: every reviewer whose key is configured). */
+/** --reviewers groq,nvidia (default: every reviewer whose key is configured). */
 const reviewerArg = (() => { const i = process.argv.indexOf('--reviewers'); return i >= 0 ? process.argv[i + 1] : null; })();
-const reviewerProviders = (reviewerArg ? reviewerArg.split(',') : ['xai', 'nvidia']).filter((p): p is 'xai' | 'nvidia' => (p === 'xai' || p === 'nvidia') && keys[p]);
-const skippedReviewers = (['xai', 'nvidia'] as const).filter((p) => !reviewerProviders.includes(p));
+const reviewerProviders = (reviewerArg ? reviewerArg.split(',') : ['groq', 'nvidia']).filter((p): p is 'groq' | 'nvidia' => (p === 'groq' || p === 'nvidia') && keys[p]);
+const skippedReviewers = (['groq', 'nvidia'] as const).filter((p) => !reviewerProviders.includes(p));
 const reviewersLive = !forceDeterministic && reviewerProviders.length > 0;
 const compareLive = !forceDeterministic && keys.gemini && reviewersLive;
 const reviewerNote = skippedReviewers.length ? ` Reviewer(s) not run: ${skippedReviewers.join(', ')} (${process.env.BENCHMARK_SKIP_REASON || 'not configured or excluded with --reviewers'}).` : '';
@@ -150,7 +150,7 @@ async function recordCompare() {
       notes = [
         'No provider credentials were available when this was recorded.',
         'Columns A and B are hand-written illustrations, not model output. All three are scored by the real gate engine.',
-        'Run `npm run record-replay` with GEMINI, XAI and NVIDIA keys to replace this with a live recording.',
+        'Run `npm run record-replay` with GEMINI, GROQ and NVIDIA keys to replace this with a live recording.',
       ];
     }
     write({

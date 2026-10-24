@@ -155,13 +155,13 @@ for (let i = 0; i < 98; i++) {
   if (rnd() < 0.35) {
     const v = pick(VAGUE);
     findings.push({
-      id: `seed-${i}-llm`, source: pick(['grok', 'nvidia'] as const), category: v.category, severity: rnd() < 0.5 ? 'minor' : 'major',
+      id: `seed-${i}-llm`, source: pick(['groq', 'nvidia'] as const), category: v.category, severity: rnd() < 0.5 ? 'minor' : 'major',
       clauseId: v.clauseId, clauseQuote: '', postField: 'caption', postQuote: v.quote, explanation: v.reason,
       autoFixable: false, confidence: 0.6, verified: true, agreement: rnd() < 0.7 ? 'disputed' : 'agreed',
     });
   }
   const hallucinations = rnd() < 0.25
-    ? [{ model: pick(['Reviewer A (XAI_MODEL)', 'Reviewer B (NVIDIA_MODEL)']), reason: pick(HALLUCINATION_REASONS) }]
+    ? [{ model: pick(['Reviewer A (GROQ_MODEL)', 'Reviewer B (NVIDIA_MODEL)']), reason: pick(HALLUCINATION_REASONS) }]
     : [];
   const verdict = computeScoreAndVerdict(findings, gate.gatesFailed, hallucinations.length).verdict;
   const ev: CheckEvent = {

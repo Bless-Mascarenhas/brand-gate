@@ -35,7 +35,7 @@ export interface GovernedReviewOptions {
   /** false = deterministic stages only (no reviewer calls), e.g. when no keys are configured. */
   reviewers?: boolean;
   /** Which independent reviewers to call (default both). A reviewer left out is recorded as not run, not as a failure. */
-  reviewerProviders?: ('xai' | 'nvidia')[];
+  reviewerProviders?: ('groq' | 'nvidia')[];
 }
 
 export interface GovernedReviewResult {
@@ -57,7 +57,7 @@ export interface GovernedReviewResult {
 const str = (v: unknown, fallback = '') => (typeof v === 'string' ? v : fallback);
 
 /** Coerce a model's raw finding into the Finding shape; the verifier then decides if it is real. */
-function toFinding(raw: Record<string, unknown>, source: 'grok' | 'nvidia', i: number): Finding {
+function toFinding(raw: Record<string, unknown>, source: 'groq' | 'nvidia', i: number): Finding {
   return {
     id: `${source}-${i}`,
     source,
@@ -77,7 +77,7 @@ function toFinding(raw: Record<string, unknown>, source: 'grok' | 'nvidia', i: n
 }
 
 export async function runGovernedReview(post: PostContent, pack: PolicyPack, opts: GovernedReviewOptions = {}): Promise<GovernedReviewResult> {
-  const { demoDate = '2026-10-24', mode = 'fast', llm = callLLM, reviewers = true, reviewerProviders = ['xai', 'nvidia'] } = opts;
+  const { demoDate = '2026-10-24', mode = 'fast', llm = callLLM, reviewers = true, reviewerProviders = ['groq', 'nvidia'] } = opts;
   const steps: PipelineStep[] = [];
   const llmCalls: LlmCallLog[] = [];
   const errors: string[] = [];
@@ -96,14 +96,14 @@ export async function runGovernedReview(post: PostContent, pack: PolicyPack, opt
   } else {
     const routed = getRoutedClausesForCategories(SOFT_CATEGORIES, pack);
     const clauseIds = routed.map((c) => c.id);
-    const call = (provider: 'xai' | 'nvidia') => {
+    const call = (provider: 'groq' | 'nvidia') => {
       const { system, user } = buildReviewerPrompt({ providerName: provider, routedClauses: routed, post });
       return llm<{ findings: Record<string, unknown>[] }>({ provider, system, user, purpose: `${provider} independent soft-review`, clauseIdsSent: clauseIds });
     };
-    const useA = reviewerProviders.includes('xai');
+    const useA = reviewerProviders.includes('groq');
     const useB = reviewerProviders.includes('nvidia');
-    const [a, b] = await Promise.all([useA ? call('xai') : null, useB ? call('nvidia') : null]);
-    for (const [res, source, set] of [[a, 'grok', (x: Finding[]) => (rawA = x)], [b, 'nvidia', (x: Finding[]) => (rawB = x)]] as const) {
+    const [a, b] = await Promise.all([useA ? call('groq') : null, useB ? call('nvidia') : null]);
+    for (const [res, source, set] of [[a, 'groq', (x: Finding[]) => (rawA = x)], [b, 'nvidia', (x: Finding[]) => (rawB = x)]] as const) {
       if (!res) continue;
       llmCalls.push(res.log);
       if (res.ok) set((Array.isArray(res.data?.findings) ? res.data!.findings : []).map((f, i) => toFinding(f, source, i)));
@@ -111,14 +111,14 @@ export async function runGovernedReview(post: PostContent, pack: PolicyPack, opt
     }
     const called = Number(useA) + Number(useB);
     const label = (used: boolean, n: number) => (used ? String(n) : 'not run');
-    steps.push({ step: 'Independent Review', status: errors.length === called ? 'failed' : 'completed', message: `Reviewer A (XAI_MODEL): ${label(useA, rawA.length)}, Reviewer B (NVIDIA_MODEL): ${label(useB, rawB.length)}` });
+    steps.push({ step: 'Independent Review', status: errors.length === called ? 'failed' : 'completed', message: `Reviewer A (GROQ_MODEL): ${label(useA, rawA.length)}, Reviewer B (NVIDIA_MODEL): ${label(useB, rawB.length)}` });
   }
 
   const raw = [...rawA, ...rawB];
   const verification = verifyCitations(raw, pack, post);
   steps.push({ step: 'Citation Verifier', status: 'completed', message: `${verification.verifiedFindings.length} verified, ${verification.hallucinationsBlocked} hallucinated citations blocked` });
 
-  const verifiedA = verification.verifiedFindings.filter((f) => f.source === 'grok');
+  const verifiedA = verification.verifiedFindings.filter((f) => f.source === 'groq');
   const verifiedB = verification.verifiedFindings.filter((f) => f.source === 'nvidia');
   let evaluationsFromB: CrosscheckEvaluation[] = [];
   if (mode === 'thorough' && verifiedA.length > 0) {

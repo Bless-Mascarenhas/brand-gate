@@ -69,7 +69,7 @@ export const AccessModal: React.FC = () => {
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             <p className="text-sm text-slate-600 dark:text-slate-300">
-              Enter the demo access code to unlock live Gemini, xAI, and NVIDIA endpoints. Default demo code: <code className="bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded text-indigo-600 dark:text-indigo-400 font-mono text-xs">brandgate2026</code>
+              Enter the demo access code to unlock live Gemini, GPT-OSS, and NVIDIA endpoints. Default demo code: <code className="bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded text-indigo-600 dark:text-indigo-400 font-mono text-xs">brandgate2026</code>
             </p>
 
             {error && (

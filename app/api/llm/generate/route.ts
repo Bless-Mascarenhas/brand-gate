@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
       originalPurpose,
     });
 
-    // Attempt Gemini with a 10s fast-race; if Gemini is slow/rate-limited, fallback immediately to Groq (XAI)
+    // Attempt Gemini with a 10s fast-race; if Gemini is slow/rate-limited, fallback immediately to Groq
     const geminiCall = callLLM<{
       caption: string;
       hashtags: string[];
@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
 
     let finalResult = raceResult && raceResult.ok ? raceResult : null;
 
-    if (!finalResult && process.env.XAI_API_KEY) {
+    if (!finalResult && process.env.GROQ_API_KEY?.trim()) {
       finalResult = await callLLM<{
         caption: string;
         hashtags: string[];
@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
         marketingScript: string;
         purpose: any;
       }>({
-        provider: 'xai',
+        provider: 'groq',
         system,
         user,
         purpose: `Post drafting generation fast fallback (Iteration ${iteration})`,

@@ -34,12 +34,12 @@ const splitArg = opt('split', 'all') as 'dev' | 'test' | 'all';
 const mode = opt('mode', 'fast') as 'fast' | 'thorough';
 const offline = flag('offline');
 const demoDate = process.env.DEMO_TODAY || '2026-10-24';
-const keys = { gemini: Boolean(process.env.GEMINI_API_KEY), xai: Boolean(process.env.XAI_API_KEY), nvidia: Boolean(process.env.NVIDIA_API_KEY) };
+const keys = { gemini: Boolean(process.env.GEMINI_API_KEY), groq: Boolean(process.env.GROQ_API_KEY), nvidia: Boolean(process.env.NVIDIA_API_KEY) };
 const baselineLive = !offline && keys.gemini;
-/** --reviewers xai,nvidia (default: every reviewer whose key is configured). */
+/** --reviewers groq,nvidia (default: every reviewer whose key is configured). */
 const reviewerArg = (() => { const i = process.argv.indexOf('--reviewers'); return i >= 0 ? process.argv[i + 1] : null; })();
-const reviewerProviders = (reviewerArg ? reviewerArg.split(',') : ['xai', 'nvidia']).filter((p): p is 'xai' | 'nvidia' => (p === 'xai' || p === 'nvidia') && keys[p]);
-const skippedReviewers = (['xai', 'nvidia'] as const).filter((p) => !reviewerProviders.includes(p));
+const reviewerProviders = (reviewerArg ? reviewerArg.split(',') : ['groq', 'nvidia']).filter((p): p is 'groq' | 'nvidia' => (p === 'groq' || p === 'nvidia') && keys[p]);
+const skippedReviewers = (['groq', 'nvidia'] as const).filter((p) => !reviewerProviders.includes(p));
 const reviewersLive = !offline && reviewerProviders.length > 0;
 
 const root = process.cwd();
@@ -55,7 +55,7 @@ async function runBaseline(p: BenchmarkPost): Promise<Prediction & { ms: number;
   const { system, user } = buildSingleModelReviewerPrompt(pack, p.post);
   const res = await llm<{ findings: Record<string, unknown>[] }>({ provider: 'gemini', system, user, purpose: 'benchmark single-model baseline', clauseIdsSent: pack.clauses.map((c) => c.id) });
   const raw: Finding[] = (res.ok && Array.isArray(res.data?.findings) ? res.data!.findings : []).map((f, i) => ({
-    id: `base-${i}`, source: 'grok', category: String(f.category ?? 'tone') as Category, severity: (['critical', 'major', 'minor', 'info'].includes(String(f.severity)) ? f.severity : 'minor') as Finding['severity'],
+    id: `base-${i}`, source: 'groq', category: String(f.category ?? 'tone') as Category, severity: (['critical', 'major', 'minor', 'info'].includes(String(f.severity)) ? f.severity : 'minor') as Finding['severity'],
     clauseId: String(f.clauseId ?? ''), clauseQuote: String(f.clauseQuote ?? ''), postField: (['caption', 'hashtags', 'alt_text', 'image', 'meta'].includes(String(f.postField)) ? f.postField : 'caption') as Finding['postField'],
     postQuote: String(f.postQuote ?? ''), explanation: String(f.explanation ?? ''), autoFixable: false, confidence: 1, verified: false, agreement: 'single_source',
   }));
@@ -126,12 +126,12 @@ async function main() {
       mode,
       execution: reviewersLive && baselineLive && skippedReviewers.length === 0 ? 'live' : reviewersLive || baselineLive ? 'partial_live' : 'deterministic_only',
       providersConfigured: keys,
-      models: { gemini: process.env.GEMINI_TEXT_MODEL ?? null, xai: process.env.XAI_MODEL ?? null, nvidia: process.env.NVIDIA_MODEL ?? null },
+      models: { gemini: process.env.GEMINI_TEXT_MODEL ?? null, groq: process.env.GROQ_MODEL ?? null, nvidia: process.env.NVIDIA_MODEL ?? null },
       labelsHumanReviewed: `${dataset.posts.filter((p) => p.labelsReviewed).length}/${dataset.posts.length}`,
       caveats: [
         'Synthetic posts and labels written by the same author as the system; small N; not statistically conclusive.',
         reviewersLive && skippedReviewers.length ? `Governed system ran with reviewer(s) ${reviewerProviders.join(' + ')} only; ${skippedReviewers.join(' + ')} not run (${process.env.BENCHMARK_SKIP_REASON || 'not configured or excluded with --reviewers'}). Without a second reviewer there is no cross-model agreement or debate.` : null,
-        reviewersLive ? null : 'Governed system ran its deterministic stages only (gates, verifier, scoring); LLM reviewers were not called because XAI_API_KEY/NVIDIA_API_KEY were not configured or --offline was set.',
+        reviewersLive ? null : 'Governed system ran its deterministic stages only (gates, verifier, scoring); LLM reviewers were not called because GROQ_API_KEY/NVIDIA_API_KEY were not configured or --offline was set.',
         baselineLive ? null : 'Baseline (single model + policies) was NOT run because GEMINI_API_KEY was not configured or --offline was set; no baseline numbers exist for this run.',
       ].filter(Boolean),
     },

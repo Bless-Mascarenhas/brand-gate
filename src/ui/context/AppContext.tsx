@@ -5,7 +5,7 @@ import { Role } from '@/src/types';
 
 export interface ProviderStatus {
   gemini: 'configured' | 'missing' | 'failing';
-  xai: 'configured' | 'missing' | 'failing';
+  groq: 'configured' | 'missing' | 'failing';
   nvidia: 'configured' | 'missing' | 'failing';
 }
 
@@ -39,7 +39,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isAccessModalOpen, setIsAccessModalOpen] = useState<boolean>(false);
   const [providers, setProviders] = useState<ProviderStatus>({
     gemini: 'missing',
-    xai: 'missing',
+    groq: 'missing',
     nvidia: 'missing',
   });
 
@@ -129,7 +129,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     } catch {
       // offline fallback
-      setProviders({ gemini: 'missing', xai: 'missing', nvidia: 'missing' });
+      setProviders({ gemini: 'missing', groq: 'missing', nvidia: 'missing' });
     }
   };
 

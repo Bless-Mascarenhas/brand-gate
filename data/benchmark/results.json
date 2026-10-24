@@ -11,18 +11,18 @@
     "execution": "deterministic_only",
     "providersConfigured": {
       "gemini": false,
-      "xai": false,
+      "groq": false,
       "nvidia": false
     },
     "models": {
       "gemini": null,
-      "xai": null,
+      "groq": null,
       "nvidia": null
     },
     "labelsHumanReviewed": "0/60",
     "caveats": [
       "Synthetic posts and labels written by the same author as the system; small N; not statistically conclusive.",
-      "Governed system ran its deterministic stages only (gates, verifier, scoring); LLM reviewers were not called because XAI_API_KEY/NVIDIA_API_KEY were not configured or --offline was set.",
+      "Governed system ran its deterministic stages only (gates, verifier, scoring); LLM reviewers were not called because GROQ_API_KEY/NVIDIA_API_KEY were not configured or --offline was set.",
       "Baseline (single model + policies) was NOT run because GEMINI_API_KEY was not configured or --offline was set; no baseline numbers exist for this run."
     ]
   },

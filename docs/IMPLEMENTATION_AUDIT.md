@@ -23,7 +23,7 @@ Phase 7 and 8 detail (with evidence) lives in `docs/PHASE_7_8_AUDIT.md`; this fi
 | 3 | ≥60 rule-engine tests | `src/rules/__tests__` | 50 (38+7+5) | PARTIALLY IMPLEMENTED | Add tests per rule type |
 | 4 | Providers, JSON repair, retry, contract tests | `src/llm` | Contract tests pass (mocked) | COMPLETE AND VERIFIED (mocked); live BLOCKED BY EXTERNAL DEPENDENCY | — |
 | 4 | 45 s timeout | `src/llm/callLLM.ts` | 60 s (message says 45 s) | BROKEN | Set 45 s |
-| 4 | Model IDs only from env (§0, §24) | `callLLM.ts`, `perceive/route.ts` | Hardcoded fallbacks `gemini-2.0-flash`, `grok-2-latest`, `meta/llama-3.1-70b-instruct` | BROKEN | Require env; report missing |
+| 4 | Model IDs only from env (§0, §24) | `callLLM.ts`, `perceive/route.ts` | Hardcoded fallbacks `gemini-2.0-flash`, `groq-2-latest`, `meta/llama-3.1-70b-instruct` | BROKEN | Require env; report missing |
 | 4 | Budget + per-IP rate limiting (Upstash if configured) | `gatekeeper.ts` | In-memory daily budget only; **no per-IP limiting, no Upstash** | PARTIALLY IMPLEMENTED | Add per-IP limiter + optional Upstash counters |
 | 5 | Verify pipeline, verifier, consensus, scoring, trace, data-flow | `src/pipeline/usePipeline.ts`, `src/verify`, `app/(shell)/verify` | Implemented; tests for verifier/scoring/consensus | COMPLETE AND VERIFIED (deterministic); live reviewers BLOCKED BY EXTERNAL DEPENDENCY | — |
 | 5 | Architecture diagram highlights active node during a run | verify page | No diagram on Verify | MISSING | Diagram component fed by the live trace |
@@ -73,4 +73,4 @@ Phase 7 and 8 detail (with evidence) lives in `docs/PHASE_7_8_AUDIT.md`; this fi
 - `npm run record-replay -- --check` → 18/18 valid.
 - `npm run benchmark` (deterministic only, no keys) → held-out test split: precision 100%, recall 74.1%, clean false-positive rate 0%; baseline not run.
 - `npm run calibrate` → 324 configurations on 30 dev posts, 0 held-out posts used.
-- Live provider tests: **not run** — no GEMINI, XAI or NVIDIA credentials were available.
+- Live provider tests: **not run** — no GEMINI, GROQ or NVIDIA credentials were available.

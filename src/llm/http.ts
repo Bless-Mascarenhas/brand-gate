@@ -28,7 +28,7 @@ export async function readJsonBody<S extends ZodTypeAny>(req: NextRequest, schem
   return { ok: true, data: parsed.data };
 }
 
-const Provider = z.enum(['gemini', 'xai', 'nvidia']);
+const Provider = z.enum(['gemini', 'groq', 'nvidia']);
 const ShortText = (max: number) => z.string().max(max);
 const Findings = z.array(FindingSchema).max(50);
 

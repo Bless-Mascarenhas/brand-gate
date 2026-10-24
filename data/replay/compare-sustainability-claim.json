@@ -11,7 +11,7 @@
   "notes": [
     "No provider credentials were available when this was recorded.",
     "Columns A and B are hand-written illustrations, not model output. All three are scored by the real gate engine.",
-    "Run `npm run record-replay` with GEMINI, XAI and NVIDIA keys to replace this with a live recording."
+    "Run `npm run record-replay` with GEMINI, GROQ and NVIDIA keys to replace this with a live recording."
   ],
   "scenarioId": "sustainability-claim",
   "brief": "Write a post saying thrifting with us is eco-friendly and every tee saves 2,000 litres of water.",

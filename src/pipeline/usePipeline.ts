@@ -203,14 +203,14 @@ export function usePipeline(options: UsePipelineOptions = {}) {
         let reviewerBFindings: Finding[] = [];
 
         if (!hasCriticalGate && mode === 'live') {
-          addTrace('Independent Review', 'Launching parallel independent reviews (Reviewer A: XAI_MODEL, Reviewer B: NVIDIA_MODEL)...', 'running');
+          addTrace('Independent Review', 'Launching parallel independent reviews (Reviewer A: GROQ_MODEL, Reviewer B: NVIDIA_MODEL)...', 'running');
 
           const [resA, resB] = await Promise.allSettled([
             fetch('/api/llm/review', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                provider: 'xai', // Grok / Groq
+                provider: 'groq',
                 post,
                 categories: ['tone', 'terminology', 'messaging', 'claims', 'regional'],
                 perceptionText: perceptionData ? JSON.stringify(perceptionData) : undefined,
@@ -231,8 +231,8 @@ export function usePipeline(options: UsePipelineOptions = {}) {
           if (resA.status === 'fulfilled' && resA.value?.findings) {
             reviewerAFindings = resA.value.findings.map((f: any, idx: number) => ({
               ...f,
-              id: `grok-${Date.now()}-${idx}`,
-              source: 'grok',
+              id: `groq-${Date.now()}-${idx}`,
+              source: 'groq',
               confidence: 0.9,
               verified: false,
               agreement: 'single_source',
@@ -293,7 +293,7 @@ export function usePipeline(options: UsePipelineOptions = {}) {
               body: JSON.stringify({
                 provider: 'nvidia',
                 otherProvider: 'Reviewer A',
-                findings: verification.verifiedFindings.filter((f) => f.source === 'grok'),
+                findings: verification.verifiedFindings.filter((f) => f.source === 'groq'),
                 post,
               }),
             });
@@ -311,7 +311,7 @@ export function usePipeline(options: UsePipelineOptions = {}) {
 
         // STEP 7: CONSENSUS ADJUDICATION (Pure Code)
         addTrace('Consensus', 'Adjudicating consensus and classifying findings (agreed / disputed / single_source)...', 'running');
-        const verifiedA = verification.verifiedFindings.filter((f) => f.source === 'grok');
+        const verifiedA = verification.verifiedFindings.filter((f) => f.source === 'groq');
         const verifiedB = verification.verifiedFindings.filter((f) => f.source === 'nvidia');
 
         const adjudicatedLlmFindings = adjudicateConsensus({

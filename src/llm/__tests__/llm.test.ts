@@ -60,23 +60,23 @@ describe('LLM Layer & Contract Tests (Phase 4)', () => {
       if (originalKey) process.env.GEMINI_API_KEY = originalKey;
     });
 
-    it('returns typed error and suggests Replay mode when xAI key is missing', async () => {
-      const originalKey = process.env.XAI_API_KEY;
-      delete process.env.XAI_API_KEY;
+    it('returns typed error and suggests Replay mode when Groq key is missing', async () => {
+      const originalKey = process.env.GROQ_API_KEY;
+      delete process.env.GROQ_API_KEY;
 
       const result = await callLLM({
-        provider: 'xai',
+        provider: 'groq',
         system: 'System prompt',
         user: 'User prompt',
-        purpose: 'Unit test xAI missing key',
+        purpose: 'Unit test Groq missing key',
         clauseIdsSent: ['BV-001'],
       });
 
       expect(result.ok).toBe(false);
       expect(result.modeSuggestion).toBe('replay');
-      expect(result.error).toContain('XAI_API_KEY is not configured');
+      expect(result.error).toContain('GROQ_API_KEY is not configured');
 
-      if (originalKey) process.env.XAI_API_KEY = originalKey;
+      if (originalKey) process.env.GROQ_API_KEY = originalKey;
     });
 
     it('returns typed error and suggests Replay mode when NVIDIA key is missing', async () => {
@@ -113,7 +113,7 @@ describe('LLM Layer & Contract Tests (Phase 4)', () => {
 
     it('wraps post in <post> delimiters and declares it as untrusted data', () => {
       const prompt = buildReviewerPrompt({
-        providerName: 'Grok',
+        providerName: 'GPT-OSS',
         routedClauses: sampleClauses,
         post: samplePost,
       });

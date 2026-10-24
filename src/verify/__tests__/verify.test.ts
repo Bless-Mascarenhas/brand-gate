@@ -21,7 +21,7 @@ describe('Verify Pipeline Core Engines (Phase 5)', () => {
       const candidates: Finding[] = [
         {
           id: 'cand-1',
-          source: 'grok',
+          source: 'groq',
           category: 'terminology',
           severity: 'major',
           clauseId: 'TM-002',
@@ -46,7 +46,7 @@ describe('Verify Pipeline Core Engines (Phase 5)', () => {
       const candidates: Finding[] = [
         {
           id: 'fake-clause',
-          source: 'grok',
+          source: 'groq',
           category: 'tone',
           severity: 'major',
           clauseId: 'FAKE-999',
@@ -94,7 +94,7 @@ describe('Verify Pipeline Core Engines (Phase 5)', () => {
       const candidates: Finding[] = [
         {
           id: 'fake-post-quote',
-          source: 'grok',
+          source: 'groq',
           category: 'terminology',
           severity: 'major',
           clauseId: 'TM-002',
@@ -150,7 +150,7 @@ describe('Verify Pipeline Core Engines (Phase 5)', () => {
       const findings: Finding[] = [
         {
           id: 'maj-1',
-          source: 'grok',
+          source: 'groq',
           category: 'terminology',
           severity: 'major',
           clauseId: 'TM-002',
@@ -173,7 +173,7 @@ describe('Verify Pipeline Core Engines (Phase 5)', () => {
       const findings: Finding[] = [
         {
           id: 'disp-1',
-          source: 'grok',
+          source: 'groq',
           category: 'tone',
           severity: 'major',
           clauseId: 'BV-007',
@@ -198,7 +198,7 @@ describe('Verify Pipeline Core Engines (Phase 5)', () => {
     it('marks findings as agreed when Reviewer B agrees with Reviewer A', () => {
       const findingA: Finding = {
         id: 'f-1',
-        source: 'grok',
+        source: 'groq',
         category: 'tone',
         severity: 'major',
         clauseId: 'BV-003',
@@ -232,7 +232,7 @@ describe('Verify Pipeline Core Engines (Phase 5)', () => {
     it('marks findings as disputed when Reviewer B disagrees', () => {
       const findingA: Finding = {
         id: 'f-2',
-        source: 'grok',
+        source: 'groq',
         category: 'tone',
         severity: 'major',
         clauseId: 'BV-007',

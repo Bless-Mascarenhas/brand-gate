@@ -42,7 +42,7 @@ export interface HumanEvent {
 
 export type InsightEvent = CheckEvent | HumanEvent;
 
-const MODEL_NAMES: Record<Finding['source'], string> = { grok: 'Reviewer A (XAI_MODEL)', nvidia: 'Reviewer B (NVIDIA_MODEL)', crosscheck: 'crosscheck', gate: 'gate' };
+const MODEL_NAMES: Record<Finding['source'], string> = { groq: 'Reviewer A (GPT-OSS via Groq)', nvidia: 'Reviewer B (NVIDIA_MODEL)', crosscheck: 'crosscheck', gate: 'gate' };
 
 /** Build a live check event from one pipeline run. */
 export function checkEventFromRun(input: {

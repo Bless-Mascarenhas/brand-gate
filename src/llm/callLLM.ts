@@ -4,8 +4,10 @@ import { GoogleGenAI } from '@google/genai';
 import { LlmCallLog } from '@/src/types';
 import { parseJsonSafe } from './jsonRepair';
 
+export type LlmProvider = 'gemini' | 'groq' | 'nvidia';
+
 export interface CallLlmParams<T> {
-  provider: 'gemini' | 'xai' | 'nvidia';
+  provider: LlmProvider;
   system: string;
   user: string;
   schema?: ZodSchema<T>;
@@ -25,11 +27,21 @@ export interface CallLlmResult<T> {
 export const TIMEOUT_MS = 45000; // spec §9: 45 s per call
 
 /** Model IDs come only from environment variables (spec §0, §24) — never a hardcoded default. */
-export const MODEL_ENV: Record<'gemini' | 'xai' | 'nvidia', string> = {
+export const MODEL_ENV: Record<LlmProvider, string> = {
   gemini: 'GEMINI_TEXT_MODEL',
-  xai: 'XAI_MODEL',
+  groq: 'GROQ_MODEL',
   nvidia: 'NVIDIA_MODEL',
 };
+
+const GROQ_DEFAULT_BASE = 'https://api.groq.com/openai/v1';
+
+function groqApiKey(): string | undefined {
+  return process.env.GROQ_API_KEY?.trim();
+}
+
+function groqBaseUrl(): string {
+  return process.env.GROQ_BASE_URL?.trim() || GROQ_DEFAULT_BASE;
+}
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -58,10 +70,10 @@ export async function callLLM<T = any>(params: CallLlmParams<T>): Promise<CallLl
     };
   }
 
-  if (provider === 'xai' && !process.env.XAI_API_KEY) {
+  if (provider === 'groq' && !groqApiKey()) {
     return {
       ok: false,
-      error: 'XAI_API_KEY is not configured on the server. Please switch to Replay mode.',
+      error: 'GROQ_API_KEY is not configured on the server. Please switch to Replay mode.',
       modeSuggestion: 'replay',
       log: {
         provider,
@@ -130,12 +142,12 @@ export async function callLLM<T = any>(params: CallLlmParams<T>): Promise<CallLl
         tokensIn = response.usageMetadata?.promptTokenCount;
         tokensOut = response.usageMetadata?.candidatesTokenCount;
       } else {
-        // xAI or NVIDIA using OpenAI SDK
+        // Groq or NVIDIA using OpenAI SDK
         const client = new OpenAI({
-          apiKey: provider === 'xai' ? process.env.XAI_API_KEY : process.env.NVIDIA_API_KEY,
+          apiKey: provider === 'groq' ? groqApiKey() : process.env.NVIDIA_API_KEY,
           baseURL:
-            provider === 'xai'
-              ? process.env.XAI_BASE_URL || 'https://api.x.ai/v1'
+            provider === 'groq'
+              ? groqBaseUrl()
               : process.env.NVIDIA_BASE_URL || 'https://integrate.api.nvidia.com/v1',
           timeout: TIMEOUT_MS,
           maxRetries: 0, // our loop does the single retry the spec allows; SDK default (2) would triple the wait
@@ -275,7 +287,7 @@ export async function callLLM<T = any>(params: CallLlmParams<T>): Promise<CallLl
 }
 
 async function repairViaPrompt(
-  provider: 'gemini' | 'xai' | 'nvidia',
+  provider: LlmProvider,
   model: string,
   brokenJson: string,
   originalSystem: string
@@ -292,10 +304,10 @@ async function repairViaPrompt(
     return res.text || null;
   } else {
     const client = new OpenAI({
-      apiKey: provider === 'xai' ? process.env.XAI_API_KEY : process.env.NVIDIA_API_KEY,
+      apiKey: provider === 'groq' ? groqApiKey() : process.env.NVIDIA_API_KEY,
       baseURL:
-        provider === 'xai'
-          ? process.env.XAI_BASE_URL || 'https://api.x.ai/v1'
+        provider === 'groq'
+          ? groqBaseUrl()
           : process.env.NVIDIA_BASE_URL || 'https://integrate.api.nvidia.com/v1',
       timeout: TIMEOUT_MS,
       maxRetries: 0,

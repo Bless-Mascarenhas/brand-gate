@@ -38,7 +38,7 @@ export interface PostFindings {
 }
 
 const toFinding = (f: PredictedFinding, i: number): Finding => ({
-  id: `cal-${i}`, source: f.source === 'gate' ? 'gate' : 'grok', category: f.category, severity: f.severity, clauseId: f.clauseId,
+  id: `cal-${i}`, source: f.source === 'gate' ? 'gate' : 'groq', category: f.category, severity: f.severity, clauseId: f.clauseId,
   clauseQuote: '', postField: 'caption', postQuote: '', explanation: '', autoFixable: false, confidence: 1, verified: true, agreement: f.agreement,
 });
 

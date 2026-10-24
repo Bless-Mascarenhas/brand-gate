@@ -5,10 +5,10 @@ import type { LlmCaller } from '@/src/pipeline/governed';
 
 type Provider = CallLlmParams<unknown>['provider'];
 
-/** Tokens-per-minute budgets from env, e.g. XAI_TOKENS_PER_MINUTE=8000 (Groq free tier). Unset = unpaced. */
+/** Tokens-per-minute budgets from env, e.g. GROQ_TOKENS_PER_MINUTE=8000. Unset = unpaced. */
 function budgets(): Partial<Record<Provider, number>> {
   const n = (k: string) => (process.env[k] ? Number(process.env[k]) : undefined);
-  return { gemini: n('GEMINI_TOKENS_PER_MINUTE'), xai: n('XAI_TOKENS_PER_MINUTE'), nvidia: n('NVIDIA_TOKENS_PER_MINUTE') };
+  return { gemini: n('GEMINI_TOKENS_PER_MINUTE'), groq: n('GROQ_TOKENS_PER_MINUTE'), nvidia: n('NVIDIA_TOKENS_PER_MINUTE') };
 }
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));

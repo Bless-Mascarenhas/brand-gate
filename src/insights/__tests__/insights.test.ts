@@ -28,7 +28,7 @@ const human = (over: Partial<HumanEvent>): HumanEvent => ({
 describe('Ambiguity Index', () => {
   it('= (disputed + overrides + rejections) / total checks citing the clause', () => {
     const events: InsightEvent[] = [
-      check({ findings: [{ clauseId: 'BV-007', category: 'tone', severity: 'minor', agreement: 'disputed', source: 'grok', quote: 'lowkey' }] }),
+      check({ findings: [{ clauseId: 'BV-007', category: 'tone', severity: 'minor', agreement: 'disputed', source: 'groq', quote: 'lowkey' }] }),
       check({}),
       check({}),
       check({ checkedClauseIds: ['TM-002'] }), // does not cite BV-007
@@ -54,7 +54,7 @@ describe('Ambiguity Index', () => {
   });
 
   it('ranking excludes never-checked and zero-index clauses', () => {
-    const events = [check({ findings: [{ clauseId: 'BV-007', category: 'tone', severity: 'minor', agreement: 'disputed', source: 'grok' }] })];
+    const events = [check({ findings: [{ clauseId: 'BV-007', category: 'tone', severity: 'minor', agreement: 'disputed', source: 'groq' }] })];
     const ranked = ambiguityRanking(events, ['BV-007', 'TM-002', 'SR-009']);
     expect(ranked.map((r) => r.clauseId)).toEqual(['BV-007']);
   });
@@ -65,7 +65,7 @@ describe('aggregations', () => {
     check({ ts: '2026-10-12T10:00:00.000Z', findings: [{ clauseId: 'TM-002', category: 'terminology', severity: 'major', agreement: 'deterministic', source: 'gate' }], score: 40 }),
     check({ ts: '2026-10-13T10:00:00.000Z', findings: [{ clauseId: 'TM-002', category: 'terminology', severity: 'major', agreement: 'deterministic', source: 'gate' }, { clauseId: 'CL-002', category: 'claims', severity: 'critical', agreement: 'deterministic', source: 'gate' }], hallucinations: [{ model: 'nvidia', reason: 'clauseId does not exist' }] }),
     check({ ts: '2026-10-20T10:00:00.000Z', pass: 'after_fix', score: 95, verdict: 'READY_FOR_HUMAN', iterations: 2 }),
-    check({ ts: '2026-10-21T10:00:00.000Z', pass: 'after_fix', score: 100, verdict: 'READY_FOR_HUMAN', iterations: 1, hallucinations: [{ model: 'xai (Grok)', reason: 'postQuote not found' }, { model: 'nvidia', reason: 'clauseQuote not found' }] }),
+    check({ ts: '2026-10-21T10:00:00.000Z', pass: 'after_fix', score: 100, verdict: 'READY_FOR_HUMAN', iterations: 1, hallucinations: [{ model: 'groq (GPT-OSS)', reason: 'postQuote not found' }, { model: 'nvidia', reason: 'clauseQuote not found' }] }),
     human({ role: 'reviewer', kind: 'human_rejection', sample: true }),
   ];
 

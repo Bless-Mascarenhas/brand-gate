@@ -10,7 +10,7 @@ Brand Gate reviews content **before** publication against approved policies, fac
 
 ## Judge quick start
 
-1. Open the deployed URL (*author to fill — not deployed yet*) or run it locally (below).
+1. Open the Vercel deployment URL or run it locally (below).
 2. On **Start here**, press **Run the 90-second demo**. It plays a recorded verification with no API keys, labelled "Recorded run, not live".
 3. Press **Guided tour (5 steps)** for a walk through Company, Verify, Compare and Workflow.
 4. To use live models, click **Access Code** in the top bar and enter `DEMO_ACCESS_CODE`; provider keys must be configured on the server.
@@ -31,7 +31,7 @@ Brand Gate reviews content **before** publication against approved policies, fac
 ## Architecture
 
 ```
-Content (Build / Verify) ──► Deterministic gates (server, pure TS) ──► Reviewer A (xAI) ─┐
+Content (Build / Verify) ──► Deterministic gates (server, pure TS) ──► Reviewer A (Groq) ─┐
           ▲                         ▲                                Reviewer B (NVIDIA) ┤
      Gemini (draft, image,     Knowledge base (8 docs, facts, rules, routing map)         ▼
      perception)                                         Citation verifier (code) ─► Cross-examination (thorough)
@@ -48,9 +48,19 @@ Deterministic gates first, LLM judgement second, human decision last. No model d
 | App | Next.js 16 (App Router), React 19, TypeScript strict, Tailwind CSS, lucide-react, recharts |
 | Validation, diffs, storage | zod, diff, idb-keyval (IndexedDB) |
 | Images | sharp (server: analysis, EXIF stripping), HTML canvas (client: brand overlays) |
-| Models | Google Gemini via `@google/genai` (text, vision, image); xAI Grok and NVIDIA via the `openai` SDK with custom base URLs |
+| Models | Google Gemini via `@google/genai` (text, vision, image); Groq (`openai/gpt-oss-120b`) and NVIDIA GLM via the `openai` SDK with custom base URLs |
 | Optional | Upstash Redis (rate-limit counters), Supabase (shared storage) |
 | Tests | Vitest |
+
+## Project layout
+
+This stays as one Next.js app at the repository root so Vercel can deploy the browser UI and server routes together.
+
+- `app/(shell)/`: frontend pages and layouts
+- `app/api/`: backend endpoints deployed as Next.js functions
+- `src/ui/`: reusable interface components and client state
+- `src/llm/`, `src/pipeline/`, `src/rules/`, `src/kb/`, `src/storage/`: server and domain logic
+- `data/`: policies, sample content, benchmarks and recorded runs
 
 ## Prerequisites
 
@@ -75,13 +85,17 @@ All keys stay on the server; nothing uses a `NEXT_PUBLIC_` prefix except the non
 | Variable | Purpose |
 |---|---|
 | `GEMINI_API_KEY`, `GEMINI_TEXT_MODEL`, `GEMINI_VISION_MODEL`, `GEMINI_IMAGE_MODEL` | Gemini; model IDs must be set explicitly (no defaults in code) |
-| `XAI_API_KEY`, `XAI_BASE_URL`, `XAI_MODEL` | Reviewer A |
+| `GROQ_API_KEY`, `GROQ_BASE_URL`, `GROQ_MODEL` | Reviewer A (Groq: set base URL to `https://api.groq.com/openai/v1`, model `openai/gpt-oss-120b`) |
 | `NVIDIA_API_KEY`, `NVIDIA_BASE_URL`, `NVIDIA_MODEL` | Reviewer B |
 | `DEMO_ACCESS_CODE` | Gates every LLM endpoint (httpOnly cookie) |
 | `DEMO_TODAY` | Pinned date so offers stay valid/expired as designed (2026-10-24) |
 | `DAILY_CALL_BUDGET`, `RATE_LIMIT_PER_MINUTE` | Abuse controls |
 | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | Optional shared counters |
 | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_STORAGE_MODE=supabase` | Optional shared storage (run `docs/supabase/001_brand_gate_kv.sql` first) |
+
+## Deploy to Vercel
+
+Import this GitHub repository in Vercel and keep the project root set to `.`. Vercel detects Next.js automatically; leave the build command at `npm run build`. Add the required model keys and model IDs from `.env.example` in the Vercel project settings. Set `DEMO_ACCESS_CODE` to a private production value. Optional services such as Supabase and Upstash only need configuration when enabled. Keep all provider keys server-side without a `NEXT_PUBLIC_` prefix.
 
 ## Development and tests
 

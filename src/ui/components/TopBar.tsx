@@ -103,7 +103,7 @@ export const TopBar: React.FC = () => {
         {/* Provider Status Chips */}
         <div className="hidden lg:flex items-center gap-1.5 px-2 py-1 bg-slate-100 dark:bg-slate-800/60 rounded-lg border border-slate-200 dark:border-slate-700/60">
           <Cpu className="w-3.5 h-3.5 text-slate-600 dark:text-slate-400" />
-          {(['gemini', 'xai', 'nvidia'] as const).map((p) => {
+          {(['gemini', 'groq', 'nvidia'] as const).map((p) => {
             const status = providers[p];
             const isOk = status === 'configured';
             return (
@@ -114,9 +114,9 @@ export const TopBar: React.FC = () => {
                     ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'
                     : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
                 }`}
-                title={`${p}: ${status} (keys kept on server)`}
+                title={`${p === 'groq' ? 'GPT-OSS via Groq' : p}: ${status} (keys kept on server)`}
               >
-                {p}
+                {p === 'groq' ? 'GPT-OSS' : p}
               </span>
             );
           })}

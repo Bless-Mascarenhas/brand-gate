@@ -14,7 +14,7 @@ export interface ConsensusInput {
 }
 
 /**
- * Normalizes and resolves consensus between Reviewer A (Grok/Groq) and Reviewer B (NVIDIA).
+ * Normalizes and resolves consensus between Reviewer A (GPT-OSS/Groq) and Reviewer B (NVIDIA).
  * Both agree -> 'agreed'
  * Reviewer disagrees -> 'disputed' (penalties waived, surfaced to human)
  * Found by one reviewer without rebuttal -> 'single_source'

@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     const read = await readJsonBody(req, RequestSchemas.crosscheck);
     if (!read.ok) return read.response;
     const body = read.data;
-    const provider: 'gemini' | 'xai' | 'nvidia' = body.provider || 'gemini';
+    const provider: 'gemini' | 'groq' | 'nvidia' = body.provider || 'gemini';
     const otherProvider: string = body.otherProvider || 'Other Reviewer';
     const findings: Finding[] = body.findings || [];
     const post: PostContent = body.post;

@@ -90,13 +90,13 @@ describe('model IDs come only from env (spec §0, §24)', () => {
   });
 
   it('provider chips need key AND model, and never return secret values', async () => {
-    const savedKey = process.env.XAI_API_KEY;
-    process.env.XAI_API_KEY = 'xai-secret-value';
+    const savedKey = process.env.GROQ_API_KEY;
+    process.env.GROQ_API_KEY = 'groq-secret-value';
     const body = await (await providersGET()).json();
-    expect(body.providers.xai).toBe('missing'); // no XAI_MODEL
-    expect(JSON.stringify(body)).not.toContain('xai-secret-value');
-    if (savedKey === undefined) delete process.env.XAI_API_KEY;
-    else process.env.XAI_API_KEY = savedKey;
+    expect(body.providers.groq).toBe('missing'); // no GROQ_MODEL
+    expect(JSON.stringify(body)).not.toContain('groq-secret-value');
+    if (savedKey === undefined) delete process.env.GROQ_API_KEY;
+    else process.env.GROQ_API_KEY = savedKey;
   });
 });
 

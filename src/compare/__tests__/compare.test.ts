@@ -64,7 +64,7 @@ describe('prompt routing per column', () => {
 describe('governed column runs the real verification pipeline', () => {
   it('calls both reviewers with routed soft-category clauses only, verifies citations and counts hallucinations', async () => {
     const { llm, calls } = mockLlm((p) =>
-      p.provider === 'xai'
+      p.provider === 'groq'
         ? { findings: [
             { category: 'tone', severity: 'minor', clauseId: 'BV-007', clauseQuote: 'Keep the tone friendly but not too casual', postField: 'caption', postQuote: 'Tap the link in bio', explanation: 'x' },
             { category: 'tone', severity: 'major', clauseId: 'BV-999', clauseQuote: 'made up', postField: 'caption', postQuote: 'Tap', explanation: 'fabricated clause' },
@@ -72,7 +72,7 @@ describe('governed column runs the real verification pipeline', () => {
         : { findings: [] }
     );
     const res = await runGovernedReview(clean, pack, { llm });
-    expect(calls.map((c) => c.provider).sort()).toEqual(['nvidia', 'xai']);
+    expect(calls.map((c) => c.provider).sort()).toEqual(['groq', 'nvidia']);
     for (const c of calls) {
       expect(c.user).toContain('<post>');
       expect(c.clauseIdsSent.some((id) => id.startsWith('VI-') || id.startsWith('AR-'))).toBe(false); // minimum disclosure
@@ -80,7 +80,7 @@ describe('governed column runs the real verification pipeline', () => {
     }
     expect(res.dropped.map((f) => f.clauseId)).toEqual(['BV-999']);
     expect(res.droppedReasons[res.dropped[0].id]).toMatch(/does not exist/);
-    expect(res.findings.find((f) => f.clauseId === 'BV-007')).toMatchObject({ verified: true, agreement: 'single_source', source: 'grok' });
+    expect(res.findings.find((f) => f.clauseId === 'BV-007')).toMatchObject({ verified: true, agreement: 'single_source', source: 'groq' });
     expect(res.score.verdict.hallucinationsBlocked).toBe(1);
     expect(res.llmCalls).toHaveLength(2);
   });
@@ -102,8 +102,8 @@ describe('governed column runs the real verification pipeline', () => {
 
   it('thorough mode cross-examines and reports debate outcomes', async () => {
     const { llm, calls } = mockLlm((p) => {
-      if (p.purpose.includes('crosscheck')) return { evaluations: [{ findingId: 'grok-0', stance: 'disagree', reason: 'fine' }] };
-      if (p.provider === 'xai') return { findings: [{ category: 'tone', severity: 'major', clauseId: 'BV-007', clauseQuote: 'Keep the tone friendly but not too casual', postField: 'caption', postQuote: 'Tap the link', explanation: 'x' }] };
+      if (p.purpose.includes('crosscheck')) return { evaluations: [{ findingId: 'groq-0', stance: 'disagree', reason: 'fine' }] };
+      if (p.provider === 'groq') return { findings: [{ category: 'tone', severity: 'major', clauseId: 'BV-007', clauseQuote: 'Keep the tone friendly but not too casual', postField: 'caption', postQuote: 'Tap the link', explanation: 'x' }] };
       return { findings: [] };
     });
     const res = await runGovernedReview(clean, pack, { llm, mode: 'thorough' });

@@ -9,7 +9,7 @@
   "demoDate": "2026-10-24",
   "generator": "scripts/record-replay.ts",
   "notes": [
-    "Recorded from live reviewer calls (xai); replaying does not call any model. Reviewer(s) not run: nvidia (NVIDIA endpoint accepted the key but every tested model (z-ai/glm-5.3, z-ai/glm-5.3-flash, openai/gpt-oss-20b) timed out without a response on 2026-10-24)."
+    "Recorded from live reviewer calls (groq); replaying does not call any model. Reviewer(s) not run: nvidia (NVIDIA endpoint accepted the key but every tested model (z-ai/glm-5.3, z-ai/glm-5.3-flash, openai/gpt-oss-20b) timed out without a response on 2026-10-24)."
   ],
   "sampleId": 11,
   "post": {
@@ -31,7 +31,7 @@
     {
       "step": "Independent Review",
       "status": "completed",
-      "message": "Reviewer A (XAI_MODEL): 1, Reviewer B (NVIDIA_MODEL): not run"
+      "message": "Reviewer A (GROQ_MODEL): 1, Reviewer B (NVIDIA_MODEL): not run"
     },
     {
       "step": "Citation Verifier",
@@ -71,8 +71,8 @@
       "agreement": "deterministic"
     },
     {
-      "id": "grok-0",
-      "source": "grok",
+      "id": "groq-0",
+      "source": "groq",
       "category": "visual",
       "severity": "major",
       "clauseId": "SR-005",
@@ -100,9 +100,9 @@
   },
   "llmCalls": [
     {
-      "provider": "xai",
+      "provider": "groq",
       "model": "openai/gpt-oss-120b",
-      "purpose": "xai independent soft-review",
+      "purpose": "groq independent soft-review",
       "clauseIdsSent": [
         "BV-000",
         "BV-001",

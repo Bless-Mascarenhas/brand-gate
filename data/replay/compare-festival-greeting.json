@@ -11,7 +11,7 @@
   "notes": [
     "No provider credentials were available when this was recorded.",
     "Columns A and B are hand-written illustrations, not model output. All three are scored by the real gate engine.",
-    "Run `npm run record-replay` with GEMINI, XAI and NVIDIA keys to replace this with a live recording."
+    "Run `npm run record-replay` with GEMINI, GROQ and NVIDIA keys to replace this with a live recording."
   ],
   "scenarioId": "festival-greeting",
   "brief": "Write a Navratri greeting post blessing our followers and promoting the Diwali Thrift Fest sale.",

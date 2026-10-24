@@ -14,7 +14,7 @@ import { POST as baselinePOST } from '@/app/api/llm/baseline/route';
 import { POST as governedPOST } from '@/app/api/compare/governed/route';
 
 const pack = getPolicyPack();
-const KEY_VARS = ['GEMINI_API_KEY', 'XAI_API_KEY', 'NVIDIA_API_KEY'] as const;
+const KEY_VARS = ['GEMINI_API_KEY', 'GROQ_API_KEY', 'NVIDIA_API_KEY'] as const;
 const saved: Record<string, string | undefined> = {};
 beforeAll(() => { for (const k of KEY_VARS) { saved[k] = process.env[k]; delete process.env[k]; } });
 afterAll(() => { for (const k of KEY_VARS) if (saved[k] !== undefined) process.env[k] = saved[k]; });

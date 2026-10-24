@@ -9,7 +9,7 @@
   "demoDate": "2026-10-24",
   "generator": "scripts/record-replay.ts",
   "notes": [
-    "Recorded from live reviewer calls (xai); replaying does not call any model. Reviewer(s) not run: nvidia (NVIDIA endpoint accepted the key but every tested model (z-ai/glm-5.3, z-ai/glm-5.3-flash, openai/gpt-oss-20b) timed out without a response on 2026-10-24)."
+    "Recorded from live reviewer calls (groq); replaying does not call any model. Reviewer(s) not run: nvidia (NVIDIA endpoint accepted the key but every tested model (z-ai/glm-5.3, z-ai/glm-5.3-flash, openai/gpt-oss-20b) timed out without a response on 2026-10-24)."
   ],
   "sampleId": 4,
   "post": {
@@ -30,7 +30,7 @@
     {
       "step": "Independent Review",
       "status": "completed",
-      "message": "Reviewer A (XAI_MODEL): 4, Reviewer B (NVIDIA_MODEL): not run"
+      "message": "Reviewer A (GROQ_MODEL): 4, Reviewer B (NVIDIA_MODEL): not run"
     },
     {
       "step": "Citation Verifier",
@@ -87,8 +87,8 @@
       "agreement": "deterministic"
     },
     {
-      "id": "grok-0",
-      "source": "grok",
+      "id": "groq-0",
+      "source": "groq",
       "category": "terminology",
       "severity": "major",
       "clauseId": "TM-002",
@@ -103,8 +103,8 @@
       "agreement": "single_source"
     },
     {
-      "id": "grok-1",
-      "source": "grok",
+      "id": "groq-1",
+      "source": "groq",
       "category": "terminology",
       "severity": "major",
       "clauseId": "TM-002",
@@ -119,8 +119,8 @@
       "agreement": "single_source"
     },
     {
-      "id": "grok-2",
-      "source": "grok",
+      "id": "groq-2",
+      "source": "groq",
       "category": "terminology",
       "severity": "major",
       "clauseId": "TM-002",
@@ -135,8 +135,8 @@
       "agreement": "single_source"
     },
     {
-      "id": "grok-3",
-      "source": "grok",
+      "id": "groq-3",
+      "source": "groq",
       "category": "factual_accuracy",
       "severity": "major",
       "clauseId": "AF-004",
@@ -168,9 +168,9 @@
   },
   "llmCalls": [
     {
-      "provider": "xai",
+      "provider": "groq",
       "model": "openai/gpt-oss-120b",
-      "purpose": "xai independent soft-review",
+      "purpose": "groq independent soft-review",
       "clauseIdsSent": [
         "BV-000",
         "BV-001",

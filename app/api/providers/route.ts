@@ -11,7 +11,7 @@ export async function GET() {
   const status = (keyVar: string, modelVar: string) => (set(keyVar) && set(modelVar) ? ('configured' as const) : ('missing' as const));
   const providers = {
     gemini: status('GEMINI_API_KEY', MODEL_ENV.gemini),
-    xai: status('XAI_API_KEY', MODEL_ENV.xai),
+    groq: status('GROQ_API_KEY', MODEL_ENV.groq),
     nvidia: status('NVIDIA_API_KEY', MODEL_ENV.nvidia),
   };
   const allMissing = Object.values(providers).every((p) => p === 'missing');

@@ -16,3 +16,6 @@ This document records one line per significant technical decision and the ration
 - **2026-10-24**: Unified multi-provider abstraction (`callLLM`) integrates Gemini SDK with xAI and NVIDIA NIM OpenAI-compatible clients with 45s timeouts, 1 retry backoff, and full LlmCallLog audit receipts.
 - **2026-10-24**: Dual-layer JSON resilience handles code-fences, trailing commas, and prompt repair re-attempts before falling back to Replay mode suggestion.
 - **2026-10-24**: User-supplied social posts and uploads are strictly encapsulated inside `<post>` XML delimiters with an explicit untrusted data directive, neutralizing prompt-injection overrides.
+- **2026-10-24**: Deterministic citation verifier validates clause existence, verbatim clause quote substring (with token-Jaccard >= 0.9 fallback), and post quote substring, discarding hallucinated citations and exposing a visible "Hallucinations Blocked" counter.
+- **2026-10-24**: Multi-model consensus treats reviewer dispute as data: disputed findings incur zero numerical penalty, surface to human reviewers with both models' arguments, and feed the Ambiguity Index.
+- **2026-10-24**: Client-side `usePipeline` state machine streams live execution traces with latency measurements, supporting both `fast` mode (rebuttal skipped) and `thorough` mode (full 2-round debate).

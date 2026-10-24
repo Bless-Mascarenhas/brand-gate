@@ -64,3 +64,62 @@ describe('Knowledge Base & Policy Pack (Phase 2)', () => {
     }
   });
 });
+
+describe('Company edits: re-indexing, version history, pack hash (Phase 2 completion)', async () => {
+  const { getPolicyPack } = await import('@/src/kb');
+  const { computePackHash } = await import('@/src/kb/clauses');
+  const edits = await import('@/src/kb/edits');
+  const pack = getPolicyPack();
+  const bv = pack.docs.find((d) => d.prefix === 'BV')!;
+  const memory = () => {
+    const data = new Map<string, unknown>();
+    return {
+      getItem: async <T,>(k: string) => (data.has(k) ? (structuredClone(data.get(k)) as T) : null),
+      setItem: async <T,>(k: string, v: T) => { data.set(k, structuredClone(v)); },
+      removeItem: async (k: string) => { data.delete(k); },
+      listKeys: async () => Array.from(data.keys()),
+      clear: async () => data.clear(),
+    };
+  };
+
+  it('browser hash of the unedited pack equals the server hash', async () => {
+    expect(await computePackHash(pack.docs, pack.facts, pack.rules)).toBe(pack.hash);
+    expect(await edits.editedPackHash(pack, {})).toBe(pack.hash);
+  });
+
+  it('an edit re-indexes clauses and bumps the pack hash; history keeps every version', async () => {
+    const a = memory();
+    const clarified = bv.content.replace('Keep the tone friendly but not too casual.', 'Keep the tone friendly but not too casual: no slang outside TM-006 and at most one joke per caption.');
+    expect(clarified).not.toBe(bv.content);
+    let h = await edits.saveDocEdit(bv, clarified, { role: 'manager', user: 'manager-demo', note: 'Clarify BV-007', now: '2026-10-24T10:00:00.000Z' }, a);
+    h = await edits.saveDocEdit(bv, clarified + '\n\n[BV-012] Do not use sarcasm about customers.', { role: 'manager', user: 'manager-demo', note: 'Add BV-012' }, a);
+    expect(h[bv.id].map((v) => v.version)).toEqual([1, 2]);
+    const docs = edits.applyEdits(pack.docs, h);
+    const edited = docs.find((d) => d.id === bv.id)!;
+    expect(edited.clauses.find((c) => c.id === 'BV-007')?.text).toMatch(/at most one joke/);
+    expect(edited.clauses.some((c) => c.id === 'BV-012')).toBe(true);
+    expect(edited.version).toMatch(/\+local\.2$/);
+    const hash = await edits.editedPackHash(pack, h);
+    expect(hash).not.toBe(pack.hash);
+    expect(await edits.loadEditHistory(a)).toEqual(h); // persisted
+    const back = await edits.discardDocEdits(bv.id, 'manager', a);
+    expect(await edits.editedPackHash(pack, back)).toBe(pack.hash);
+  });
+
+  it('only the Manager may edit or discard (EM-005), enforced in the edit module', async () => {
+    const a = memory();
+    for (const role of ['creator', 'reviewer'] as const) {
+      await expect(edits.saveDocEdit(bv, bv.content, { role, user: 'x', note: '' }, a)).rejects.toThrow(/Manager/);
+      await expect(edits.discardDocEdits(bv.id, role, a)).rejects.toThrow(/Manager/);
+    }
+  });
+
+  it('rejects edits that break clause structure and warns on removed clauses', () => {
+    expect(edits.checkEdit(bv, 'no clauses here').ok).toBe(false);
+    expect(edits.checkEdit(bv, '[TM-001] wrong prefix').errors.join()).toMatch(/BV prefix/);
+    expect(edits.checkEdit(bv, '[BV-001] a\n[BV-001] b').errors.join()).toMatch(/Duplicate/);
+    const shortened = edits.checkEdit(bv, '[BV-001] Only one clause left.');
+    expect(shortened.ok).toBe(true);
+    expect(shortened.warnings.join()).toMatch(/BV-007/);
+  });
+});

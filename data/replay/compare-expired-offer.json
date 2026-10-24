@@ -4,8 +4,8 @@
   "id": "compare-expired-offer",
   "title": "1. Expired offer",
   "provenance": "illustrative_fixture",
-  "recordedAt": "2026-10-24T13:42:46.815Z",
-  "packHash": "pack_2fc4b94dd474",
+  "recordedAt": "2026-10-24T14:07:07.309Z",
+  "packHash": "pack_93109fd9405c",
   "demoDate": "2026-10-24",
   "generator": "scripts/record-replay.ts",
   "notes": [
@@ -48,7 +48,7 @@
       },
       "findings": [
         {
-          "id": "finding-R-FACT-004-1792849366841-0",
+          "id": "finding-R-FACT-004-1792850827340-0",
           "source": "gate",
           "category": "factual_accuracy",
           "severity": "critical",
@@ -63,7 +63,7 @@
           "agreement": "deterministic"
         },
         {
-          "id": "finding-R-ACC-002-1792849366841-1",
+          "id": "finding-R-ACC-002-1792850827340-1",
           "source": "gate",
           "category": "accessibility",
           "severity": "minor",
@@ -78,7 +78,7 @@
           "agreement": "deterministic"
         },
         {
-          "id": "finding-R-ACC-003-1792849366841-2",
+          "id": "finding-R-ACC-003-1792850827340-2",
           "source": "gate",
           "category": "accessibility",
           "severity": "minor",
@@ -94,7 +94,7 @@
           "agreement": "deterministic"
         },
         {
-          "id": "finding-R-ACC-006-1792849366841-3",
+          "id": "finding-R-ACC-006-1792850827340-3",
           "source": "gate",
           "category": "accessibility",
           "severity": "minor",
@@ -144,7 +144,7 @@
       },
       "findings": [
         {
-          "id": "finding-R-FACT-004-1792849366842-0",
+          "id": "finding-R-FACT-004-1792850827340-0",
           "source": "gate",
           "category": "factual_accuracy",
           "severity": "critical",
@@ -194,7 +194,7 @@
       },
       "findings": [
         {
-          "id": "finding-R-FACT-004-1792849366842-0",
+          "id": "finding-R-FACT-004-1792850827340-0",
           "source": "gate",
           "category": "factual_accuracy",
           "severity": "critical",

@@ -4,8 +4,8 @@
   "id": "sample-05",
   "title": "Sample 5: Wrong Shipping Facts",
   "provenance": "deterministic_recording",
-  "recordedAt": "2026-10-24T13:42:46.815Z",
-  "packHash": "pack_2fc4b94dd474",
+  "recordedAt": "2026-10-24T14:07:07.309Z",
+  "packHash": "pack_93109fd9405c",
   "demoDate": "2026-10-24",
   "generator": "scripts/record-replay.ts",
   "notes": [
@@ -56,7 +56,7 @@
   ],
   "findings": [
     {
-      "id": "finding-R-FACT-002-1792849366835-0",
+      "id": "finding-R-FACT-002-1792850827333-0",
       "source": "gate",
       "category": "factual_accuracy",
       "severity": "major",
@@ -71,7 +71,7 @@
       "agreement": "deterministic"
     },
     {
-      "id": "finding-R-FACT-008-1792849366835-1",
+      "id": "finding-R-FACT-008-1792850827333-1",
       "source": "gate",
       "category": "factual_accuracy",
       "severity": "critical",

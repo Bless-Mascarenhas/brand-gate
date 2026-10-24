@@ -22,7 +22,14 @@ export interface CallLlmResult<T> {
   modeSuggestion?: 'replay';
 }
 
-const TIMEOUT_MS = 60000;
+export const TIMEOUT_MS = 45000; // spec §9: 45 s per call
+
+/** Model IDs come only from environment variables (spec §0, §24) — never a hardcoded default. */
+export const MODEL_ENV: Record<'gemini' | 'xai' | 'nvidia', string> = {
+  gemini: 'GEMINI_TEXT_MODEL',
+  xai: 'XAI_MODEL',
+  nvidia: 'NVIDIA_MODEL',
+};
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -32,14 +39,7 @@ export async function callLLM<T = any>(params: CallLlmParams<T>): Promise<CallLl
   const { provider, system, user, schema, purpose, clauseIdsSent } = params;
   const startTime = Date.now();
 
-  let modelName = '';
-  if (provider === 'gemini') {
-    modelName = process.env.GEMINI_TEXT_MODEL || 'gemini-2.0-flash';
-  } else if (provider === 'xai') {
-    modelName = process.env.XAI_MODEL || 'grok-2-latest';
-  } else if (provider === 'nvidia') {
-    modelName = process.env.NVIDIA_MODEL || 'meta/llama-3.1-70b-instruct';
-  }
+  const modelName = process.env[MODEL_ENV[provider]]?.trim() || '';
 
   // Pre-check for API keys
   if (provider === 'gemini' && !process.env.GEMINI_API_KEY) {
@@ -87,6 +87,15 @@ export async function callLLM<T = any>(params: CallLlmParams<T>): Promise<CallLl
         ms: Date.now() - startTime,
         ok: false,
       },
+    };
+  }
+
+  if (!modelName) {
+    return {
+      ok: false,
+      error: `${MODEL_ENV[provider]} is not configured on the server. Please switch to Replay mode.`,
+      modeSuggestion: 'replay',
+      log: { provider, model: '(not configured)', purpose, clauseIdsSent, ms: Date.now() - startTime, ok: false },
     };
   }
 

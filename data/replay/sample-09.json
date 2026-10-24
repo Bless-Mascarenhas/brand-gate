@@ -4,8 +4,8 @@
   "id": "sample-09",
   "title": "Sample 9: Wrong Aspect Ratio (16:9)",
   "provenance": "deterministic_recording",
-  "recordedAt": "2026-10-24T13:42:46.815Z",
-  "packHash": "pack_2fc4b94dd474",
+  "recordedAt": "2026-10-24T14:07:07.309Z",
+  "packHash": "pack_93109fd9405c",
   "demoDate": "2026-10-24",
   "generator": "scripts/record-replay.ts",
   "notes": [
@@ -61,7 +61,7 @@
   ],
   "findings": [
     {
-      "id": "finding-R-VIS-003-1792849366838-0",
+      "id": "finding-R-VIS-003-1792850827337-0",
       "source": "gate",
       "category": "visual",
       "severity": "major",

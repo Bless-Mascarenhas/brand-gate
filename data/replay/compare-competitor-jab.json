@@ -4,8 +4,8 @@
   "id": "compare-competitor-jab",
   "title": "4. Competitor disparagement",
   "provenance": "illustrative_fixture",
-  "recordedAt": "2026-10-24T13:42:46.815Z",
-  "packHash": "pack_2fc4b94dd474",
+  "recordedAt": "2026-10-24T14:07:07.309Z",
+  "packHash": "pack_93109fd9405c",
   "demoDate": "2026-10-24",
   "generator": "scripts/record-replay.ts",
   "notes": [
@@ -47,7 +47,7 @@
       },
       "findings": [
         {
-          "id": "finding-R-VOICE-002-1792849366845-0",
+          "id": "finding-R-VOICE-002-1792850827343-0",
           "source": "gate",
           "category": "tone",
           "severity": "major",
@@ -62,7 +62,7 @@
           "agreement": "deterministic"
         },
         {
-          "id": "finding-R-ACC-002-1792849366845-1",
+          "id": "finding-R-ACC-002-1792850827343-1",
           "source": "gate",
           "category": "accessibility",
           "severity": "minor",
@@ -77,7 +77,7 @@
           "agreement": "deterministic"
         },
         {
-          "id": "finding-R-ACC-006-1792849366845-2",
+          "id": "finding-R-ACC-006-1792850827343-2",
           "source": "gate",
           "category": "accessibility",
           "severity": "minor",
@@ -126,7 +126,7 @@
       },
       "findings": [
         {
-          "id": "finding-R-CLAIM-005-1792849366845-0",
+          "id": "finding-R-CLAIM-005-1792850827343-0",
           "source": "gate",
           "category": "claims",
           "severity": "major",
@@ -175,7 +175,7 @@
       },
       "findings": [
         {
-          "id": "finding-R-CLAIM-005-1792849366845-0",
+          "id": "finding-R-CLAIM-005-1792850827343-0",
           "source": "gate",
           "category": "claims",
           "severity": "major",

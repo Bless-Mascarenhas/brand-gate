@@ -4,8 +4,8 @@
   "id": "sample-12",
   "title": "Sample 12: Prohibited Street Slang & Unapproved Greeting",
   "provenance": "deterministic_recording",
-  "recordedAt": "2026-10-24T13:42:46.815Z",
-  "packHash": "pack_2fc4b94dd474",
+  "recordedAt": "2026-10-24T14:07:07.309Z",
+  "packHash": "pack_93109fd9405c",
   "demoDate": "2026-10-24",
   "generator": "scripts/record-replay.ts",
   "notes": [
@@ -55,7 +55,7 @@
   ],
   "findings": [
     {
-      "id": "finding-R-TERM-007-1792849366841-0",
+      "id": "finding-R-TERM-007-1792850827339-0",
       "source": "gate",
       "category": "terminology",
       "severity": "major",
@@ -70,7 +70,7 @@
       "agreement": "deterministic"
     },
     {
-      "id": "finding-R-TERM-009-1792849366841-1",
+      "id": "finding-R-TERM-009-1792850827339-1",
       "source": "gate",
       "category": "terminology",
       "severity": "major",

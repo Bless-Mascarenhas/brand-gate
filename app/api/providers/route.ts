@@ -1,20 +1,20 @@
 import { NextResponse } from 'next/server';
+import { MODEL_ENV } from '@/src/llm/callLLM';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
 
+const set = (name: string) => Boolean(process.env[name]?.trim());
+
+/** A provider is "configured" only when both its key and its model ID env var are set. Never returns values. */
 export async function GET() {
-  const geminiConfigured = Boolean(process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.trim().length > 0);
-  const xaiConfigured = Boolean(process.env.XAI_API_KEY && process.env.XAI_API_KEY.trim().length > 0);
-  const nvidiaConfigured = Boolean(process.env.NVIDIA_API_KEY && process.env.NVIDIA_API_KEY.trim().length > 0);
-
+  const status = (keyVar: string, modelVar: string) => (set(keyVar) && set(modelVar) ? ('configured' as const) : ('missing' as const));
   const providers = {
-    gemini: geminiConfigured ? ('configured' as const) : ('missing' as const),
-    xai: xaiConfigured ? ('configured' as const) : ('missing' as const),
-    nvidia: nvidiaConfigured ? ('configured' as const) : ('missing' as const),
+    gemini: status('GEMINI_API_KEY', MODEL_ENV.gemini),
+    xai: status('XAI_API_KEY', MODEL_ENV.xai),
+    nvidia: status('NVIDIA_API_KEY', MODEL_ENV.nvidia),
   };
-
-  const allMissing = !geminiConfigured && !xaiConfigured && !nvidiaConfigured;
+  const allMissing = Object.values(providers).every((p) => p === 'missing');
 
   return NextResponse.json({
     providers,

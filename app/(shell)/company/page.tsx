@@ -11,6 +11,8 @@ import {
   Search,
 } from 'lucide-react';
 import { PolicyPack, PolicyDoc, FactEntry, Rule } from '@/src/types';
+import { EditHistory, applyEdits, editedPackHash, loadEditHistory } from '@/src/kb/edits';
+import { DocEditor } from '@/src/ui/components/DocEditor';
 
 export default function CompanyPage() {
   const [pack, setPack] = useState<PolicyPack | null>(null);
@@ -41,7 +43,18 @@ export default function CompanyPage() {
     }
   }, []);
 
-  const activeDoc: PolicyDoc | undefined = pack?.docs.find((d) => d.id === selectedDocId);
+  const [history, setHistory] = useState<EditHistory>({});
+  const [localHash, setLocalHash] = useState<string | null>(null);
+  useEffect(() => {
+    loadEditHistory().then(setHistory).catch(() => setHistory({}));
+  }, []);
+  useEffect(() => {
+    if (pack) editedPackHash(pack, history).then(setLocalHash).catch(() => setLocalHash(null));
+  }, [pack, history]);
+  const docs = pack ? applyEdits(pack.docs, history) : [];
+  const hasEdits = Object.keys(history).length > 0;
+  const originalDoc: PolicyDoc | undefined = pack?.docs.find((d) => d.id === selectedDocId);
+  const activeDoc: PolicyDoc | undefined = docs.find((d) => d.id === selectedDocId);
 
   const filteredRules: Rule[] = (pack?.rules || []).filter((r) => {
     if (!searchQuery) return true;
@@ -69,7 +82,7 @@ export default function CompanyPage() {
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex flex-col items-center gap-3">
           <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
-          <p className="text-xs font-mono text-slate-400">Loading Thrift-It Governed Knowledge Base...</p>
+          <p className="text-xs font-mono text-slate-600 dark:text-slate-400">Loading Thrift-It Governed Knowledge Base...</p>
         </div>
       </div>
     );
@@ -81,20 +94,21 @@ export default function CompanyPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
         <div>
           <h1 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
-            <Building2 className="w-6 h-6 text-indigo-500" />
+            <Building2 className="w-6 h-6 text-indigo-600 dark:text-indigo-300" />
             Company Knowledge Base (Thrift-It)
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <p className="text-sm text-slate-600 dark:text-slate-400">
             Governing rules, facts, terminology, visual guidelines, and escalation protocols for @thriftit.in.
           </p>
         </div>
 
         {pack && (
           <div className="flex items-center gap-2 p-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 font-mono text-xs">
-            <span className="text-slate-400 text-[10px] uppercase font-bold">Pack Hash:</span>
-            <span className="text-indigo-600 dark:text-indigo-400 font-bold">{pack.hash}</span>
+            <span className="text-slate-600 text-[10px] uppercase font-bold dark:text-slate-400">Pack Hash:</span>
+            <span data-tour="pack-hash" className="text-indigo-600 dark:text-indigo-400 font-bold">{hasEdits && localHash ? localHash : pack.hash}</span>
+            {hasEdits && <span className="text-amber-700 dark:text-amber-400">(local edits; approved pack {pack.hash})</span>}
             <span className="text-slate-300 dark:text-slate-600">|</span>
-            <span className="text-slate-500 text-[10px]">{pack.clauses.length} Clauses</span>
+            <span className="text-slate-600 text-[10px] dark:text-slate-400">{pack.clauses.length} Clauses</span>
           </div>
         )}
       </div>
@@ -127,7 +141,7 @@ export default function CompanyPage() {
               {tab.count !== undefined && (
                 <span
                   className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
-                    isActive ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
+                    isActive ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
                   }`}
                 >
                   {tab.count}
@@ -143,10 +157,10 @@ export default function CompanyPage() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Document List Sub-sidebar */}
           <div className="space-y-2">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 px-1">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-600 mb-2 px-1 dark:text-slate-400">
               Policies ({pack.docs.length})
             </h3>
-            {pack.docs.map((doc) => {
+            {docs.map((doc) => {
               const isSelected = selectedDocId === doc.id;
               return (
                 <button
@@ -162,13 +176,13 @@ export default function CompanyPage() {
                   }`}
                 >
                   <div className="flex items-center justify-between mb-1">
-                    <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500">
+                    <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
                       [{doc.prefix}]
                     </span>
-                    <span className="text-[10px] text-slate-400 font-mono">v{doc.version}</span>
+                    <span className="text-[10px] text-slate-600 font-mono dark:text-slate-400">v{doc.version}</span>
                   </div>
                   <div className="truncate font-bold">{doc.title.replace(/\s*\([A-Z]+\)$/, '')}</div>
-                  <div className="text-[10px] text-slate-400 mt-1">{doc.clauses.length} clauses</div>
+                  <div className="text-[10px] text-slate-600 mt-1 dark:text-slate-400">{doc.clauses.length} clauses</div>
                 </button>
               );
             })}
@@ -185,15 +199,20 @@ export default function CompanyPage() {
                       <span className="font-mono text-xs px-2 py-0.5 rounded bg-indigo-100 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-400 font-bold">
                         {activeDoc.id}
                       </span>
-                      <span className="text-xs text-slate-400 font-mono">Version {activeDoc.version}</span>
+                      <span className="text-xs text-slate-600 font-mono dark:text-slate-400">Version {activeDoc.version}</span>
                     </div>
-                    <div className="flex items-center gap-3 text-xs text-slate-500 font-mono">
+                    <div className="flex items-center gap-3 text-xs text-slate-600 font-mono dark:text-slate-400">
                       <span>Effective: {activeDoc.effectiveDate}</span>
                       <span>Owner: {activeDoc.owner}</span>
                     </div>
                   </div>
                   <h2 className="text-xl font-black text-slate-900 dark:text-white">{activeDoc.title}</h2>
-                  <p className="text-[11px] text-slate-400 italic mt-1">
+                  {originalDoc && (
+                    <div className="mt-3">
+                      <DocEditor original={originalDoc} current={activeDoc} versions={history[activeDoc.id] ?? []} onHistory={setHistory} />
+                    </div>
+                  )}
+                  <p className="text-[11px] text-slate-600 italic mt-1 dark:text-slate-400">
                     Fictional company policy for demo purposes. Regulatory references are illustrative.
                   </p>
                 </div>
@@ -221,7 +240,7 @@ export default function CompanyPage() {
                             <Hash className="w-3.5 h-3.5" />
                             <span>{clause.id}</span>
                           </a>
-                          <span className="text-[10px] text-slate-400 font-mono">{activeDoc.prefix}</span>
+                          <span className="text-[10px] text-slate-600 font-mono dark:text-slate-400">{activeDoc.prefix}</span>
                         </div>
                         <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-sans">
                           {clause.text}
@@ -241,7 +260,7 @@ export default function CompanyPage() {
         <div className="space-y-4">
           <div className="flex items-center justify-between gap-4">
             <div className="relative max-w-sm w-full">
-              <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
+              <Search className="w-4 h-4 absolute left-3 top-3 text-slate-600 dark:text-slate-400" />
               <input
                 type="text"
                 value={searchQuery}
@@ -250,14 +269,14 @@ export default function CompanyPage() {
                 className="w-full pl-9 pr-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
-            <div className="text-xs text-slate-400 font-mono">
+            <div className="text-xs text-slate-600 font-mono dark:text-slate-400">
               Demo Date: <strong>2026-10-24</strong>
             </div>
           </div>
 
           <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
             <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 text-slate-500 font-semibold font-mono text-[11px]">
+              <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 text-slate-600 font-semibold font-mono text-[11px] dark:text-slate-400">
                 <tr>
                   <th className="py-3 px-4">Fact ID</th>
                   <th className="py-3 px-4">Clause</th>
@@ -290,7 +309,7 @@ export default function CompanyPage() {
                       <td className="py-3 px-4 font-bold text-indigo-600 dark:text-indigo-300">
                         {String(fact.value)} {fact.unit ? `(${fact.unit})` : ''}
                       </td>
-                      <td className="py-3 px-4 text-slate-500 text-[10px]">
+                      <td className="py-3 px-4 text-slate-600 text-[10px] dark:text-slate-400">
                         {fact.validFrom} &rarr; {fact.validTo || 'Present'}
                       </td>
                       <td className="py-3 px-4">
@@ -320,7 +339,7 @@ export default function CompanyPage() {
         <div className="space-y-4">
           <div className="flex items-center justify-between gap-4">
             <div className="relative max-w-sm w-full">
-              <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
+              <Search className="w-4 h-4 absolute left-3 top-3 text-slate-600 dark:text-slate-400" />
               <input
                 type="text"
                 value={searchQuery}
@@ -329,14 +348,14 @@ export default function CompanyPage() {
                 className="w-full pl-9 pr-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
-            <div className="text-xs text-slate-400 font-mono">
+            <div className="text-xs text-slate-600 font-mono dark:text-slate-400">
               Total Rules: <strong>{pack.rules.length}</strong> (100% Deterministic)
             </div>
           </div>
 
           <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
             <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 text-slate-500 font-semibold font-mono text-[11px]">
+              <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 text-slate-600 font-semibold font-mono text-[11px] dark:text-slate-400">
                 <tr>
                   <th className="py-3 px-4">Rule ID</th>
                   <th className="py-3 px-4">Clause</th>
@@ -369,7 +388,7 @@ export default function CompanyPage() {
                         </button>
                       </td>
                       <td className="py-3 px-4 text-slate-600 dark:text-slate-400">{rule.type}</td>
-                      <td className="py-3 px-4 text-slate-500 capitalize">{rule.category}</td>
+                      <td className="py-3 px-4 text-slate-600 capitalize dark:text-slate-400">{rule.category}</td>
                       <td className="py-3 px-4">
                         <span
                           className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold ${
@@ -385,9 +404,9 @@ export default function CompanyPage() {
                       </td>
                       <td className="py-3 px-4">
                         {rule.autoFix ? (
-                          <span className="text-emerald-600 dark:text-emerald-400 font-bold text-[10px]">Yes</span>
+                          <span className="text-emerald-700 dark:text-emerald-400 font-bold text-[10px]">Yes</span>
                         ) : (
-                          <span className="text-slate-400 text-[10px]">Manual</span>
+                          <span className="text-slate-600 text-[10px] dark:text-slate-400">Manual</span>
                         )}
                       </td>
                       <td className="py-3 px-4 font-sans text-xs text-slate-600 dark:text-slate-300 max-w-xs truncate" title={rule.message}>
@@ -420,8 +439,8 @@ export default function CompanyPage() {
                   <div className="h-20 w-full" style={{ backgroundColor: swatch.hex }} />
                   <div className="p-3 bg-slate-50 dark:bg-slate-800/60">
                     <div className="font-bold text-xs text-slate-900 dark:text-white">{swatch.name}</div>
-                    <div className="text-[11px] font-mono text-slate-500">{swatch.hex}</div>
-                    <div className="text-[10px] text-slate-400 mt-1">{swatch.usage}</div>
+                    <div className="text-[11px] font-mono text-slate-600 dark:text-slate-400">{swatch.hex}</div>
+                    <div className="text-[10px] text-slate-600 mt-1 dark:text-slate-400">{swatch.usage}</div>
                   </div>
                 </div>
               ))}
@@ -431,7 +450,7 @@ export default function CompanyPage() {
           {/* Wordmark Preview */}
           <div className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-3">
             <h3 className="text-sm font-bold text-slate-900 dark:text-white">Official Wordmark SVG</h3>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-600 dark:text-slate-400">
               Clear space equals the height of the &quot;T&quot;. Marigold hyphen is mandatory.
             </p>
             <div className="p-6 rounded-xl bg-[#FAF6EE] flex items-center justify-center border border-slate-200">

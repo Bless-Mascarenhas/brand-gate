@@ -4,8 +4,8 @@
   "id": "sample-11",
   "title": "Sample 11: Ambiguous 3 Emojis (BV vs SR Conflict)",
   "provenance": "deterministic_recording",
-  "recordedAt": "2026-10-24T13:42:46.815Z",
-  "packHash": "pack_2fc4b94dd474",
+  "recordedAt": "2026-10-24T14:07:07.309Z",
+  "packHash": "pack_93109fd9405c",
   "demoDate": "2026-10-24",
   "generator": "scripts/record-replay.ts",
   "notes": [
@@ -56,7 +56,7 @@
   ],
   "findings": [
     {
-      "id": "finding-R-SOC-004-1792849366840-0",
+      "id": "finding-R-SOC-004-1792850827338-0",
       "source": "gate",
       "category": "messaging",
       "severity": "major",

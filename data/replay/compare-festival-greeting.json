@@ -4,8 +4,8 @@
   "id": "compare-festival-greeting",
   "title": "6. Festival greeting",
   "provenance": "illustrative_fixture",
-  "recordedAt": "2026-10-24T13:42:46.815Z",
-  "packHash": "pack_2fc4b94dd474",
+  "recordedAt": "2026-10-24T14:07:07.309Z",
+  "packHash": "pack_93109fd9405c",
   "demoDate": "2026-10-24",
   "generator": "scripts/record-replay.ts",
   "notes": [
@@ -31,23 +31,23 @@
         "language": "en"
       },
       "metrics": {
-        "gateFailures": 0,
+        "gateFailures": 1,
         "staleOrWrongFacts": 0,
         "bannedTerms": 0,
         "unsupportedClaims": 0,
         "accessibilityGaps": 2,
         "bySeverity": {
           "critical": 0,
-          "major": 0,
+          "major": 1,
           "minor": 2,
           "info": 0
         },
-        "score": 90,
-        "verdict": "READY_FOR_HUMAN"
+        "score": 75,
+        "verdict": "BLOCKED"
       },
       "findings": [
         {
-          "id": "finding-R-ACC-002-1792849366847-0",
+          "id": "finding-R-ACC-002-1792850827344-0",
           "source": "gate",
           "category": "accessibility",
           "severity": "minor",
@@ -62,7 +62,7 @@
           "agreement": "deterministic"
         },
         {
-          "id": "finding-R-ACC-006-1792849366847-1",
+          "id": "finding-R-ACC-006-1792850827344-1",
           "source": "gate",
           "category": "accessibility",
           "severity": "minor",
@@ -71,6 +71,21 @@
           "postField": "caption",
           "postQuote": "l 🙏 C",
           "explanation": "Emojis must not replace semantic words mid-sentence. Place emojis at the end of thoughts or sentences.",
+          "autoFixable": false,
+          "confidence": 1,
+          "verified": true,
+          "agreement": "deterministic"
+        },
+        {
+          "id": "finding-R-SOC-007-1792850827344-2",
+          "source": "gate",
+          "category": "regional",
+          "severity": "major",
+          "clauseId": "SR-008",
+          "clauseQuote": "Approved festival greetings calendar.",
+          "postField": "caption",
+          "postQuote": "Happy Navratri",
+          "explanation": "Festival greetings must align with the approved greetings list in market.json.",
           "autoFixable": false,
           "confidence": 1,
           "verified": true,
@@ -96,21 +111,37 @@
         "language": "en"
       },
       "metrics": {
-        "gateFailures": 0,
+        "gateFailures": 1,
         "staleOrWrongFacts": 0,
         "bannedTerms": 0,
         "unsupportedClaims": 0,
         "accessibilityGaps": 0,
         "bySeverity": {
           "critical": 0,
-          "major": 0,
+          "major": 1,
           "minor": 0,
           "info": 0
         },
-        "score": 100,
-        "verdict": "READY_FOR_HUMAN"
+        "score": 85,
+        "verdict": "BLOCKED"
       },
-      "findings": [],
+      "findings": [
+        {
+          "id": "finding-R-SOC-007-1792850827345-0",
+          "source": "gate",
+          "category": "regional",
+          "severity": "major",
+          "clauseId": "SR-008",
+          "clauseQuote": "Approved festival greetings calendar.",
+          "postField": "caption",
+          "postQuote": "Shubh Navratri",
+          "explanation": "Festival greetings must align with the approved greetings list in market.json.",
+          "autoFixable": false,
+          "confidence": 1,
+          "verified": true,
+          "agreement": "deterministic"
+        }
+      ],
       "llmCalls": [],
       "wallMs": null,
       "note": "Hand-written example of a policy-aware but unverified answer. Not model output."
@@ -130,25 +161,43 @@
         "language": "en"
       },
       "metrics": {
-        "gateFailures": 0,
+        "gateFailures": 1,
         "staleOrWrongFacts": 0,
         "bannedTerms": 0,
         "unsupportedClaims": 0,
         "accessibilityGaps": 0,
         "bySeverity": {
           "critical": 0,
-          "major": 0,
+          "major": 1,
           "minor": 0,
           "info": 0
         },
-        "score": 100,
-        "verdict": "READY_FOR_HUMAN"
+        "score": 85,
+        "verdict": "BLOCKED"
       },
-      "findings": [],
+      "findings": [
+        {
+          "id": "finding-R-SOC-007-1792850827345-0",
+          "source": "gate",
+          "category": "regional",
+          "severity": "major",
+          "clauseId": "SR-008",
+          "clauseQuote": "Approved festival greetings calendar.",
+          "postField": "caption",
+          "postQuote": "Shubh Navratri",
+          "explanation": "Festival greetings must align with the approved greetings list in market.json.",
+          "autoFixable": false,
+          "confidence": 1,
+          "verified": true,
+          "agreement": "deterministic"
+        }
+      ],
       "pipelineVerdict": {
-        "status": "READY_FOR_HUMAN",
-        "score": 100,
-        "gatesFailed": [],
+        "status": "BLOCKED",
+        "score": 85,
+        "gatesFailed": [
+          "SR-008"
+        ],
         "needsHuman": [],
         "hallucinationsBlocked": 0
       },

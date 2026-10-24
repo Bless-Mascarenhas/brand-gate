@@ -14,7 +14,7 @@ const BodySchema = z.object({ variant: z.enum(['bare', 'policies']), scenarioId:
 const OutSchema = z.object({ caption: z.string(), hashtags: z.array(z.string()).default([]), altText: z.string().default('') });
 
 export async function POST(req: NextRequest) {
-  const auth = verifyLlmAccess(req);
+  const auth = await verifyLlmAccess(req);
   if (!auth.authorized) return auth.response!;
 
   const parsed = BodySchema.safeParse(await req.json().catch(() => null));

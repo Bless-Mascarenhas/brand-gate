@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { demoAccessCode } from '@/src/llm/gatekeeper';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -7,9 +8,9 @@ const COOKIE_NAME = 'bg_access';
 
 export async function GET(req: NextRequest) {
   const cookie = req.cookies.get(COOKIE_NAME);
-  const validCode = process.env.DEMO_ACCESS_CODE || 'brandgate2026';
+  const validCode = demoAccessCode();
 
-  const isAuthenticated = cookie?.value === validCode;
+  const isAuthenticated = Boolean(validCode) && cookie?.value === validCode;
   return NextResponse.json({ authenticated: isAuthenticated });
 }
 
@@ -17,9 +18,9 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { code } = body;
-    const validCode = process.env.DEMO_ACCESS_CODE || 'brandgate2026';
+    const validCode = demoAccessCode();
 
-    if (code && code.trim() === validCode.trim()) {
+    if (validCode && typeof code === 'string' && code.trim() === validCode) {
       const response = NextResponse.json({ success: true, message: 'Access granted' });
       response.cookies.set({
         name: COOKIE_NAME,

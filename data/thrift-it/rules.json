@@ -239,7 +239,7 @@
     "category": "factual_accuracy",
     "severity": "major",
     "fields": ["caption"],
-    "pattern": "(?:tees|t-shirts)\\s+(?:from|starting\\s+at)\\s*(?:₹|INR|rs\\.?)\\s*(\\d+)",
+    "pattern": "(?:tees|t-shirts)\\s+(?:from|starting\\s+at)\\s*(?:just\\s+|only\\s+)?(?:₹|INR|rs\\.?)\\s*(\\d+)",
     "min": 299,
     "message": "Tees starting price is ₹299.",
     "autoFix": false
@@ -251,7 +251,7 @@
     "category": "factual_accuracy",
     "severity": "major",
     "fields": ["caption"],
-    "pattern": "(?:jeans|denim)\\s+(?:from|starting\\s+at|at)\\s*(?:₹|INR|rs\\.?)\\s*(\\d+)",
+    "pattern": "(?:jeans|denim)\\s+(?:from|starting\\s+at|at)\\s*(?:just\\s+|only\\s+)?(?:₹|INR|rs\\.?)\\s*(\\d+)",
     "min": 599,
     "message": "Jeans / Denim starting price is ₹599. Prices like ₹299 for jeans violate the pricing registry.",
     "autoFix": false
@@ -263,7 +263,7 @@
     "category": "factual_accuracy",
     "severity": "major",
     "fields": ["caption"],
-    "pattern": "(?:jackets|outerwear)\\s+(?:from|starting\\s+at)\\s*(?:₹|INR|rs\\.?)\\s*(\\d+)",
+    "pattern": "(?:jackets|outerwear)\\s+(?:from|starting\\s+at)\\s*(?:just\\s+|only\\s+)?(?:₹|INR|rs\\.?)\\s*(\\d+)",
     "min": 899,
     "message": "Jackets starting price is ₹899.",
     "autoFix": false
@@ -532,7 +532,7 @@
     "category": "regional",
     "severity": "major",
     "fields": ["caption"],
-    "pattern": "(?:happy\\s+diwali|shubh\\s+diwali|eid\\s+mubarak|merry\\s+christmas|happy\\s+holi)",
+    "pattern": "\\b(?:happy|shubh|subh)\\s+(?:navratri|dussehra|dasara|durga\\s+puja|ganesh\\s+chaturthi|ganeshotsav|onam|pongal|baisakhi|lohri|raksha\\s+bandhan|janmashtami|karva\\s+chauth|chhath|makar\\s+sankranti|independence\\s+day|new\\s+year)\\b",
     "flags": "i",
     "message": "Festival greetings must align with the approved greetings list in market.json.",
     "autoFix": false

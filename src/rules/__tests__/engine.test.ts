@@ -466,3 +466,88 @@ describe('R-TERM-005 brand spelling regression (Phase 7/8 fix)', () => {
     expect(tm004('Shop Thrift it this weekend #ThriftIt')[0]?.postQuote).toBe('Thrift it');
   });
 });
+
+describe('Rule engine coverage additions (Phase 9 audit: ≥60 tests, clean controls)', () => {
+  const pack = getPolicyPack();
+  const D = '2026-10-24';
+  const ALT = 'Pre-loved denim jackets hanging on a wooden rail in warm daylight';
+  const run = (caption: string, extra: Partial<PostContent> = {}) =>
+    evaluatePost({ caption, hashtags: ['#ThriftIt'], altText: ALT, format: 'feed_4_5', language: 'en', ...extra }, pack, D);
+  const clauses = (caption: string, extra: Partial<PostContent> = {}) => run(caption, extra).findings.map((f) => f.clauseId);
+
+  it('a fully compliant post produces exactly zero findings (clean control)', () => {
+    const r = run('Diwali Thrift Fest is on: up to 30% off curated pre-loved jackets. Tap the link in bio to shop. #ThriftIt');
+    expect(r.findings).toEqual([]);
+    expect(r.score).toBe(100);
+    expect(r.passed).toBe(true);
+  });
+
+  it('approved festival greetings from market.json are allowed (SR-008)', () => {
+    for (const g of ['Shubh Diwali!', 'Happy Diwali, yaaron!', 'Eid Mubarak!', 'Merry Christmas!', 'Happy Holi!']) {
+      expect(clauses(`${g} Shop curated pre-loved picks via the link in bio. #ThriftIt`)).not.toContain('SR-008');
+    }
+  });
+
+  it('greetings for festivals outside the approved list are flagged (SR-008)', () => {
+    expect(clauses('Happy Navratri! Shop the link in bio. #ThriftIt')).toContain('SR-008');
+    expect(clauses('Shubh Dussehra to our community. #ThriftIt')).toContain('SR-008');
+  });
+
+  it('price pattern catches "starting at just ₹299" and "from only ₹199" (AF-004)', () => {
+    expect(clauses('Vintage jeans starting at just ₹299. #ThriftIt')).toContain('AF-004');
+    expect(clauses('Tees from only ₹199 this week. #ThriftIt')).toContain('AF-004');
+  });
+
+  it('correct starting prices do not trigger AF-004', () => {
+    expect(clauses('Tees from ₹299, jeans from ₹599 and jackets from ₹899. #ThriftIt')).not.toContain('AF-004');
+  });
+
+  it('jackets below ₹899 are flagged', () => {
+    expect(clauses('Jackets from ₹799 this weekend. #ThriftIt')).toContain('AF-004');
+  });
+
+  it('collab disclosed with #ad and the paid-partnership flag passes SR-006', () => {
+    const tags = ['#ad', '#ThriftIt'];
+    expect(clauses('#ad In collab with @mumbai.stylist: her favourite jackets. #ThriftIt', { hashtags: tags, paidPartnership: true })).not.toContain('SR-006');
+    expect(clauses('#ad In collab with @mumbai.stylist: her favourite jackets. #ThriftIt', { hashtags: tags, paidPartnership: false })).toContain('SR-006');
+  });
+
+  it('caption over 600 characters is flagged (SR-003); exactly at the limit is not', () => {
+    const base = 'Curated pre-loved picks. ';
+    const long = base.repeat(30) + '#ThriftIt';
+    expect(long.length).toBeGreaterThan(600);
+    expect(clauses(long)).toContain('SR-003');
+    const atLimit = ('a'.repeat(590) + ' #ThriftIt').slice(0, 600);
+    expect(atLimit.length).toBe(600);
+    expect(clauses(atLimit)).not.toContain('SR-003');
+  });
+
+  it('more than 8 hashtags is flagged (AR-004); exactly 8 is not', () => {
+    const eight = ['#ThriftIt', '#PreLoved', '#Thrifted', '#Curated', '#DenimDrop', '#Vintage', '#Mumbai', '#Style'];
+    expect(clauses('Curated pre-loved Denim. #ThriftIt', { hashtags: eight })).not.toContain('AR-004');
+    expect(clauses('Curated pre-loved Denim. #ThriftIt', { hashtags: [...eight, '#Ootd'] })).toContain('AR-004');
+  });
+
+  it('two emojis are allowed, three are not (SR-005 stricter than BV-005)', () => {
+    expect(clauses('Fresh racks ✨ curated picks 🧥 #ThriftIt')).not.toContain('SR-005');
+    expect(clauses('Fresh racks ✨ curated picks 🧥 tap the link 🎉 #ThriftIt')).toContain('SR-005');
+  });
+
+  it('"Rs." pricing is flagged under TM-008; ₹ pricing is not', () => {
+    expect(clauses('Tees from Rs. 299 this weekend. #ThriftIt')).toContain('TM-008');
+    expect(clauses('Tees from ₹299 this weekend. #ThriftIt')).not.toContain('TM-008');
+  });
+
+  it('banned circularity phrase "zero waste footprint" is flagged (TM-010)', () => {
+    expect(clauses('Shop with a zero waste footprint. #ThriftIt')).toContain('TM-010');
+  });
+
+  it('the stale ₹799 free-shipping threshold is flagged; ₹999 is not', () => {
+    expect(clauses('Free shipping on orders above ₹799. #ThriftIt')).toContain('AF-001');
+    expect(clauses('Free shipping on orders above ₹999. #ThriftIt')).not.toContain('AF-001');
+  });
+
+  it('stock-photo watermark mentions are flagged (VI-010)', () => {
+    expect(clauses('New drop, photo via Shutterstock. #ThriftIt')).toContain('VI-010');
+  });
+});

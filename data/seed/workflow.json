@@ -45,7 +45,7 @@
         "afterState": "draft",
         "details": "Sample data",
         "timestamp": "2026-10-22T09:00:00.000Z",
-        "packHash": "pack_2fc4b94dd474"
+        "packHash": "pack_93109fd9405c"
       }
     ],
     "approvals": [],
@@ -126,7 +126,7 @@
         "afterState": "draft",
         "details": "Sample data",
         "timestamp": "2026-10-22T10:00:00.000Z",
-        "packHash": "pack_2fc4b94dd474"
+        "packHash": "pack_93109fd9405c"
       },
       {
         "id": "wf-002-a2",
@@ -137,7 +137,7 @@
         "beforeState": "draft",
         "afterState": "in_review",
         "timestamp": "2026-10-22T10:05:00.000Z",
-        "packHash": "pack_2fc4b94dd474"
+        "packHash": "pack_93109fd9405c"
       },
       {
         "id": "wf-002-a3",
@@ -147,7 +147,7 @@
         "action": "comment",
         "details": "on finding wf-002-v1-f1",
         "timestamp": "2026-10-22T11:00:00.000Z",
-        "packHash": "pack_2fc4b94dd474"
+        "packHash": "pack_93109fd9405c"
       }
     ],
     "approvals": [],
@@ -228,7 +228,7 @@
         "afterState": "draft",
         "details": "Sample data",
         "timestamp": "2026-10-21T09:00:00.000Z",
-        "packHash": "pack_2fc4b94dd474"
+        "packHash": "pack_93109fd9405c"
       },
       {
         "id": "wf-003-a2",
@@ -239,7 +239,7 @@
         "beforeState": "draft",
         "afterState": "in_review",
         "timestamp": "2026-10-21T09:10:00.000Z",
-        "packHash": "pack_2fc4b94dd474"
+        "packHash": "pack_93109fd9405c"
       },
       {
         "id": "wf-003-a3",
@@ -249,7 +249,7 @@
         "action": "comment",
         "details": "post-level",
         "timestamp": "2026-10-21T12:00:00.000Z",
-        "packHash": "pack_2fc4b94dd474"
+        "packHash": "pack_93109fd9405c"
       }
     ],
     "approvals": [],
@@ -347,7 +347,7 @@
         "afterState": "draft",
         "details": "Sample data",
         "timestamp": "2026-10-20T09:00:00.000Z",
-        "packHash": "pack_2fc4b94dd474"
+        "packHash": "pack_93109fd9405c"
       },
       {
         "id": "wf-004-a2",
@@ -358,7 +358,7 @@
         "beforeState": "draft",
         "afterState": "in_review",
         "timestamp": "2026-10-20T09:30:00.000Z",
-        "packHash": "pack_2fc4b94dd474"
+        "packHash": "pack_93109fd9405c"
       },
       {
         "id": "wf-004-a3",
@@ -368,7 +368,7 @@
         "action": "comment",
         "details": "on finding wf-004-v1-f1",
         "timestamp": "2026-10-20T13:00:00.000Z",
-        "packHash": "pack_2fc4b94dd474"
+        "packHash": "pack_93109fd9405c"
       },
       {
         "id": "wf-004-a4",
@@ -380,7 +380,7 @@
         "afterState": "changes_requested",
         "details": "[wrong_fact] Jeans start at ₹599, not ₹299; also replace banned terms. (clauses: TM-002)",
         "timestamp": "2026-10-20T13:05:00.000Z",
-        "packHash": "pack_2fc4b94dd474"
+        "packHash": "pack_93109fd9405c"
       }
     ],
     "approvals": [],
@@ -506,7 +506,7 @@
         "afterState": "draft",
         "details": "Sample data",
         "timestamp": "2026-10-18T09:00:00.000Z",
-        "packHash": "pack_2fc4b94dd474"
+        "packHash": "pack_93109fd9405c"
       },
       {
         "id": "wf-005-a2",
@@ -517,7 +517,7 @@
         "beforeState": "draft",
         "afterState": "in_review",
         "timestamp": "2026-10-18T09:15:00.000Z",
-        "packHash": "pack_2fc4b94dd474"
+        "packHash": "pack_93109fd9405c"
       },
       {
         "id": "wf-005-a3",
@@ -529,7 +529,7 @@
         "afterState": "changes_requested",
         "details": "[wrong_fact] Free shipping is only above ₹999 and we do not offer same-day delivery. (clauses: AF-001, AF-007)",
         "timestamp": "2026-10-18T11:00:00.000Z",
-        "packHash": "pack_2fc4b94dd474"
+        "packHash": "pack_93109fd9405c"
       },
       {
         "id": "wf-005-a4",
@@ -541,7 +541,7 @@
         "afterState": "v2 score 100",
         "details": "Corrected shipping threshold and delivery window",
         "timestamp": "2026-10-19T09:00:00.000Z",
-        "packHash": "pack_2fc4b94dd474"
+        "packHash": "pack_93109fd9405c"
       },
       {
         "id": "wf-005-a5",
@@ -552,7 +552,7 @@
         "beforeState": "changes_requested",
         "afterState": "in_review",
         "timestamp": "2026-10-19T09:05:00.000Z",
-        "packHash": "pack_2fc4b94dd474"
+        "packHash": "pack_93109fd9405c"
       },
       {
         "id": "wf-005-a6",
@@ -564,7 +564,7 @@
         "afterState": "approved",
         "details": "Final approval (EM-006).",
         "timestamp": "2026-10-19T12:30:00.000Z",
-        "packHash": "pack_2fc4b94dd474"
+        "packHash": "pack_93109fd9405c"
       }
     ],
     "approvals": [
@@ -637,7 +637,7 @@
         "afterState": "draft",
         "details": "Sample data",
         "timestamp": "2026-10-15T09:00:00.000Z",
-        "packHash": "pack_2fc4b94dd474"
+        "packHash": "pack_93109fd9405c"
       },
       {
         "id": "wf-006-a2",
@@ -648,7 +648,7 @@
         "beforeState": "draft",
         "afterState": "in_review",
         "timestamp": "2026-10-15T09:10:00.000Z",
-        "packHash": "pack_2fc4b94dd474"
+        "packHash": "pack_93109fd9405c"
       },
       {
         "id": "wf-006-a3",
@@ -660,7 +660,7 @@
         "afterState": "approved",
         "details": "Final approval (EM-006).",
         "timestamp": "2026-10-15T10:00:00.000Z",
-        "packHash": "pack_2fc4b94dd474"
+        "packHash": "pack_93109fd9405c"
       },
       {
         "id": "wf-006-a4",
@@ -672,7 +672,7 @@
         "afterState": "published_mock",
         "details": "Simulated publish (no Instagram API call).",
         "timestamp": "2026-10-15T11:00:00.000Z",
-        "packHash": "pack_2fc4b94dd474"
+        "packHash": "pack_93109fd9405c"
       }
     ],
     "approvals": [

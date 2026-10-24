@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { readJsonBody, RequestSchemas } from '@/src/llm/http';
 import { verifyLlmAccess } from '@/src/llm/gatekeeper';
 import { callLLM } from '@/src/llm/callLLM';
 import { buildGeneratorPrompt } from '@/src/llm/prompts/generator';
@@ -8,11 +9,13 @@ export const runtime = 'nodejs';
 export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
-  const auth = verifyLlmAccess(req);
+  const auth = await verifyLlmAccess(req);
   if (!auth.authorized) return auth.response!;
 
   try {
-    const body = await req.json();
+    const read = await readJsonBody(req, RequestSchemas.generate);
+    if (!read.ok) return read.response;
+    const body = read.data;
     const prompt: string = body.prompt;
     const language = body.language || 'en';
     const format = body.format || 'feed_4_5';

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { readJsonBody, RequestSchemas } from '@/src/llm/http';
 import { getPolicyPack } from '@/src/kb';
 import { evaluatePost } from '@/src/rules/engine';
 import { PostContent } from '@/src/types';
@@ -8,7 +9,9 @@ export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
+    const read = await readJsonBody(req, RequestSchemas.gates);
+    if (!read.ok) return read.response;
+    const body = read.data;
     const post: PostContent = body.post;
     const demoDate = body.demoDate || process.env.DEMO_TODAY || '2026-10-24';
 

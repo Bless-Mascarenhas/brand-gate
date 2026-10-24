@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { readJsonBody, RequestSchemas } from '@/src/llm/http';
 import { verifyLlmAccess } from '@/src/llm/gatekeeper';
 import { callLLM } from '@/src/llm/callLLM';
 import { buildReviewerPrompt } from '@/src/llm/prompts/reviewer';
@@ -9,11 +10,13 @@ export const runtime = 'nodejs';
 export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
-  const auth = verifyLlmAccess(req);
+  const auth = await verifyLlmAccess(req);
   if (!auth.authorized) return auth.response!;
 
   try {
-    const body = await req.json();
+    const read = await readJsonBody(req, RequestSchemas.review);
+    if (!read.ok) return read.response;
+    const body = read.data;
     const provider: 'gemini' | 'xai' | 'nvidia' = body.provider || 'gemini';
     const post: PostContent = body.post;
     const categories: Category[] = body.categories || [

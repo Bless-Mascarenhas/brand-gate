@@ -12,7 +12,7 @@ const BodySchema = z.object({ clauseId: z.string().regex(/^[A-Z]{2}-\d{3}$/), ev
 const OutSchema = z.object({ suggestion: z.string(), rationale: z.string().optional() });
 
 export async function POST(req: NextRequest) {
-  const auth = verifyLlmAccess(req);
+  const auth = await verifyLlmAccess(req);
   if (!auth.authorized) return auth.response!;
 
   const parsed = BodySchema.safeParse(await req.json().catch(() => null));

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { readJsonBody, RequestSchemas } from '@/src/llm/http';
 import { verifyLlmAccess } from '@/src/llm/gatekeeper';
 import { GoogleGenAI } from '@google/genai';
 
@@ -78,11 +79,13 @@ function generateAestheticFallback(prompt: string, format: string): string {
 }
 
 export async function POST(req: NextRequest) {
-  const auth = verifyLlmAccess(req);
+  const auth = await verifyLlmAccess(req);
   if (!auth.authorized) return auth.response!;
 
   try {
-    const body = await req.json();
+    const read = await readJsonBody(req, RequestSchemas.image);
+    if (!read.ok) return read.response;
+    const body = read.data;
     const prompt: string = body.prompt || 'Curated vintage clothing piece, natural daylight studio photography';
     const format: string = body.format || 'feed_4_5';
     const festival: string = body.festival || '';

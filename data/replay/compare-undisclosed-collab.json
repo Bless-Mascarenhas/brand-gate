@@ -4,8 +4,8 @@
   "id": "compare-undisclosed-collab",
   "title": "5. Undisclosed influencer collab",
   "provenance": "illustrative_fixture",
-  "recordedAt": "2026-10-24T13:42:46.815Z",
-  "packHash": "pack_2fc4b94dd474",
+  "recordedAt": "2026-10-24T14:07:07.309Z",
+  "packHash": "pack_93109fd9405c",
   "demoDate": "2026-10-24",
   "generator": "scripts/record-replay.ts",
   "notes": [
@@ -47,7 +47,7 @@
       },
       "findings": [
         {
-          "id": "finding-R-SOC-005-1792849366846-0",
+          "id": "finding-R-SOC-005-1792850827344-0",
           "source": "gate",
           "category": "disclosure",
           "severity": "critical",
@@ -97,7 +97,7 @@
       },
       "findings": [
         {
-          "id": "finding-R-SOC-005-1792849366846-0",
+          "id": "finding-R-SOC-005-1792850827344-0",
           "source": "gate",
           "category": "disclosure",
           "severity": "critical",
@@ -147,7 +147,7 @@
       },
       "findings": [
         {
-          "id": "finding-R-SOC-005-1792849366846-0",
+          "id": "finding-R-SOC-005-1792850827344-0",
           "source": "gate",
           "category": "disclosure",
           "severity": "critical",

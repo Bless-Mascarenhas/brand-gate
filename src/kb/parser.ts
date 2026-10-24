@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
+import { parseClausesFromMarkdown, packHashInput } from './clauses';
 import { Clause, PolicyDoc, PolicyPack, FactEntry, Rule, Asset, MarketConfig } from '@/src/types';
 
 const THRIFT_IT_DIR = path.join(process.cwd(), 'data', 'thrift-it');
@@ -16,27 +17,7 @@ const DOC_METADATA: { filename: string; id: string; prefix: string }[] = [
   { filename: 'escalation-matrix.md', id: 'DOC-EM-001', prefix: 'EM' },
 ];
 
-export function parseClausesFromMarkdown(content: string, docId: string, docTitle: string): Clause[] {
-  const clauses: Clause[] = [];
-  // Match [PREFIX-NNN] followed by text up to next [PREFIX-NNN] or end
-  const regex = /\[([A-Z]{2,3}-\d{3})\]\s*([\s\S]*?)(?=(?:\[[A-Z]{2,3}-\d{3}\])|$)/g;
-
-  let match: RegExpExecArray | null;
-  while ((match = regex.exec(content)) !== null) {
-    const id = match[1].trim();
-    const rawText = match[2].trim();
-    if (id && rawText) {
-      clauses.push({
-        id,
-        docId,
-        docTitle,
-        text: rawText,
-      });
-    }
-  }
-
-  return clauses;
-}
+export { parseClausesFromMarkdown } from './clauses';
 
 export function loadPolicyPack(): PolicyPack {
   const docs: PolicyDoc[] = [];
@@ -91,11 +72,7 @@ export function loadPolicyPack(): PolicyPack {
   const market: MarketConfig = JSON.parse(marketRaw);
 
   // Compute deterministic snapshot hash
-  const hashInput = JSON.stringify({
-    docs: docs.map((d) => ({ id: d.id, clauses: d.clauses.map((c) => ({ id: c.id, text: c.text })) })),
-    facts,
-    rules: rules.map((r) => r.id),
-  });
+  const hashInput = packHashInput(docs, facts, rules);
   const hash = 'pack_' + crypto.createHash('sha256').update(hashInput).digest('hex').slice(0, 12);
 
   return {

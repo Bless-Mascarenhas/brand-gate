@@ -1,10 +1,10 @@
 {
   "meta": {
-    "computedAt": "2026-10-24T13:38:45.960Z",
+    "computedAt": "2026-10-24T14:06:58.070Z",
     "command": "npm run benchmark --",
     "generator": "scripts/benchmark.ts",
-    "gitCommit": "7e92159",
-    "packHash": "pack_2fc4b94dd474",
+    "gitCommit": "3ee71d0",
+    "packHash": "pack_93109fd9405c",
     "demoDate": "2026-10-24",
     "split": "all",
     "mode": "fast",
@@ -33,14 +33,14 @@
       "metrics": {
         "dev": {
           "tp": 26,
-          "fp": 2,
+          "fp": 1,
           "fn": 2,
-          "precision": 0.9285714285714286,
+          "precision": 0.9629629629629629,
           "recall": 0.9285714285714286,
           "posts": 30,
           "cleanPosts": 10,
-          "cleanPostsFlagged": 1,
-          "falsePositiveRateOnClean": 0.1,
+          "cleanPostsFlagged": 0,
+          "falsePositiveRateOnClean": 0,
           "citationValidity": null,
           "hallucinatedCitations": 0,
           "caughtOnlyByGates": 26,
@@ -48,13 +48,6 @@
           "debateDisputed": 0,
           "failedPosts": 0,
           "perCategory": {
-            "regional": {
-              "tp": 0,
-              "fp": 1,
-              "fn": 0,
-              "precision": 0,
-              "recall": null
-            },
             "factual_accuracy": {
               "tp": 7,
               "fp": 0,
@@ -190,14 +183,14 @@
         },
         "all": {
           "tp": 46,
-          "fp": 2,
+          "fp": 1,
           "fn": 9,
-          "precision": 0.9583333333333334,
+          "precision": 0.9787234042553191,
           "recall": 0.8363636363636363,
           "posts": 60,
           "cleanPosts": 20,
-          "cleanPostsFlagged": 1,
-          "falsePositiveRateOnClean": 0.05,
+          "cleanPostsFlagged": 0,
+          "falsePositiveRateOnClean": 0,
           "citationValidity": null,
           "hallucinatedCitations": 0,
           "caughtOnlyByGates": 46,
@@ -205,13 +198,6 @@
           "debateDisputed": 0,
           "failedPosts": 0,
           "perCategory": {
-            "regional": {
-              "tp": 0,
-              "fp": 1,
-              "fn": 0,
-              "precision": 0,
-              "recall": null
-            },
             "factual_accuracy": {
               "tp": 10,
               "fp": 0,
@@ -290,7 +276,7 @@
         "invalidLlmCitations": 0,
         "debateAgreed": 0,
         "debateDisputed": 0,
-        "ms": 10,
+        "ms": 11,
         "llmCalls": 0,
         "verdict": "READY_FOR_HUMAN",
         "score": 100
@@ -309,7 +295,7 @@
         "invalidLlmCitations": 0,
         "debateAgreed": 0,
         "debateDisputed": 0,
-        "ms": 0,
+        "ms": 1,
         "llmCalls": 0,
         "verdict": "READY_FOR_HUMAN",
         "score": 100
@@ -328,7 +314,7 @@
         "invalidLlmCitations": 0,
         "debateAgreed": 0,
         "debateDisputed": 0,
-        "ms": 1,
+        "ms": 0,
         "llmCalls": 0,
         "verdict": "READY_FOR_HUMAN",
         "score": 100
@@ -404,7 +390,7 @@
         "invalidLlmCitations": 0,
         "debateAgreed": 0,
         "debateDisputed": 0,
-        "ms": 0,
+        "ms": 1,
         "llmCalls": 0,
         "verdict": "READY_FOR_HUMAN",
         "score": 100
@@ -474,26 +460,16 @@
       "expected": [],
       "governed": {
         "postId": "clean-11",
-        "findings": [
-          {
-            "clauseId": "SR-008",
-            "category": "regional",
-            "severity": "major",
-            "agreement": "deterministic",
-            "source": "gate"
-          }
-        ],
-        "gatesFailed": [
-          "SR-008"
-        ],
+        "findings": [],
+        "gatesFailed": [],
         "rawLlmCitations": 0,
         "invalidLlmCitations": 0,
         "debateAgreed": 0,
         "debateDisputed": 0,
-        "ms": 1,
+        "ms": 0,
         "llmCalls": 0,
-        "verdict": "BLOCKED",
-        "score": 85
+        "verdict": "READY_FOR_HUMAN",
+        "score": 100
       },
       "baseline": null
     },
@@ -585,7 +561,7 @@
         "invalidLlmCitations": 0,
         "debateAgreed": 0,
         "debateDisputed": 0,
-        "ms": 0,
+        "ms": 1,
         "llmCalls": 0,
         "verdict": "READY_FOR_HUMAN",
         "score": 100
@@ -692,7 +668,7 @@
         "invalidLlmCitations": 0,
         "debateAgreed": 0,
         "debateDisputed": 0,
-        "ms": 1,
+        "ms": 0,
         "llmCalls": 0,
         "verdict": "BLOCKED",
         "score": 85
@@ -812,7 +788,7 @@
         "invalidLlmCitations": 0,
         "debateAgreed": 0,
         "debateDisputed": 0,
-        "ms": 0,
+        "ms": 1,
         "llmCalls": 0,
         "verdict": "READY_FOR_HUMAN",
         "score": 95
@@ -1082,7 +1058,7 @@
         "invalidLlmCitations": 0,
         "debateAgreed": 0,
         "debateDisputed": 0,
-        "ms": 1,
+        "ms": 0,
         "llmCalls": 0,
         "verdict": "READY_FOR_HUMAN",
         "score": 95
@@ -1103,7 +1079,7 @@
         "invalidLlmCitations": 0,
         "debateAgreed": 0,
         "debateDisputed": 0,
-        "ms": 1,
+        "ms": 0,
         "llmCalls": 0,
         "verdict": "READY_FOR_HUMAN",
         "score": 100
@@ -1132,7 +1108,7 @@
         "invalidLlmCitations": 0,
         "debateAgreed": 0,
         "debateDisputed": 0,
-        "ms": 0,
+        "ms": 3,
         "llmCalls": 0,
         "verdict": "READY_FOR_HUMAN",
         "score": 95
@@ -1403,7 +1379,7 @@
         "invalidLlmCitations": 0,
         "debateAgreed": 0,
         "debateDisputed": 0,
-        "ms": 1,
+        "ms": 0,
         "llmCalls": 0,
         "verdict": "BLOCKED",
         "score": 85
@@ -1435,7 +1411,7 @@
         "invalidLlmCitations": 0,
         "debateAgreed": 0,
         "debateDisputed": 0,
-        "ms": 0,
+        "ms": 1,
         "llmCalls": 0,
         "verdict": "BLOCKED",
         "score": 85
@@ -1868,7 +1844,7 @@
         "invalidLlmCitations": 0,
         "debateAgreed": 0,
         "debateDisputed": 0,
-        "ms": 0,
+        "ms": 1,
         "llmCalls": 0,
         "verdict": "BLOCKED",
         "score": 70

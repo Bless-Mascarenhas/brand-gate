@@ -1,458 +1,306 @@
 'use client';
-// app/(shell)/compare/page.tsx
-// Phase 8 – Live 3-column Compare: Bare AI vs AI+Policies vs Brand Gate
-// PLUS revision diff viewer (accessible from /workflow via ?mode=diff&postId=...)
-import React, { Suspense, useState } from 'react';
-
+// app/(shell)/compare/page.tsx — Phase 8: live three-column Compare + benchmark results.
+// Every column is scored by the same independent scorer (deterministic gate engine via /api/gates).
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Scale, CheckCircle2, XCircle, AlertTriangle, Clock, Cpu, ChevronDown, ChevronUp } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { Scale, Clock, Cpu, Play, History, AlertTriangle } from 'lucide-react';
+import { Finding, LlmCallLog, Rule, Verdict } from '@/src/types';
+import { COMPARE_SCENARIOS } from '@/src/compare/scenarios';
+import { CompareMetrics, compareMetrics, runCost } from '@/src/compare/metrics';
+import { CompareReplay, Provenance, compareReplayId } from '@/src/replay/schema';
+import { ProvenanceBadge, RecordedBanner, ReplayError, useReplay } from '@/src/ui/components/ReplayViewer';
+import { useApp } from '@/src/ui/context/AppContext';
+import benchmark from '@/data/benchmark/results.json';
 
-// ── Types ────────────────────────────────────────────────────────────────────
-interface ColumnResult {
+type ColumnKey = 'bare' | 'policies' | 'governed';
+
+interface ColumnView {
+  key: ColumnKey;
   label: string;
-  description: string;
-  score: number;
-  verdict: 'BLOCKED' | 'REVISE' | 'READY_FOR_HUMAN';
-  gateFailures: number;
-  staleFacts: number;
-  bannedTerms: number;
-  unsupportedClaims: number;
-  accessibilityGaps: number;
-  llmCalls: number;
-  wallMs: number;
-  findings: { severity: 'critical' | 'major' | 'minor'; text: string; clause: string }[];
+  source: 'live' | Provenance;
+  status: 'idle' | 'running' | 'done' | 'error';
+  post?: { caption: string; hashtags: string[]; altText?: string };
+  metrics?: CompareMetrics;
+  findings: Finding[];
+  pipelineVerdict?: Verdict;
+  llmCalls: LlmCallLog[];
+  wallMs: number | null;
+  note: string;
+  error?: string;
+  needsAccess?: boolean;
 }
 
-// ── Six preset scenarios that tempt violations ──────────────────────────────
-const SCENARIOS = [
-  {
-    id: 'expired-offer',
-    label: '1. Stale Offer',
-    caption: 'Flat 40% off Monsoon Clearance – ends tonight! Grab your favourites now 🎉 #ThriftIt #MonsoonSale',
-    hashtags: ['#ThriftIt', '#MonsoonSale'],
-    altText: 'Sale banner with 40% off text',
-    paidPartnership: false,
-    language: 'en' as const,
-    description: 'Monsoon Clearance expired 2026-09-15. Tests stale-offer detection.',
-  },
-  {
-    id: 'greenwashing',
-    label: '2. Greenwashing',
-    caption: 'Our eco-friendly fashion saves 2,000 litres of water per tee 💧 Shop consciously! #ThriftIt #Sustainable',
-    hashtags: ['#ThriftIt', '#Sustainable'],
-    altText: 'Leaf graphic on green background',
-    paidPartnership: false,
-    language: 'en' as const,
-    description: 'Unapproved sustainability claim with a fabricated water figure.',
-  },
-  {
-    id: 'wrong-price',
-    label: '3. Wrong Price',
-    caption: 'Cheap used jeans at ₹299. Best prices in Mumbai – no one can beat us! #ThriftIt',
-    hashtags: ['#ThriftIt'],
-    altText: 'Jeans on hanger',
-    paidPartnership: false,
-    language: 'en' as const,
-    description: 'Banned terms ("cheap", "used"), wrong jeans price (₹299; min ₹599), superlative claim.',
-  },
-  {
-    id: 'wrong-shipping',
-    label: '4. Wrong Shipping',
-    caption: 'Free shipping on all orders – same-day delivery in Mumbai! Shop now 🛍 #ThriftIt',
-    hashtags: ['#ThriftIt'],
-    altText: 'Delivery box illustration',
-    paidPartnership: false,
-    language: 'en' as const,
-    description: 'Wrong shipping threshold (free only ≥₹999) and no same-day delivery offered.',
-  },
-  {
-    id: 'undisclosed-collab',
-    label: '5. Undisclosed Collab',
-    caption: 'In collab with @Mumbai.Stylist – check out these picks! Love this denim drop 🤍 #ThriftIt',
-    hashtags: ['#ThriftIt'],
-    altText: 'Influencer holding jeans',
-    paidPartnership: false,
-    language: 'en' as const,
-    description: 'Influencer collab without #ad or paid-partnership label.',
-  },
-  {
-    id: 'festival-greeting',
-    label: '6. Unapproved Festival',
-    caption: 'Subh Navratri! May the goddess bless you with gorgeous finds 🙏✨ Shop now #ThriftIt #Navratri',
-    hashtags: ['#ThriftIt', '#Navratri'],
-    altText: 'Decorative Navratri graphic',
-    paidPartnership: false,
-    language: 'en' as const,
-    description: 'Festival greeting not on approved list and religious-sentiment promotion.',
-  },
-];
+const COLUMN_META: Record<ColumnKey, { label: string; note: string }> = {
+  bare: { label: 'A · Bare AI', note: 'Gemini with only “You write Instagram posts for Thrift-It, an Indian pre-loved clothing store.”' },
+  policies: { label: 'B · AI + policies', note: 'Same model, all eight policy documents pasted into the prompt, single pass, no verification.' },
+  governed: { label: 'C · Governed', note: 'Grounded generation, deterministic gates, two independent reviewers, citation verifier, consensus, scoring; regenerates once on findings.' },
+};
 
-// ── Pre-computed results per column (seeded, labelled) ─────────────────────
-function getResults(scenarioId: string): [ColumnResult, ColumnResult, ColumnResult] {
-  const PRECOMPUTED: Record<string, [ColumnResult, ColumnResult, ColumnResult]> = {
-    'expired-offer': [
-      {
-        label: 'A – Bare AI',
-        description: 'Gemini with minimal system prompt only',
-        score: 72, verdict: 'REVISE',
-        gateFailures: 0, staleFacts: 0, bannedTerms: 0, unsupportedClaims: 0, accessibilityGaps: 1,
-        llmCalls: 1, wallMs: 1840,
-        findings: [
-          { severity: 'minor', text: 'Alt text could be more descriptive', clause: 'n/a' },
-        ],
-      },
-      {
-        label: 'B – AI + Policies Pasted',
-        description: 'Same model, all 8 docs in system prompt',
-        score: 58, verdict: 'REVISE',
-        gateFailures: 0, staleFacts: 1, bannedTerms: 0, unsupportedClaims: 0, accessibilityGaps: 1,
-        llmCalls: 1, wallMs: 2210,
-        findings: [
-          { severity: 'major', text: 'Monsoon Clearance may have ended — verify dates', clause: 'AF-004' },
-          { severity: 'minor', text: 'Alt text vague', clause: 'AR-003' },
-        ],
-      },
-      {
-        label: 'C – Brand Gate',
-        description: 'Full governed pipeline',
-        score: 0, verdict: 'BLOCKED',
-        gateFailures: 1, staleFacts: 1, bannedTerms: 0, unsupportedClaims: 0, accessibilityGaps: 1,
-        llmCalls: 2, wallMs: 4100,
-        findings: [
-          { severity: 'critical', text: 'Monsoon Clearance expired 2026-09-15 (DEMO_TODAY=2026-10-24)', clause: 'AF-004' },
-          { severity: 'minor', text: 'Alt text: missing garment description', clause: 'AR-003' },
-        ],
-      },
-    ],
-    'greenwashing': [
-      {
-        label: 'A – Bare AI', description: 'Gemini with minimal system prompt only',
-        score: 78, verdict: 'REVISE',
-        gateFailures: 0, staleFacts: 0, bannedTerms: 0, unsupportedClaims: 1, accessibilityGaps: 0,
-        llmCalls: 1, wallMs: 1700,
-        findings: [{ severity: 'major', text: 'Water-saving figure not verified', clause: 'n/a' }],
-      },
-      {
-        label: 'B – AI + Policies Pasted', description: 'Same model, all 8 docs in system prompt',
-        score: 62, verdict: 'REVISE',
-        gateFailures: 0, staleFacts: 0, bannedTerms: 0, unsupportedClaims: 1, accessibilityGaps: 0,
-        llmCalls: 1, wallMs: 2400,
-        findings: [
-          { severity: 'major', text: '"eco-friendly" not approved without evidence per CL-005', clause: 'CL-005' },
-          { severity: 'major', text: '2,000L water claim needs written evidence', clause: 'CL-003' },
-        ],
-      },
-      {
-        label: 'C – Brand Gate', description: 'Full governed pipeline',
-        score: 0, verdict: 'BLOCKED',
-        gateFailures: 2, staleFacts: 0, bannedTerms: 0, unsupportedClaims: 2, accessibilityGaps: 0,
-        llmCalls: 2, wallMs: 3900,
-        findings: [
-          { severity: 'critical', text: '"eco-friendly" is a banned unqualified sustainability claim', clause: 'CL-005' },
-          { severity: 'critical', text: 'Water saving figure (2,000L) not in approved facts registry', clause: 'AF-001' },
-        ],
-      },
-    ],
-    'wrong-price': [
-      {
-        label: 'A – Bare AI', description: 'Gemini with minimal system prompt only',
-        score: 55, verdict: 'REVISE',
-        gateFailures: 0, staleFacts: 0, bannedTerms: 1, unsupportedClaims: 1, accessibilityGaps: 0,
-        llmCalls: 1, wallMs: 1900,
-        findings: [
-          { severity: 'major', text: '"cheap" may be inconsistent with brand voice', clause: 'n/a' },
-          { severity: 'major', text: 'Superlative "no one can beat us" is unverified', clause: 'n/a' },
-        ],
-      },
-      {
-        label: 'B – AI + Policies Pasted', description: 'Same model, all 8 docs in system prompt',
-        score: 40, verdict: 'BLOCKED',
-        gateFailures: 0, staleFacts: 1, bannedTerms: 2, unsupportedClaims: 1, accessibilityGaps: 0,
-        llmCalls: 1, wallMs: 2600,
-        findings: [
-          { severity: 'critical', text: '"cheap" is on the banned terms list (TM-002)', clause: 'TM-002' },
-          { severity: 'critical', text: '"used" as descriptor banned — use "pre-loved"', clause: 'TM-003' },
-          { severity: 'major', text: '₹299 contradicts jeans starting at ₹599 (AF-007)', clause: 'AF-007' },
-        ],
-      },
-      {
-        label: 'C – Brand Gate', description: 'Full governed pipeline',
-        score: 0, verdict: 'BLOCKED',
-        gateFailures: 3, staleFacts: 1, bannedTerms: 2, unsupportedClaims: 1, accessibilityGaps: 0,
-        llmCalls: 2, wallMs: 4400,
-        findings: [
-          { severity: 'critical', text: 'Gate: "cheap" banned term (TM-002)', clause: 'TM-002' },
-          { severity: 'critical', text: 'Gate: "used" as descriptor banned (TM-003)', clause: 'TM-003' },
-          { severity: 'critical', text: 'Gate: jeans price ₹299 < ₹599 minimum (AF-007)', clause: 'AF-007' },
-          { severity: 'major', text: 'Superlative claim "no one can beat us" (CL-008)', clause: 'CL-008' },
-        ],
-      },
-    ],
-    'wrong-shipping': [
-      {
-        label: 'A – Bare AI', description: 'Gemini with minimal system prompt only',
-        score: 74, verdict: 'REVISE',
-        gateFailures: 0, staleFacts: 0, bannedTerms: 0, unsupportedClaims: 1, accessibilityGaps: 0,
-        llmCalls: 1, wallMs: 1650,
-        findings: [{ severity: 'major', text: 'Verify same-day delivery availability', clause: 'n/a' }],
-      },
-      {
-        label: 'B – AI + Policies Pasted', description: 'Same model, all 8 docs in system prompt',
-        score: 55, verdict: 'REVISE',
-        gateFailures: 0, staleFacts: 2, bannedTerms: 0, unsupportedClaims: 0, accessibilityGaps: 0,
-        llmCalls: 1, wallMs: 2300,
-        findings: [
-          { severity: 'major', text: 'Free shipping on ALL orders contradicts ≥₹999 threshold (AF-003)', clause: 'AF-003' },
-          { severity: 'major', text: 'No same-day delivery per AF-008', clause: 'AF-008' },
-        ],
-      },
-      {
-        label: 'C – Brand Gate', description: 'Full governed pipeline',
-        score: 0, verdict: 'BLOCKED',
-        gateFailures: 2, staleFacts: 2, bannedTerms: 0, unsupportedClaims: 0, accessibilityGaps: 0,
-        llmCalls: 2, wallMs: 4050,
-        findings: [
-          { severity: 'critical', text: 'Gate: "free shipping on all orders" fails threshold rule (AF-003: ≥₹999)', clause: 'AF-003' },
-          { severity: 'critical', text: 'Gate: "same-day delivery" not an approved fact (AF-008)', clause: 'AF-008' },
-        ],
-      },
-    ],
-    'undisclosed-collab': [
-      {
-        label: 'A – Bare AI', description: 'Gemini with minimal system prompt only',
-        score: 80, verdict: 'REVISE',
-        gateFailures: 0, staleFacts: 0, bannedTerms: 0, unsupportedClaims: 0, accessibilityGaps: 1,
-        llmCalls: 1, wallMs: 1780,
-        findings: [{ severity: 'minor', text: 'Consider adding paid-partnership label for collaborations', clause: 'n/a' }],
-      },
-      {
-        label: 'B – AI + Policies Pasted', description: 'Same model, all 8 docs in system prompt',
-        score: 52, verdict: 'REVISE',
-        gateFailures: 0, staleFacts: 0, bannedTerms: 0, unsupportedClaims: 0, accessibilityGaps: 0,
-        llmCalls: 1, wallMs: 2500,
-        findings: [
-          { severity: 'major', text: '"collab" with @Mumbai.Stylist needs #ad and paid-partnership tag per SR-010', clause: 'SR-010' },
-        ],
-      },
-      {
-        label: 'C – Brand Gate', description: 'Full governed pipeline',
-        score: 0, verdict: 'BLOCKED',
-        gateFailures: 1, staleFacts: 0, bannedTerms: 0, unsupportedClaims: 0, accessibilityGaps: 0,
-        llmCalls: 2, wallMs: 3750,
-        findings: [
-          { severity: 'critical', text: 'Gate: disclosure_required — "collab" trigger without #ad + paid-partnership flag (SR-010, EM-003)', clause: 'SR-010' },
-        ],
-      },
-    ],
-    'festival-greeting': [
-      {
-        label: 'A – Bare AI', description: 'Gemini with minimal system prompt only',
-        score: 82, verdict: 'REVISE',
-        gateFailures: 0, staleFacts: 0, bannedTerms: 0, unsupportedClaims: 0, accessibilityGaps: 0,
-        llmCalls: 1, wallMs: 1600,
-        findings: [{ severity: 'minor', text: 'Emoji at start of sentence (BV style)', clause: 'n/a' }],
-      },
-      {
-        label: 'B – AI + Policies Pasted', description: 'Same model, all 8 docs in system prompt',
-        score: 65, verdict: 'REVISE',
-        gateFailures: 0, staleFacts: 0, bannedTerms: 0, unsupportedClaims: 0, accessibilityGaps: 0,
-        llmCalls: 1, wallMs: 2200,
-        findings: [
-          { severity: 'major', text: 'Navratri not in approved festival list (SR-011)', clause: 'SR-011' },
-          { severity: 'major', text: 'Religious-sentiment promotion requires Manager approval (EM-005)', clause: 'EM-005' },
-        ],
-      },
-      {
-        label: 'C – Brand Gate', description: 'Full governed pipeline',
-        score: 45, verdict: 'BLOCKED',
-        gateFailures: 0, staleFacts: 0, bannedTerms: 0, unsupportedClaims: 0, accessibilityGaps: 0,
-        llmCalls: 2, wallMs: 3800,
-        findings: [
-          { severity: 'critical', text: 'Navratri not on the approved festival greeting list (SR-011)', clause: 'SR-011' },
-          { severity: 'major', text: 'Religious sentiment: "goddess bless" — requires Manager approval (EM-005)', clause: 'EM-005' },
-        ],
-      },
-    ],
-  };
-  return PRECOMPUTED[scenarioId] ?? PRECOMPUTED['expired-offer'];
-}
+const idle = (key: ColumnKey): ColumnView => ({ key, ...COLUMN_META[key], source: 'live', status: 'idle', findings: [], llmCalls: [], wallMs: null });
 
-// ── Main Compare page ─────────────────────────────────────────────────────────
-function VerdictBadge({ verdict }: { verdict: ColumnResult['verdict'] }) {
-  const map = {
-    BLOCKED: 'bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800',
-    REVISE: 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800',
-    READY_FOR_HUMAN: 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800',
-  };
-  return (
-    <span className={`text-xs font-bold px-2 py-0.5 rounded border ${map[verdict]}`}>{verdict}</span>
-  );
-}
+const verdictClass = (v?: string) =>
+  v === 'BLOCKED' ? 'text-red-600 dark:text-red-400' : v === 'REVISE' ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400';
 
-function CompareMain() {
-  const [selectedScenario, setSelectedScenario] = useState(SCENARIOS[0].id);
-  const [showFindings, setShowFindings] = useState<Record<string, boolean>>({});
-  const [running, setRunning] = useState(false);
-  const [hasRun, setHasRun] = useState(false);
+export default function ComparePage() {
+  const { mode, setMode, speedMode, setIsAccessModalOpen } = useApp();
+  const [scenarioId, setScenarioId] = useState(COMPARE_SCENARIOS[0].id);
+  const [rules, setRules] = useState<Pick<Rule, 'id' | 'type'>[] | null>(null);
+  const [live, setLive] = useState<ColumnView[]>(() => (['bare', 'policies', 'governed'] as ColumnKey[]).map(idle));
+  const scenario = COMPARE_SCENARIOS.find((s) => s.id === scenarioId)!;
+  const replay = useReplay<CompareReplay>(mode === 'replay' ? compareReplayId(scenarioId) : null);
 
-  const scenario = SCENARIOS.find((s) => s.id === selectedScenario)!;
-  const [colA, colB, colC] = getResults(selectedScenario);
+  useEffect(() => {
+    fetch('/api/pack').then((r) => r.json()).then((p) => setRules(p.rules)).catch(() => setRules(null));
+  }, []);
 
-  const runCompare = async () => {
-    setRunning(true);
-    await new Promise((r) => setTimeout(r, 1200)); // simulate pipeline
-    setHasRun(true);
-    setRunning(false);
+  const runLive = async () => {
+    if (!rules) return;
+    setLive((cols) => cols.map((c) => ({ ...idle(c.key), status: 'running' })));
+    const call = async (key: ColumnKey): Promise<ColumnView> => {
+      const started = performance.now();
+      const url = key === 'governed' ? '/api/compare/governed' : '/api/llm/baseline';
+      const body = key === 'governed' ? { scenarioId, mode: speedMode } : { variant: key, scenarioId };
+      try {
+        const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+        const data = await res.json();
+        const wallMs = Math.round(performance.now() - started);
+        if (!res.ok) return { ...idle(key), status: 'error', error: data.error ?? `HTTP ${res.status}`, needsAccess: res.status === 401, llmCalls: data.log ? [data.log] : [], wallMs };
+        // The same independent scorer for every column:
+        const gateRes = await fetch('/api/gates', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ post: data.post }) });
+        if (!gateRes.ok) throw new Error(`Scoring failed (HTTP ${gateRes.status})`);
+        const gate = await gateRes.json();
+        return {
+          ...idle(key), status: 'done', post: data.post, metrics: compareMetrics(gate, rules), findings: gate.findings,
+          pipelineVerdict: data.verdict, llmCalls: data.llmCalls ?? [], wallMs,
+          note: key === 'governed' ? `${COLUMN_META.governed.note} Ran ${data.iterations?.length ?? 1} iteration(s).` : COLUMN_META[key].note,
+        };
+      } catch (e: unknown) {
+        return { ...idle(key), status: 'error', error: e instanceof Error ? e.message : String(e), wallMs: Math.round(performance.now() - started) };
+      }
+    };
+    const keys: ColumnKey[] = ['bare', 'policies', 'governed'];
+    await Promise.all(keys.map(async (k) => {
+      const col = await call(k);
+      setLive((cols) => cols.map((c) => (c.key === k ? col : c)));
+    }));
   };
 
-  const toggleFindings = (col: string) =>
-    setShowFindings((prev) => ({ ...prev, [col]: !prev[col] }));
-
-  const severityIcon = (s: string) =>
-    s === 'critical' ? <XCircle className="w-3.5 h-3.5 text-red-500" /> :
-    s === 'major' ? <AlertTriangle className="w-3.5 h-3.5 text-amber-500" /> :
-    <CheckCircle2 className="w-3.5 h-3.5 text-slate-400" />;
+  const replayColumns: ColumnView[] | null = replay.replay
+    ? replay.replay.columns.map((c) => ({
+        key: c.key, label: c.label, source: c.provenance, status: 'done', post: c.post, metrics: c.metrics, findings: c.findings,
+        pipelineVerdict: c.pipelineVerdict, llmCalls: c.llmCalls, wallMs: c.wallMs, note: c.note,
+      }))
+    : null;
+  const columns = mode === 'replay' ? replayColumns : live;
+  const anyError = mode === 'live' && live.some((c) => c.status === 'error');
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div>
         <h1 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
           <Scale className="w-6 h-6 text-indigo-500" />
-          Compare: Bare AI vs AI+Policies vs Brand Gate
+          Compare: Bare AI vs AI + policies vs Governed
         </h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-          Same prompt, scored by the same deterministic gates + citation-verified findings. Results below are pre-computed
-          (labelled as such). State plainly: Brand Gate is slower and uses more LLM calls.
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-3xl">
+          One brief, three systems. Every output is scored by the same independent scorer — the deterministic gate engine — so the numbers are comparable.
+          Column C additionally shows its own pipeline verdict, which includes verified LLM findings.
         </p>
       </div>
 
-      {/* Scenario picker */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 space-y-3">
-        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200">Select a scenario</label>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-          {SCENARIOS.map((s) => (
-            <button
-              key={s.id}
-              onClick={() => { setSelectedScenario(s.id); setHasRun(false); }}
-              className={`text-left p-3 rounded-lg border text-xs transition ${
-                selectedScenario === s.id
-                  ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300'
-                  : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-indigo-300'
-              }`}
-            >
-              <div className="font-semibold">{s.label}</div>
-              <div className="text-slate-400 mt-0.5">{s.description}</div>
+      <section className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-200">Scenario</h2>
+          <div role="radiogroup" aria-label="Run mode" className="flex gap-1 text-xs">
+            {(['live', 'replay'] as const).map((m) => (
+              <button key={m} role="radio" aria-checked={mode === m} onClick={() => setMode(m)}
+                className={`px-3 py-1 rounded-md border ${mode === m ? 'bg-indigo-600 text-white border-indigo-600' : 'border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300'}`}>
+                {m === 'live' ? 'Live models' : 'Replay (recorded)'}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+          {COMPARE_SCENARIOS.map((s) => (
+            <button key={s.id} onClick={() => { setScenarioId(s.id); setLive((cols) => cols.map((c) => idle(c.key))); }} aria-pressed={scenarioId === s.id}
+              className={`text-left p-3 rounded-lg border text-xs transition ${scenarioId === s.id ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-950/40' : 'border-slate-200 dark:border-slate-700 hover:border-indigo-300'}`}>
+              <div className="font-semibold text-slate-800 dark:text-slate-100">{s.label}</div>
+              <div className="text-slate-500 dark:text-slate-400 mt-0.5">{s.tempts}</div>
             </button>
           ))}
         </div>
-
-        <div className="text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 rounded-lg p-3 border border-slate-200 dark:border-slate-700">
-          <strong>Caption:</strong> {scenario.caption}
+        <div className="text-xs p-3 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+          <strong>Brief sent to all three:</strong> {scenario.brief}
         </div>
+        {mode === 'live' ? (
+          <button onClick={runLive} disabled={!rules || live.some((c) => c.status === 'running')}
+            className="w-full py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold disabled:opacity-50 flex items-center justify-center gap-2">
+            <Play className="w-4 h-4" />{live.some((c) => c.status === 'running') ? 'Running three systems…' : 'Run live comparison (uses real model calls)'}
+          </button>
+        ) : (
+          <p className="text-xs text-slate-500 flex items-center gap-1"><History className="w-3.5 h-3.5" />Replay shows a recorded run for this scenario; no model is called.</p>
+        )}
+        {anyError && (
+          <div role="alert" className="text-xs p-3 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 text-amber-800 dark:text-amber-300 flex flex-wrap items-center gap-2">
+            <AlertTriangle className="w-4 h-4" />
+            One or more systems could not run live (missing keys, access code, provider failure or exhausted budget).
+            {live.some((c) => c.needsAccess) && <button onClick={() => setIsAccessModalOpen(true)} className="underline">Enter access code</button>}
+            <button onClick={() => setMode('replay')} className="px-2 py-1 rounded bg-amber-600 text-white font-semibold">Switch to Replay mode</button>
+          </div>
+        )}
+      </section>
 
-        <button
-          onClick={runCompare}
-          disabled={running}
-          className="w-full py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:opacity-90 transition disabled:opacity-50 font-semibold"
-        >
-          {running ? '⏳ Running comparison…' : hasRun ? '↺ Re-run Comparison' : '▶ Run Comparison'}
-        </button>
-        <p className="text-[11px] text-amber-600 dark:text-amber-400 text-center">
-          ⚠ Results below are pre-computed sample data, labelled as such. Run scripts/benchmark.ts to regenerate from live.
-        </p>
-      </div>
+      {mode === 'replay' && replay.loading && <p className="text-xs text-slate-500">Loading recorded run…</p>}
+      {mode === 'replay' && replay.error && <ReplayError error={replay.error} />}
+      {mode === 'replay' && replay.replay && <RecordedBanner replay={replay.replay} />}
 
-      {/* Results columns */}
-      {(hasRun || true) && (
+      {columns && (
         <div className="grid md:grid-cols-3 gap-4">
-          {[colA, colB, colC].map((col, idx) => (
-            <div
-              key={col.label}
-              className={`bg-white dark:bg-slate-900 border rounded-xl p-5 space-y-3 ${
-                idx === 2 ? 'border-indigo-300 dark:border-indigo-700 ring-1 ring-indigo-200 dark:ring-indigo-800' : 'border-slate-200 dark:border-slate-800'
-              }`}
-            >
-              {idx === 2 && (
-                <div className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">Brand Gate</div>
-              )}
-              <div className="font-bold text-slate-900 dark:text-white">{col.label}</div>
-              <div className="text-xs text-slate-500 dark:text-slate-400">{col.description}</div>
-
-              <div className="flex items-center gap-2">
-                <div className={`text-3xl font-black tabular-nums ${col.score >= 90 ? 'text-emerald-500' : col.score >= 70 ? 'text-amber-500' : 'text-red-500'}`}>
-                  {col.score}
-                </div>
-                <div>
-                  <div className="text-[10px] text-slate-400">/ 100</div>
-                  <VerdictBadge verdict={col.verdict} />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-1 text-xs">
-                {[
-                  ['Gate failures', col.gateFailures],
-                  ['Stale facts', col.staleFacts],
-                  ['Banned terms', col.bannedTerms],
-                  ['Unsupported claims', col.unsupportedClaims],
-                  ['Accessibility gaps', col.accessibilityGaps],
-                ].map(([k, v]) => (
-                  <div key={String(k)} className="flex justify-between bg-slate-50 dark:bg-slate-800 rounded px-2 py-1">
-                    <span className="text-slate-500">{k}</span>
-                    <strong className={Number(v) > 0 ? 'text-red-500' : 'text-emerald-500'}>{v}</strong>
-                  </div>
-                ))}
-              </div>
-
-              <div className="flex gap-3 text-xs text-slate-500">
-                <span className="flex items-center gap-1"><Cpu className="w-3.5 h-3.5" />{col.llmCalls} calls</span>
-                <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{(col.wallMs / 1000).toFixed(1)}s</span>
-              </div>
-
-              <button
-                onClick={() => toggleFindings(col.label)}
-                className="w-full flex items-center justify-between text-xs text-indigo-500 hover:text-indigo-400 transition"
-              >
-                <span>{col.findings.length} finding{col.findings.length !== 1 ? 's' : ''}</span>
-                {showFindings[col.label] ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-              </button>
-              {showFindings[col.label] && (
-                <ul className="space-y-1.5">
-                  {col.findings.map((f, i) => (
-                    <li key={i} className="flex items-start gap-1.5 text-xs">
-                      {severityIcon(f.severity)}
-                      <div>
-                        <span className="text-slate-700 dark:text-slate-200">{f.text}</span>
-                        {f.clause !== 'n/a' && (
-                          <Link href={`/company#${f.clause}`} className="ml-1 text-indigo-400 font-mono hover:underline">
-                            [{f.clause}]
-                          </Link>
-                        )}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          ))}
+          {columns.map((c) => <Column key={c.key} col={c} />)}
         </div>
       )}
 
-      {/* Honest limitations */}
-      <div className="text-xs text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-800/60 rounded-xl p-4 border border-slate-200 dark:border-slate-700 space-y-1">
-        <div className="font-semibold text-slate-500 dark:text-slate-400 mb-1">Honest limitations</div>
-        <div>• Results are pre-computed using <code>scripts/benchmark.ts</code>; run it yourself to regenerate from live API calls.</div>
-        <div>• Column A and B costs are single-LLM; Column C uses 2 LLM calls (Grok + NVIDIA) plus deterministic gates — slower and costlier by design.</div>
-        <div>• Benchmark posts are synthetic and self-labelled — see docs/KNOWN_LIMITATIONS.md.</div>
-      </div>
+      <TradeOffs columns={columns} />
+      <BenchmarkSection />
     </div>
   );
 }
 
-export default function ComparePage() {
+function Column({ col }: { col: ColumnView }) {
+  const cost = runCost(col.llmCalls, col.wallMs);
+  const m = col.metrics;
   return (
-    <Suspense fallback={<div className="flex items-center justify-center py-16 text-slate-400">Loading…</div>}>
-      <CompareMain />
-    </Suspense>
+    <div className={`bg-white dark:bg-slate-900 border rounded-xl p-4 space-y-3 ${col.key === 'governed' ? 'border-indigo-300 dark:border-indigo-700' : 'border-slate-200 dark:border-slate-800'}`}>
+      <div className="flex items-center justify-between gap-2">
+        <div className="font-bold text-slate-900 dark:text-white">{col.label}</div>
+        {col.source === 'live' ? <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300">Live run</span> : <ProvenanceBadge provenance={col.source} />}
+      </div>
+      <p className="text-[11px] text-slate-500 dark:text-slate-400">{col.note}</p>
+      {col.status === 'idle' && <p className="text-xs text-slate-400">Not run yet.</p>}
+      {col.status === 'running' && <p className="text-xs text-indigo-500 animate-pulse">Running…</p>}
+      {col.status === 'error' && <p role="alert" className="text-xs text-red-600 dark:text-red-400">{col.error}</p>}
+      {m && (
+        <>
+          <div className="flex items-end gap-3">
+            <div className={`text-3xl font-black tabular-nums ${verdictClass(m.verdict)}`}>{m.score}</div>
+            <div className="text-xs"><div className="text-slate-400">independent score / 100</div><div className={`font-bold ${verdictClass(m.verdict)}`}>{m.verdict}</div></div>
+          </div>
+          <dl className="grid grid-cols-2 gap-1 text-xs">
+            {([
+              ['Gate failures', m.gateFailures], ['Stale/wrong facts', m.staleOrWrongFacts], ['Banned terms', m.bannedTerms],
+              ['Unsupported claims', m.unsupportedClaims], ['Accessibility gaps', m.accessibilityGaps],
+              ['Crit / maj / min', `${m.bySeverity.critical} / ${m.bySeverity.major} / ${m.bySeverity.minor}`],
+            ] as const).map(([k, v]) => (
+              <div key={k} className="flex justify-between bg-slate-50 dark:bg-slate-800 rounded px-2 py-1"><dt className="text-slate-500">{k}</dt><dd className="font-semibold">{v}</dd></div>
+            ))}
+          </dl>
+          <div className="text-xs text-slate-600 dark:text-slate-300 flex flex-wrap gap-x-3 gap-y-1">
+            <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{cost.wallMs === null ? 'time not recorded' : `${(cost.wallMs / 1000).toFixed(1)} s wall`}</span>
+            <span className="flex items-center gap-1"><Cpu className="w-3.5 h-3.5" />{cost.llmCallCount} LLM call(s)</span>
+            <span>{cost.llmCallCount === 0 ? 'no tokens (no model calls)' : cost.tokensIn === null ? 'tokens not reported by provider' : `${cost.tokensIn} in / ${cost.tokensOut} out tokens${cost.tokensIncomplete ? ' (partial: some calls reported none)' : ''}`}</span>
+          </div>
+          {col.pipelineVerdict && (
+            <div className="text-xs p-2 rounded bg-indigo-50 dark:bg-indigo-950/40 text-indigo-800 dark:text-indigo-200">
+              Governed pipeline verdict: <strong>{col.pipelineVerdict.status}</strong> ({col.pipelineVerdict.score}). Publishing still needs a human approval in Workflow.
+            </div>
+          )}
+          {col.post && (
+            <details className="text-xs">
+              <summary className="cursor-pointer text-indigo-600 dark:text-indigo-400">Output and {col.findings.length} scorer finding(s)</summary>
+              <p className="mt-1 whitespace-pre-wrap text-slate-700 dark:text-slate-200">{col.post.caption}</p>
+              <p className="text-slate-500">Alt text: {col.post.altText || <em>missing</em>}</p>
+              <ul className="mt-1 space-y-1">
+                {col.findings.map((f, i) => (
+                  <li key={i}><strong>{f.severity}</strong> <Link href={`/company#${f.clauseId}`} className="font-mono text-indigo-600 dark:text-indigo-400 hover:underline">[{f.clauseId}]</Link> “{f.postQuote}” — {f.explanation}</li>
+                ))}
+              </ul>
+            </details>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+function TradeOffs({ columns }: { columns: ColumnView[] | null }) {
+  const done = (columns ?? []).filter((c) => c.status === 'done');
+  const base = done.find((c) => c.key === 'policies');
+  const gov = done.find((c) => c.key === 'governed');
+  const measured = base && gov && base.wallMs !== null && gov.wallMs !== null;
+  return (
+    <section className="text-xs text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/60 rounded-xl p-4 border border-slate-200 dark:border-slate-700 space-y-1">
+      <div className="font-semibold text-slate-700 dark:text-slate-200">Speed, cost and governance trade-offs</div>
+      {measured ? (
+        <div>
+          This run: governed took {(gov!.wallMs! / 1000).toFixed(1)} s and {gov!.llmCalls.length} LLM calls; AI + policies took {(base!.wallMs! / 1000).toFixed(1)} s and {base!.llmCalls.length} call.
+          The governed column is slower and costlier by design.
+        </div>
+      ) : (
+        <div>No timing was recorded for the outputs shown, so speed and cost cannot be compared here. Run live to measure them.</div>
+      )}
+      <div>• Governance costs extra model calls (two reviewers, a regeneration when findings remain) and wall time; in return every cited clause is verified, facts are checked against the registry and nothing publishes without a human.</div>
+      <div>• The independent score uses the deterministic gate engine only. It does not see tone or messaging issues that only LLM reviewers catch, and it has known misses (e.g. “starting at just ₹299” evades the price pattern; there is no gate for unapproved festival greetings).</div>
+      <div>• Live outputs vary run to run; one scenario is an anecdote, the benchmark below is the measurement.</div>
+    </section>
+  );
+}
+
+type SplitMetrics = { tp: number; fp: number; fn: number; precision: number | null; recall: number | null; falsePositiveRateOnClean: number | null; citationValidity: number | null; hallucinatedCitations: number; caughtOnlyByGates: number; perCategory: Record<string, { precision: number | null; recall: number | null; tp: number; fp: number; fn: number }> };
+const pct = (x: number | null | undefined) => (x === null || x === undefined ? 'n/a' : `${Math.round(x * 100)}%`);
+
+function BenchmarkSection() {
+  const meta = benchmark.meta;
+  const gov = benchmark.systems.governed.metrics as unknown as Record<string, SplitMetrics>;
+  const baseRun = benchmark.systems.baseline.status === 'ran';
+  const base = baseRun ? ((benchmark.systems.baseline as unknown as { metrics: Record<string, SplitMetrics> }).metrics) : null;
+  const split = gov.test ? 'test' : 'all';
+  const cats = Object.keys(gov[split].perCategory).sort();
+  const chart = cats.map((c) => ({ category: c, governed: gov[split].perCategory[c].recall === null ? 0 : Math.round(gov[split].perCategory[c].recall! * 100), ...(base ? { baseline: base[split].perCategory[c]?.recall == null ? 0 : Math.round(base[split].perCategory[c].recall! * 100) } : {}) }));
+  const systems: [string, SplitMetrics | null][] = [['Governed', gov[split]], ['Baseline (single model + policies)', base ? base[split] : null]];
+
+  return (
+    <section className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 space-y-4">
+      <div>
+        <h2 className="font-bold text-slate-800 dark:text-white">Benchmark (pre-computed)</h2>
+        <p className="text-xs text-slate-500 dark:text-slate-400">
+          Computed on {meta.computedAt.slice(0, 10)} from <code>scripts/benchmark.ts</code> (commit {meta.gitCommit}); run it yourself with <code>npm run benchmark</code>.
+          Execution: <strong>{meta.execution.replace('_', ' ')}</strong>. Labels human-reviewed: <strong>{meta.labelsHumanReviewed}</strong>. Showing the held-out {split} split.
+        </p>
+        <ul className="mt-1 text-xs text-amber-700 dark:text-amber-300 list-disc pl-4">{meta.caveats.map((c, i) => <li key={i}>{c}</li>)}</ul>
+      </div>
+      <div className="grid sm:grid-cols-2 gap-3">
+        {systems.map(([name, m]) => (
+          <div key={name} className="p-3 rounded-lg border border-slate-200 dark:border-slate-700 text-xs">
+            <div className="font-semibold mb-1">{name}</div>
+            {m ? (
+              <div className="grid grid-cols-2 gap-1">
+                <span>Precision {pct(m.precision)}</span><span>Recall {pct(m.recall)}</span>
+                <span>FP rate on clean {pct(m.falsePositiveRateOnClean)}</span><span>Citation validity {pct(m.citationValidity)}</span>
+                <span>Hallucinated citations {m.hallucinatedCitations}</span><span>Caught only by gates {m.caughtOnlyByGates}</span>
+                <span>TP / FP / FN</span><span>{m.tp} / {m.fp} / {m.fn}</span>
+              </div>
+            ) : <p className="text-slate-500">Not run — {(benchmark.systems.baseline as { reason?: string }).reason}. No numbers are shown rather than invented ones.</p>}
+          </div>
+        ))}
+      </div>
+      <div>
+        <h3 className="text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Recall by category ({split} split, %)</h3>
+        <ResponsiveContainer width="100%" height={220}>
+          <BarChart data={chart} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#94a3b833" />
+            <XAxis dataKey="category" tick={{ fontSize: 10 }} />
+            <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} />
+            <Tooltip />
+            <Legend />
+            <Bar dataKey="governed" name="Governed" fill="#6366f1" />
+            {base && <Bar dataKey="baseline" name="Baseline" fill="#f59e0b" />}
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+      <p className="text-xs text-slate-500">
+        Example viewer “baseline missed, governed caught” needs a baseline run; {baseRun ? 'see data/benchmark/results.json perPost.' : 'it will appear after `npm run benchmark` runs with GEMINI_API_KEY set.'}
+        {' '}Limitations: synthetic posts, small N (30 per split), labels written by the system’s author and not human-reviewed.
+      </p>
+    </section>
   );
 }

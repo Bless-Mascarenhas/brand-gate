@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "kind": "sample",
+  "id": "sample-09",
+  "title": "Sample 9: Wrong Aspect Ratio (16:9)",
+  "provenance": "deterministic_recording",
+  "recordedAt": "2026-10-24T13:42:46.815Z",
+  "packHash": "pack_2fc4b94dd474",
+  "demoDate": "2026-10-24",
+  "generator": "scripts/record-replay.ts",
+  "notes": [
+    "Recorded without provider credentials: gates, citation verifier, consensus and scoring ran for real; the two LLM reviewers were not called, so soft-category findings (tone, messaging) are absent."
+  ],
+  "sampleId": 9,
+  "post": {
+    "caption": "Our curated denim jackets drop this Friday at our Bandra studio. #ThriftIt #CuratedDenim",
+    "hashtags": [
+      "#ThriftIt",
+      "#CuratedDenim"
+    ],
+    "altText": "Curated denim jackets arrayed in natural studio daylight",
+    "format": "feed_4_5",
+    "imageMeta": {
+      "width": 1920,
+      "height": 1080,
+      "bytes": 145000
+    },
+    "language": "en"
+  },
+  "steps": [
+    {
+      "step": "Gates",
+      "status": "completed",
+      "message": "1 deterministic findings (1 failed gates)"
+    },
+    {
+      "step": "Independent Review",
+      "status": "skipped",
+      "message": "Reviewer calls disabled (deterministic-only run)"
+    },
+    {
+      "step": "Citation Verifier",
+      "status": "completed",
+      "message": "0 verified, 0 hallucinated citations blocked"
+    },
+    {
+      "step": "Cross-Examination",
+      "status": "skipped",
+      "message": "Fast mode: rebuttal round skipped"
+    },
+    {
+      "step": "Consensus",
+      "status": "completed",
+      "message": "0 LLM findings adjudicated"
+    },
+    {
+      "step": "Scoring & Verdict",
+      "status": "completed",
+      "message": "BLOCKED (score 85)"
+    }
+  ],
+  "findings": [
+    {
+      "id": "finding-R-VIS-003-1792849366838-0",
+      "source": "gate",
+      "category": "visual",
+      "severity": "major",
+      "clauseId": "VI-005",
+      "clauseQuote": "Social media image aspect ratio formats",
+      "postField": "meta",
+      "postQuote": "1920x1080 (1.78)",
+      "explanation": "Image dimensions 1920x1080 do not match approved Instagram aspect ratios (4:5, 1:1, or 9:16).",
+      "autoFixable": false,
+      "confidence": 1,
+      "verified": true,
+      "agreement": "deterministic"
+    }
+  ],
+  "verdict": {
+    "status": "BLOCKED",
+    "score": 85,
+    "gatesFailed": [
+      "VI-005"
+    ],
+    "needsHuman": [],
+    "hallucinationsBlocked": 0
+  },
+  "llmCalls": [],
+  "dropped": []
+}

@@ -3,12 +3,14 @@ import { NextRequest, NextResponse } from 'next/server';
 let inMemoryDailyCounter = 0;
 let lastResetDate = new Date().toISOString().slice(0, 10);
 
-export function verifyLlmAccess(req: NextRequest): { authorized: boolean; response?: NextResponse } {
-  const cookie = req.cookies.get('bg_access');
-  const headerCode = req.headers.get('x-demo-access-code');
+/** Access-code check without touching the LLM call budget (used by non-LLM routes such as /api/storage). */
+export function hasDemoAccess(req: NextRequest): boolean {
   const validCode = process.env.DEMO_ACCESS_CODE || 'brandgate2026';
+  return req.cookies.get('bg_access')?.value === validCode || req.headers.get('x-demo-access-code') === validCode;
+}
 
-  const isAuth = cookie?.value === validCode || headerCode === validCode;
+export function verifyLlmAccess(req: NextRequest): { authorized: boolean; response?: NextResponse } {
+  const isAuth = hasDemoAccess(req);
 
   if (!isAuth) {
     return {

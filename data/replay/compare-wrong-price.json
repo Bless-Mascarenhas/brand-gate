@@ -1,0 +1,179 @@
+{
+  "schemaVersion": 1,
+  "kind": "compare",
+  "id": "compare-wrong-price",
+  "title": "3. Incorrect product price",
+  "provenance": "illustrative_fixture",
+  "recordedAt": "2026-10-24T13:42:46.815Z",
+  "packHash": "pack_2fc4b94dd474",
+  "demoDate": "2026-10-24",
+  "generator": "scripts/record-replay.ts",
+  "notes": [
+    "No provider credentials were available when this was recorded.",
+    "Columns A and B are hand-written illustrations, not model output. All three are scored by the real gate engine.",
+    "Run `npm run record-replay` with GEMINI, XAI and NVIDIA keys to replace this with a live recording."
+  ],
+  "scenarioId": "wrong-price",
+  "brief": "Announce our denim restock: vintage jeans starting at just ₹299, cheapest in Mumbai.",
+  "columns": [
+    {
+      "key": "bare",
+      "label": "A · Bare AI",
+      "provenance": "illustrative_fixture",
+      "post": {
+        "caption": "Vintage jeans starting at just ₹299, the cheapest in Mumbai! 👖 Do not miss out. #ThriftIt #DenimRestock",
+        "hashtags": [
+          "#ThriftIt",
+          "#DenimRestock"
+        ],
+        "altText": "Jeans",
+        "format": "feed_4_5",
+        "language": "en"
+      },
+      "metrics": {
+        "gateFailures": 0,
+        "staleOrWrongFacts": 0,
+        "bannedTerms": 0,
+        "unsupportedClaims": 0,
+        "accessibilityGaps": 1,
+        "bySeverity": {
+          "critical": 0,
+          "major": 0,
+          "minor": 1,
+          "info": 0
+        },
+        "score": 95,
+        "verdict": "READY_FOR_HUMAN"
+      },
+      "findings": [
+        {
+          "id": "finding-R-ACC-002-1792849366844-0",
+          "source": "gate",
+          "category": "accessibility",
+          "severity": "minor",
+          "clauseId": "AR-002",
+          "clauseQuote": "The alternative text must be between 20 and 125 characters in length",
+          "postField": "alt_text",
+          "postQuote": "Jeans",
+          "explanation": "Alt text length is 5 characters; required between 20 and 125.",
+          "autoFixable": false,
+          "confidence": 1,
+          "verified": true,
+          "agreement": "deterministic"
+        }
+      ],
+      "llmCalls": [],
+      "wallMs": null,
+      "note": "Hand-written example of a typical unguided answer. Not model output."
+    },
+    {
+      "key": "policies",
+      "label": "B · AI + policies",
+      "provenance": "illustrative_fixture",
+      "post": {
+        "caption": "Denim restock: vintage jeans starting at ₹299, hand-inspected and curated. Tap the link in bio. #ThriftIt #DenimDrop",
+        "hashtags": [
+          "#ThriftIt",
+          "#DenimDrop"
+        ],
+        "altText": "Pre-loved jeans folded on a shelf in natural light",
+        "format": "feed_4_5",
+        "language": "en"
+      },
+      "metrics": {
+        "gateFailures": 1,
+        "staleOrWrongFacts": 1,
+        "bannedTerms": 0,
+        "unsupportedClaims": 0,
+        "accessibilityGaps": 0,
+        "bySeverity": {
+          "critical": 0,
+          "major": 1,
+          "minor": 0,
+          "info": 0
+        },
+        "score": 85,
+        "verdict": "BLOCKED"
+      },
+      "findings": [
+        {
+          "id": "finding-R-FACT-006-1792849366844-0",
+          "source": "gate",
+          "category": "factual_accuracy",
+          "severity": "major",
+          "clauseId": "AF-004",
+          "clauseQuote": "Approved category starting prices.",
+          "postField": "caption",
+          "postQuote": "jeans starting at ₹299",
+          "explanation": "Found ₹299; minimum permitted is ₹599.",
+          "autoFixable": false,
+          "confidence": 1,
+          "verified": true,
+          "agreement": "deterministic"
+        }
+      ],
+      "llmCalls": [],
+      "wallMs": null,
+      "note": "Hand-written example of a policy-aware but unverified answer. Not model output."
+    },
+    {
+      "key": "governed",
+      "label": "C · Governed",
+      "provenance": "deterministic_recording",
+      "post": {
+        "caption": "Denim restock: vintage jeans starting at ₹299, hand-inspected and curated. Tap the link in bio. #ThriftIt #DenimDrop",
+        "hashtags": [
+          "#ThriftIt",
+          "#DenimDrop"
+        ],
+        "altText": "Pre-loved jeans folded on a shelf in natural light",
+        "format": "feed_4_5",
+        "language": "en"
+      },
+      "metrics": {
+        "gateFailures": 1,
+        "staleOrWrongFacts": 1,
+        "bannedTerms": 0,
+        "unsupportedClaims": 0,
+        "accessibilityGaps": 0,
+        "bySeverity": {
+          "critical": 0,
+          "major": 1,
+          "minor": 0,
+          "info": 0
+        },
+        "score": 85,
+        "verdict": "BLOCKED"
+      },
+      "findings": [
+        {
+          "id": "finding-R-FACT-006-1792849366844-0",
+          "source": "gate",
+          "category": "factual_accuracy",
+          "severity": "major",
+          "clauseId": "AF-004",
+          "clauseQuote": "Approved category starting prices.",
+          "postField": "caption",
+          "postQuote": "jeans starting at ₹299",
+          "explanation": "Found ₹299; minimum permitted is ₹599.",
+          "autoFixable": false,
+          "confidence": 1,
+          "verified": true,
+          "agreement": "deterministic"
+        }
+      ],
+      "pipelineVerdict": {
+        "status": "BLOCKED",
+        "score": 85,
+        "gatesFailed": [
+          "AF-004"
+        ],
+        "needsHuman": [],
+        "hallucinationsBlocked": 0
+      },
+      "llmCalls": [],
+      "wallMs": null,
+      "note": "The governed pipeline's deterministic stages (gates → verifier → scoring) run on draft B. Generation and LLM review were not recorded, so this shows what governance catches and blocks, not a rewritten post."
+    }
+  ]
+}

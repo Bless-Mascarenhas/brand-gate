@@ -20,9 +20,11 @@ import { useApp } from '@/src/ui/context/AppContext';
 import { usePipeline } from '@/src/pipeline';
 import { PolicyPack, PostContent } from '@/src/types';
 import { SAMPLE_POSTS, SamplePostItem } from '@/data/samples/samplePosts';
+import { SampleReplayPanel } from '@/src/ui/components/ReplayViewer';
+import { sampleReplayId } from '@/src/replay/schema';
 
 export default function VerifyPage() {
-  const { demoDate, speedMode, mode } = useApp();
+  const { demoDate, speedMode, mode, setMode } = useApp();
   const [pack, setPack] = useState<PolicyPack | null>(null);
   const [selectedSampleId, setSelectedSampleId] = useState<number>(1);
   const [activeTab, setActiveTab] = useState<'findings' | 'debate' | 'diff' | 'trace' | 'dataflow'>('findings');
@@ -50,6 +52,11 @@ export default function VerifyPage() {
     runPipeline,
     resetPipeline,
   } = usePipeline({ demoDate, speedMode, mode });
+
+  // "Run the demo" from Start here lands on /verify?demo=… and must always play a recording (no keys needed).
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).has('demo')) setMode('replay');
+  }, [setMode]);
 
   // Load Policy Pack on mount
   useEffect(() => {
@@ -298,8 +305,17 @@ export default function VerifyPage() {
 
             {/* Action Buttons */}
             <div className="flex gap-2 pt-2">
+              {mode === 'replay' && (
+                <button
+                  onClick={() => setMode('live')}
+                  className="flex-1 py-3 px-4 border border-amber-400 text-amber-700 dark:text-amber-300 font-bold text-xs rounded-xl"
+                >
+                  Replay mode: showing the recorded run for sample #{selectedSampleId}. Switch to live
+                </button>
+              )}
               <button
                 onClick={handleRun}
+                hidden={mode === 'replay'}
                 disabled={status === 'running' || !pack}
                 className="flex-1 py-3 px-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-indigo-600/20 transition flex items-center justify-center gap-2 disabled:opacity-50"
               >
@@ -331,6 +347,8 @@ export default function VerifyPage() {
 
         {/* Right Column (7 Cols): Stepper, Verdict, Tabs (Findings, Debate, Diff, Data-Flow) */}
         <div className="lg:col-span-7 space-y-5">
+          {mode === 'replay' && <SampleReplayPanel key={selectedSampleId} id={sampleReplayId(selectedSampleId)} />}
+          <div className={mode === 'replay' ? 'hidden' : 'space-y-5'}>
           {/* Live Pipeline Stepper */}
           <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
             <div className="flex items-center justify-between mb-2">
@@ -741,6 +759,7 @@ export default function VerifyPage() {
                 )}
               </div>
             )}
+          </div>
           </div>
         </div>
       </div>

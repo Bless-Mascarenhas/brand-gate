@@ -97,3 +97,29 @@ _Filled in after implementation — see sections 6–7._
 | 7.23 Seeded vs live labelling | COMPLETE AND VERIFIED | store test: caller cannot store `sample:true`; UI counts both |
 | 7.24 Aggregate by role only | COMPLETE AND VERIFIED | `humanDecisionsByRole` test asserts no user field |
 | Live event recording | IMPLEMENTED; Verify/Build paths need live keys to exercise end to end | `usePipeline` + Build page append check events; workflow actions append human events (verified in browser) |
+
+## 7. Phase 8 — after implementation
+
+| # | Status | Evidence |
+|---|---|---|
+| 8.1 Column A bare AI | IMPLEMENTED; live call BLOCKED BY EXTERNAL DEPENDENCY (no GEMINI_API_KEY) | `/api/llm/baseline` + `buildBaselineGeneratorPrompt('bare')`; test asserts no policy text in the prompt; route returns 503 + `modeSuggestion: 'replay'` without a key (test) |
+| 8.2 Column B AI + policies | IMPLEMENTED; live call BLOCKED BY EXTERNAL DEPENDENCY | test asserts every clause ID is in the prompt |
+| 8.3 Column C governed | IMPLEMENTED; live call BLOCKED BY EXTERNAL DEPENDENCY | `/api/compare/governed` → `runGovernedGeneration` → `runGovernedReview`; mocked-LLM tests prove both reviewers are called with routed clauses only, the verifier drops a fabricated clause, cross-check runs in thorough mode, regeneration uses findings and keeps the better draft |
+| 8.4 Six scenarios | COMPLETE AND VERIFIED | `src/compare/scenarios.ts` (expired offer, sustainability, wrong price, competitor jab, collab, festival greeting); browser: all six load in Replay |
+| 8.5 Same independent scorer | COMPLETE AND VERIFIED | `compareMetrics` on `/api/gates` output for every column; replay test re-derives every stored column metric exactly |
+| 8.6 Metrics incl. time/calls/tokens, unavailable shown as such | COMPLETE AND VERIFIED | UI shows "time not recorded", "tokens not reported by provider", "no tokens (no model calls)"; `runCost` tests |
+| Trade-off explanation | COMPLETE AND VERIFIED | Compare "Speed, cost and governance trade-offs" panel incl. known gate misses |
+| Provider failure → Replay | COMPLETE AND VERIFIED | browser: unauthenticated live run showed errors + "Switch to Replay mode", which loaded the recording |
+| 8.7 Dataset (60, 30/30, 20/20/20, labels, `labelsReviewed`) | COMPLETE AND VERIFIED | `data/benchmark/posts.json`; integrity tests; all `labelsReviewed: false` (not human-reviewed) |
+| 8.8 `scripts/benchmark.ts` + metrics | COMPLETE AND VERIFIED (deterministic); live run BLOCKED BY EXTERNAL DEPENDENCY | `npm run benchmark` ran: governed deterministic stages — test split P 100% / R 74.1% / clean FPR 0%; dev P 92.9% / R 92.9% / clean FPR 10%; all P 95.8% / R 83.6%. Baseline recorded as `not_run`. Test: stored metrics re-score from per-post findings |
+| 8.9 `scripts/calibrate.ts` | COMPLETE AND VERIFIED | `npm run calibrate`: 324 configs on 30 dev posts, `heldOutPostsUsed: 0`; selected crit 40 / maj 15 / min 8 / blocked<70 / ready≥95 (P 94.7%, R 90%, FPR 10%) vs default (P 93.3%, R 70%, FPR 10%); defaults not changed automatically. Tests: held-out posts throw `HeldOutSplitError` |
+| 8.10 `scripts/record-replay.ts` + 18 replays | COMPLETE AND VERIFIED (deterministic + illustrative); live recordings BLOCKED BY EXTERNAL DEPENDENCY | `npm run record-replay -- --check` → 18/18 valid; recorder refuses to overwrite live recordings with non-live ones |
+| 8.11 "Recorded run, not live", works without keys, corrupt data errors | COMPLETE AND VERIFIED | browser: banner on all 6 Compare scenarios and all 12 Verify samples via Start → "Run 90-Second Demo"; tests: route serves replays with keys unset; 400/404/422 on bad id / missing / corrupt / wrong schema / id mismatch |
+| 8.12 Start here demo without keys | COMPLETE AND VERIFIED | `/verify?demo=…` forces Replay mode; browser run above |
+| 8.13 Optional Supabase adapter | COMPLETE AND VERIFIED (unit level); not exercised against a real Supabase project | `/api/storage` + `SupabaseAdapter` + `FallbackAdapter`, migration `docs/supabase/001_brand_gate_kv.sql`; 7 tests (default stays IndexedDB, service-role key server-side only, 501 when unconfigured, fallback on failure) |
+
+## 8. Final verification (2026-10-24)
+
+- `npm run check`: tsc 0 errors · eslint 0 problems · vitest **177 passed / 0 failed (16 files)** · `next build` succeeded.
+- Phase 7 commit `7e92159`; Phase 8 commit recorded in git history (`feat(phase-8): complete compare benchmark and replay`).
+- Remaining items blocked by external dependencies: every live model path (Compare columns live, live benchmark incl. baseline, live replay recordings, Gemini clarification drafts). All have deterministic or mocked coverage and honest labels; rerun the three scripts with keys to complete them.

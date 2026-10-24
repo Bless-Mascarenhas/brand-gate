@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "kind": "sample",
+  "id": "sample-11",
+  "title": "Sample 11: Ambiguous 3 Emojis (BV vs SR Conflict)",
+  "provenance": "deterministic_recording",
+  "recordedAt": "2026-10-24T13:42:46.815Z",
+  "packHash": "pack_2fc4b94dd474",
+  "demoDate": "2026-10-24",
+  "generator": "scripts/record-replay.ts",
+  "notes": [
+    "Recorded without provider credentials: gates, citation verifier, consensus and scoring ran for real; the two LLM reviewers were not called, so soft-category findings (tone, messaging) are absent."
+  ],
+  "sampleId": 11,
+  "post": {
+    "caption": "Bandra weekend pop-up reminder ✨ 👗 🪔 Drop by for pre-loved gems! #ThriftIt #WeekendDrop",
+    "hashtags": [
+      "#ThriftIt",
+      "#WeekendDrop"
+    ],
+    "altText": "Bandra boutique interior with warm lighting and thrifted apparel racks",
+    "format": "feed_4_5",
+    "language": "en"
+  },
+  "steps": [
+    {
+      "step": "Gates",
+      "status": "completed",
+      "message": "1 deterministic findings (1 failed gates)"
+    },
+    {
+      "step": "Independent Review",
+      "status": "skipped",
+      "message": "Reviewer calls disabled (deterministic-only run)"
+    },
+    {
+      "step": "Citation Verifier",
+      "status": "completed",
+      "message": "0 verified, 0 hallucinated citations blocked"
+    },
+    {
+      "step": "Cross-Examination",
+      "status": "skipped",
+      "message": "Fast mode: rebuttal round skipped"
+    },
+    {
+      "step": "Consensus",
+      "status": "completed",
+      "message": "0 LLM findings adjudicated"
+    },
+    {
+      "step": "Scoring & Verdict",
+      "status": "completed",
+      "message": "BLOCKED (score 85)"
+    }
+  ],
+  "findings": [
+    {
+      "id": "finding-R-SOC-004-1792849366840-0",
+      "source": "gate",
+      "category": "messaging",
+      "severity": "major",
+      "clauseId": "SR-005",
+      "clauseQuote": "A caption must contain a maximum of 2 emojis",
+      "postField": "caption",
+      "postQuote": "Bandra weekend pop-up reminder",
+      "explanation": "Found 3 emojis; maximum permitted is 2.",
+      "autoFixable": false,
+      "confidence": 1,
+      "verified": true,
+      "agreement": "deterministic"
+    }
+  ],
+  "verdict": {
+    "status": "BLOCKED",
+    "score": 85,
+    "gatesFailed": [
+      "SR-005"
+    ],
+    "needsHuman": [],
+    "hallucinationsBlocked": 0
+  },
+  "llmCalls": [],
+  "dropped": []
+}

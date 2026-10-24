@@ -1,0 +1,1968 @@
+{
+  "meta": {
+    "computedAt": "2026-10-24T13:38:45.960Z",
+    "command": "npm run benchmark --",
+    "generator": "scripts/benchmark.ts",
+    "gitCommit": "7e92159",
+    "packHash": "pack_2fc4b94dd474",
+    "demoDate": "2026-10-24",
+    "split": "all",
+    "mode": "fast",
+    "execution": "deterministic_only",
+    "providersConfigured": {
+      "gemini": false,
+      "xai": false,
+      "nvidia": false
+    },
+    "models": {
+      "gemini": null,
+      "xai": null,
+      "nvidia": null
+    },
+    "labelsHumanReviewed": "0/60",
+    "caveats": [
+      "Synthetic posts and labels written by the same author as the system; small N; not statistically conclusive.",
+      "Governed system ran its deterministic stages only (gates, verifier, scoring); LLM reviewers were not called because XAI_API_KEY/NVIDIA_API_KEY were not configured or --offline was set.",
+      "Baseline (single model + policies) was NOT run because GEMINI_API_KEY was not configured or --offline was set; no baseline numbers exist for this run."
+    ]
+  },
+  "systems": {
+    "governed": {
+      "status": "ran",
+      "reviewers": "not_run",
+      "metrics": {
+        "dev": {
+          "tp": 26,
+          "fp": 2,
+          "fn": 2,
+          "precision": 0.9285714285714286,
+          "recall": 0.9285714285714286,
+          "posts": 30,
+          "cleanPosts": 10,
+          "cleanPostsFlagged": 1,
+          "falsePositiveRateOnClean": 0.1,
+          "citationValidity": null,
+          "hallucinatedCitations": 0,
+          "caughtOnlyByGates": 26,
+          "debateAgreed": 0,
+          "debateDisputed": 0,
+          "failedPosts": 0,
+          "perCategory": {
+            "regional": {
+              "tp": 0,
+              "fp": 1,
+              "fn": 0,
+              "precision": 0,
+              "recall": null
+            },
+            "factual_accuracy": {
+              "tp": 7,
+              "fp": 0,
+              "fn": 2,
+              "precision": 1,
+              "recall": 0.7777777777777778
+            },
+            "terminology": {
+              "tp": 8,
+              "fp": 0,
+              "fn": 0,
+              "precision": 1,
+              "recall": 1
+            },
+            "accessibility": {
+              "tp": 2,
+              "fp": 1,
+              "fn": 0,
+              "precision": 0.6666666666666666,
+              "recall": 1
+            },
+            "messaging": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0,
+              "precision": 1,
+              "recall": 1
+            },
+            "tone": {
+              "tp": 3,
+              "fp": 0,
+              "fn": 0,
+              "precision": 1,
+              "recall": 1
+            },
+            "disclosure": {
+              "tp": 2,
+              "fp": 0,
+              "fn": 0,
+              "precision": 1,
+              "recall": 1
+            },
+            "security": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0,
+              "precision": 1,
+              "recall": 1
+            },
+            "claims": {
+              "tp": 2,
+              "fp": 0,
+              "fn": 0,
+              "precision": 1,
+              "recall": 1
+            }
+          }
+        },
+        "test": {
+          "tp": 20,
+          "fp": 0,
+          "fn": 7,
+          "precision": 1,
+          "recall": 0.7407407407407407,
+          "posts": 30,
+          "cleanPosts": 10,
+          "cleanPostsFlagged": 0,
+          "falsePositiveRateOnClean": 0,
+          "citationValidity": null,
+          "hallucinatedCitations": 0,
+          "caughtOnlyByGates": 20,
+          "debateAgreed": 0,
+          "debateDisputed": 0,
+          "failedPosts": 0,
+          "perCategory": {
+            "factual_accuracy": {
+              "tp": 3,
+              "fp": 0,
+              "fn": 2,
+              "precision": 1,
+              "recall": 0.6
+            },
+            "terminology": {
+              "tp": 5,
+              "fp": 0,
+              "fn": 0,
+              "precision": 1,
+              "recall": 1
+            },
+            "accessibility": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 1,
+              "precision": 1,
+              "recall": 0.5
+            },
+            "claims": {
+              "tp": 6,
+              "fp": 0,
+              "fn": 3,
+              "precision": 1,
+              "recall": 0.6666666666666666
+            },
+            "messaging": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0,
+              "precision": 1,
+              "recall": 1
+            },
+            "disclosure": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 1,
+              "precision": 1,
+              "recall": 0.5
+            },
+            "tone": {
+              "tp": 2,
+              "fp": 0,
+              "fn": 0,
+              "precision": 1,
+              "recall": 1
+            },
+            "security": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0,
+              "precision": 1,
+              "recall": 1
+            }
+          }
+        },
+        "all": {
+          "tp": 46,
+          "fp": 2,
+          "fn": 9,
+          "precision": 0.9583333333333334,
+          "recall": 0.8363636363636363,
+          "posts": 60,
+          "cleanPosts": 20,
+          "cleanPostsFlagged": 1,
+          "falsePositiveRateOnClean": 0.05,
+          "citationValidity": null,
+          "hallucinatedCitations": 0,
+          "caughtOnlyByGates": 46,
+          "debateAgreed": 0,
+          "debateDisputed": 0,
+          "failedPosts": 0,
+          "perCategory": {
+            "regional": {
+              "tp": 0,
+              "fp": 1,
+              "fn": 0,
+              "precision": 0,
+              "recall": null
+            },
+            "factual_accuracy": {
+              "tp": 10,
+              "fp": 0,
+              "fn": 4,
+              "precision": 1,
+              "recall": 0.7142857142857143
+            },
+            "terminology": {
+              "tp": 13,
+              "fp": 0,
+              "fn": 0,
+              "precision": 1,
+              "recall": 1
+            },
+            "accessibility": {
+              "tp": 3,
+              "fp": 1,
+              "fn": 1,
+              "precision": 0.75,
+              "recall": 0.75
+            },
+            "messaging": {
+              "tp": 2,
+              "fp": 0,
+              "fn": 0,
+              "precision": 1,
+              "recall": 1
+            },
+            "claims": {
+              "tp": 8,
+              "fp": 0,
+              "fn": 3,
+              "precision": 1,
+              "recall": 0.7272727272727273
+            },
+            "tone": {
+              "tp": 5,
+              "fp": 0,
+              "fn": 0,
+              "precision": 1,
+              "recall": 1
+            },
+            "disclosure": {
+              "tp": 3,
+              "fp": 0,
+              "fn": 1,
+              "precision": 1,
+              "recall": 0.75
+            },
+            "security": {
+              "tp": 2,
+              "fp": 0,
+              "fn": 0,
+              "precision": 1,
+              "recall": 1
+            }
+          }
+        }
+      }
+    },
+    "baseline": {
+      "status": "not_run",
+      "reason": "GEMINI_API_KEY not configured"
+    }
+  },
+  "perPost": {
+    "clean-01": {
+      "split": "dev",
+      "class": "clean",
+      "expected": [],
+      "governed": {
+        "postId": "clean-01",
+        "findings": [],
+        "gatesFailed": [],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 10,
+        "llmCalls": 0,
+        "verdict": "READY_FOR_HUMAN",
+        "score": 100
+      },
+      "baseline": null
+    },
+    "clean-02": {
+      "split": "test",
+      "class": "clean",
+      "expected": [],
+      "governed": {
+        "postId": "clean-02",
+        "findings": [],
+        "gatesFailed": [],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 0,
+        "llmCalls": 0,
+        "verdict": "READY_FOR_HUMAN",
+        "score": 100
+      },
+      "baseline": null
+    },
+    "clean-03": {
+      "split": "dev",
+      "class": "clean",
+      "expected": [],
+      "governed": {
+        "postId": "clean-03",
+        "findings": [],
+        "gatesFailed": [],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 1,
+        "llmCalls": 0,
+        "verdict": "READY_FOR_HUMAN",
+        "score": 100
+      },
+      "baseline": null
+    },
+    "clean-04": {
+      "split": "test",
+      "class": "clean",
+      "expected": [],
+      "governed": {
+        "postId": "clean-04",
+        "findings": [],
+        "gatesFailed": [],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 1,
+        "llmCalls": 0,
+        "verdict": "READY_FOR_HUMAN",
+        "score": 100
+      },
+      "baseline": null
+    },
+    "clean-05": {
+      "split": "dev",
+      "class": "clean",
+      "expected": [],
+      "governed": {
+        "postId": "clean-05",
+        "findings": [],
+        "gatesFailed": [],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 0,
+        "llmCalls": 0,
+        "verdict": "READY_FOR_HUMAN",
+        "score": 100
+      },
+      "baseline": null
+    },
+    "clean-06": {
+      "split": "test",
+      "class": "clean",
+      "expected": [],
+      "governed": {
+        "postId": "clean-06",
+        "findings": [],
+        "gatesFailed": [],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 0,
+        "llmCalls": 0,
+        "verdict": "READY_FOR_HUMAN",
+        "score": 100
+      },
+      "baseline": null
+    },
+    "clean-07": {
+      "split": "dev",
+      "class": "clean",
+      "expected": [],
+      "governed": {
+        "postId": "clean-07",
+        "findings": [],
+        "gatesFailed": [],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 0,
+        "llmCalls": 0,
+        "verdict": "READY_FOR_HUMAN",
+        "score": 100
+      },
+      "baseline": null
+    },
+    "clean-08": {
+      "split": "test",
+      "class": "clean",
+      "expected": [],
+      "governed": {
+        "postId": "clean-08",
+        "findings": [],
+        "gatesFailed": [],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 0,
+        "llmCalls": 0,
+        "verdict": "READY_FOR_HUMAN",
+        "score": 100
+      },
+      "baseline": null
+    },
+    "clean-09": {
+      "split": "dev",
+      "class": "clean",
+      "expected": [],
+      "governed": {
+        "postId": "clean-09",
+        "findings": [],
+        "gatesFailed": [],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 0,
+        "llmCalls": 0,
+        "verdict": "READY_FOR_HUMAN",
+        "score": 100
+      },
+      "baseline": null
+    },
+    "clean-10": {
+      "split": "test",
+      "class": "clean",
+      "expected": [],
+      "governed": {
+        "postId": "clean-10",
+        "findings": [],
+        "gatesFailed": [],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 0,
+        "llmCalls": 0,
+        "verdict": "READY_FOR_HUMAN",
+        "score": 100
+      },
+      "baseline": null
+    },
+    "clean-11": {
+      "split": "dev",
+      "class": "clean",
+      "expected": [],
+      "governed": {
+        "postId": "clean-11",
+        "findings": [
+          {
+            "clauseId": "SR-008",
+            "category": "regional",
+            "severity": "major",
+            "agreement": "deterministic",
+            "source": "gate"
+          }
+        ],
+        "gatesFailed": [
+          "SR-008"
+        ],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 1,
+        "llmCalls": 0,
+        "verdict": "BLOCKED",
+        "score": 85
+      },
+      "baseline": null
+    },
+    "clean-12": {
+      "split": "test",
+      "class": "clean",
+      "expected": [],
+      "governed": {
+        "postId": "clean-12",
+        "findings": [],
+        "gatesFailed": [],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 0,
+        "llmCalls": 0,
+        "verdict": "READY_FOR_HUMAN",
+        "score": 100
+      },
+      "baseline": null
+    },
+    "clean-13": {
+      "split": "dev",
+      "class": "clean",
+      "expected": [],
+      "governed": {
+        "postId": "clean-13",
+        "findings": [],
+        "gatesFailed": [],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 0,
+        "llmCalls": 0,
+        "verdict": "READY_FOR_HUMAN",
+        "score": 100
+      },
+      "baseline": null
+    },
+    "clean-14": {
+      "split": "test",
+      "class": "clean",
+      "expected": [],
+      "governed": {
+        "postId": "clean-14",
+        "findings": [],
+        "gatesFailed": [],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 0,
+        "llmCalls": 0,
+        "verdict": "READY_FOR_HUMAN",
+        "score": 100
+      },
+      "baseline": null
+    },
+    "clean-15": {
+      "split": "dev",
+      "class": "clean",
+      "expected": [],
+      "governed": {
+        "postId": "clean-15",
+        "findings": [],
+        "gatesFailed": [],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 0,
+        "llmCalls": 0,
+        "verdict": "READY_FOR_HUMAN",
+        "score": 100
+      },
+      "baseline": null
+    },
+    "clean-16": {
+      "split": "test",
+      "class": "clean",
+      "expected": [],
+      "governed": {
+        "postId": "clean-16",
+        "findings": [],
+        "gatesFailed": [],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 0,
+        "llmCalls": 0,
+        "verdict": "READY_FOR_HUMAN",
+        "score": 100
+      },
+      "baseline": null
+    },
+    "clean-17": {
+      "split": "dev",
+      "class": "clean",
+      "expected": [],
+      "governed": {
+        "postId": "clean-17",
+        "findings": [],
+        "gatesFailed": [],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 0,
+        "llmCalls": 0,
+        "verdict": "READY_FOR_HUMAN",
+        "score": 100
+      },
+      "baseline": null
+    },
+    "clean-18": {
+      "split": "test",
+      "class": "clean",
+      "expected": [],
+      "governed": {
+        "postId": "clean-18",
+        "findings": [],
+        "gatesFailed": [],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 0,
+        "llmCalls": 0,
+        "verdict": "READY_FOR_HUMAN",
+        "score": 100
+      },
+      "baseline": null
+    },
+    "clean-19": {
+      "split": "dev",
+      "class": "clean",
+      "expected": [],
+      "governed": {
+        "postId": "clean-19",
+        "findings": [],
+        "gatesFailed": [],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 0,
+        "llmCalls": 0,
+        "verdict": "READY_FOR_HUMAN",
+        "score": 100
+      },
+      "baseline": null
+    },
+    "clean-20": {
+      "split": "test",
+      "class": "clean",
+      "expected": [],
+      "governed": {
+        "postId": "clean-20",
+        "findings": [],
+        "gatesFailed": [],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 0,
+        "llmCalls": 0,
+        "verdict": "READY_FOR_HUMAN",
+        "score": 100
+      },
+      "baseline": null
+    },
+    "subtle-01": {
+      "split": "dev",
+      "class": "subtle",
+      "expected": [
+        "AF-001"
+      ],
+      "governed": {
+        "postId": "subtle-01",
+        "findings": [
+          {
+            "clauseId": "AF-001",
+            "category": "factual_accuracy",
+            "severity": "major",
+            "agreement": "deterministic",
+            "source": "gate"
+          }
+        ],
+        "gatesFailed": [
+          "AF-001"
+        ],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 1,
+        "llmCalls": 0,
+        "verdict": "BLOCKED",
+        "score": 85
+      },
+      "baseline": null
+    },
+    "subtle-02": {
+      "split": "test",
+      "class": "subtle",
+      "expected": [
+        "AF-004"
+      ],
+      "governed": {
+        "postId": "subtle-02",
+        "findings": [
+          {
+            "clauseId": "AF-004",
+            "category": "factual_accuracy",
+            "severity": "major",
+            "agreement": "deterministic",
+            "source": "gate"
+          }
+        ],
+        "gatesFailed": [
+          "AF-004"
+        ],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 0,
+        "llmCalls": 0,
+        "verdict": "BLOCKED",
+        "score": 85
+      },
+      "baseline": null
+    },
+    "subtle-03": {
+      "split": "dev",
+      "class": "subtle",
+      "expected": [
+        "TM-003"
+      ],
+      "governed": {
+        "postId": "subtle-03",
+        "findings": [
+          {
+            "clauseId": "TM-003",
+            "category": "terminology",
+            "severity": "major",
+            "agreement": "deterministic",
+            "source": "gate"
+          }
+        ],
+        "gatesFailed": [
+          "TM-003"
+        ],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 0,
+        "llmCalls": 0,
+        "verdict": "BLOCKED",
+        "score": 85
+      },
+      "baseline": null
+    },
+    "subtle-04": {
+      "split": "test",
+      "class": "subtle",
+      "expected": [
+        "TM-004"
+      ],
+      "governed": {
+        "postId": "subtle-04",
+        "findings": [
+          {
+            "clauseId": "TM-004",
+            "category": "terminology",
+            "severity": "minor",
+            "agreement": "deterministic",
+            "source": "gate"
+          }
+        ],
+        "gatesFailed": [],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 0,
+        "llmCalls": 0,
+        "verdict": "READY_FOR_HUMAN",
+        "score": 95
+      },
+      "baseline": null
+    },
+    "subtle-05": {
+      "split": "dev",
+      "class": "subtle",
+      "expected": [
+        "AR-003"
+      ],
+      "governed": {
+        "postId": "subtle-05",
+        "findings": [
+          {
+            "clauseId": "AR-003",
+            "category": "accessibility",
+            "severity": "minor",
+            "agreement": "deterministic",
+            "source": "gate"
+          }
+        ],
+        "gatesFailed": [],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 0,
+        "llmCalls": 0,
+        "verdict": "READY_FOR_HUMAN",
+        "score": 95
+      },
+      "baseline": null
+    },
+    "subtle-06": {
+      "split": "test",
+      "class": "subtle",
+      "expected": [
+        "AR-004"
+      ],
+      "governed": {
+        "postId": "subtle-06",
+        "findings": [
+          {
+            "clauseId": "AR-004",
+            "category": "accessibility",
+            "severity": "minor",
+            "agreement": "deterministic",
+            "source": "gate"
+          }
+        ],
+        "gatesFailed": [],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 0,
+        "llmCalls": 0,
+        "verdict": "READY_FOR_HUMAN",
+        "score": 95
+      },
+      "baseline": null
+    },
+    "subtle-07": {
+      "split": "dev",
+      "class": "subtle",
+      "expected": [
+        "SR-005"
+      ],
+      "governed": {
+        "postId": "subtle-07",
+        "findings": [
+          {
+            "clauseId": "AR-006",
+            "category": "accessibility",
+            "severity": "minor",
+            "agreement": "deterministic",
+            "source": "gate"
+          },
+          {
+            "clauseId": "SR-005",
+            "category": "messaging",
+            "severity": "major",
+            "agreement": "deterministic",
+            "source": "gate"
+          }
+        ],
+        "gatesFailed": [
+          "SR-005"
+        ],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 0,
+        "llmCalls": 0,
+        "verdict": "BLOCKED",
+        "score": 80
+      },
+      "baseline": null
+    },
+    "subtle-08": {
+      "split": "test",
+      "class": "subtle",
+      "expected": [
+        "CL-002"
+      ],
+      "governed": {
+        "postId": "subtle-08",
+        "findings": [],
+        "gatesFailed": [],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 0,
+        "llmCalls": 0,
+        "verdict": "READY_FOR_HUMAN",
+        "score": 100
+      },
+      "baseline": null
+    },
+    "subtle-09": {
+      "split": "dev",
+      "class": "subtle",
+      "expected": [
+        "TM-008"
+      ],
+      "governed": {
+        "postId": "subtle-09",
+        "findings": [
+          {
+            "clauseId": "TM-008",
+            "category": "terminology",
+            "severity": "minor",
+            "agreement": "deterministic",
+            "source": "gate"
+          }
+        ],
+        "gatesFailed": [],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 0,
+        "llmCalls": 0,
+        "verdict": "READY_FOR_HUMAN",
+        "score": 95
+      },
+      "baseline": null
+    },
+    "subtle-10": {
+      "split": "test",
+      "class": "subtle",
+      "expected": [
+        "AF-007"
+      ],
+      "governed": {
+        "postId": "subtle-10",
+        "findings": [],
+        "gatesFailed": [],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 0,
+        "llmCalls": 0,
+        "verdict": "READY_FOR_HUMAN",
+        "score": 100
+      },
+      "baseline": null
+    },
+    "subtle-11": {
+      "split": "dev",
+      "class": "subtle",
+      "expected": [
+        "AF-005"
+      ],
+      "governed": {
+        "postId": "subtle-11",
+        "findings": [],
+        "gatesFailed": [],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 0,
+        "llmCalls": 0,
+        "verdict": "READY_FOR_HUMAN",
+        "score": 100
+      },
+      "baseline": null
+    },
+    "subtle-12": {
+      "split": "test",
+      "class": "subtle",
+      "expected": [
+        "AF-006"
+      ],
+      "governed": {
+        "postId": "subtle-12",
+        "findings": [],
+        "gatesFailed": [],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 0,
+        "llmCalls": 0,
+        "verdict": "READY_FOR_HUMAN",
+        "score": 100
+      },
+      "baseline": null
+    },
+    "subtle-13": {
+      "split": "dev",
+      "class": "subtle",
+      "expected": [
+        "AF-010"
+      ],
+      "governed": {
+        "postId": "subtle-13",
+        "findings": [],
+        "gatesFailed": [],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 0,
+        "llmCalls": 0,
+        "verdict": "READY_FOR_HUMAN",
+        "score": 100
+      },
+      "baseline": null
+    },
+    "subtle-14": {
+      "split": "test",
+      "class": "subtle",
+      "expected": [
+        "SR-004",
+        "TM-004"
+      ],
+      "governed": {
+        "postId": "subtle-14",
+        "findings": [
+          {
+            "clauseId": "TM-004",
+            "category": "terminology",
+            "severity": "major",
+            "agreement": "deterministic",
+            "source": "gate"
+          },
+          {
+            "clauseId": "SR-004",
+            "category": "messaging",
+            "severity": "major",
+            "agreement": "deterministic",
+            "source": "gate"
+          }
+        ],
+        "gatesFailed": [
+          "TM-004",
+          "SR-004"
+        ],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 0,
+        "llmCalls": 0,
+        "verdict": "BLOCKED",
+        "score": 70
+      },
+      "baseline": null
+    },
+    "subtle-15": {
+      "split": "dev",
+      "class": "subtle",
+      "expected": [
+        "AR-002"
+      ],
+      "governed": {
+        "postId": "subtle-15",
+        "findings": [
+          {
+            "clauseId": "AR-002",
+            "category": "accessibility",
+            "severity": "minor",
+            "agreement": "deterministic",
+            "source": "gate"
+          }
+        ],
+        "gatesFailed": [],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 1,
+        "llmCalls": 0,
+        "verdict": "READY_FOR_HUMAN",
+        "score": 95
+      },
+      "baseline": null
+    },
+    "subtle-16": {
+      "split": "test",
+      "class": "subtle",
+      "expected": [
+        "CL-006"
+      ],
+      "governed": {
+        "postId": "subtle-16",
+        "findings": [],
+        "gatesFailed": [],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 1,
+        "llmCalls": 0,
+        "verdict": "READY_FOR_HUMAN",
+        "score": 100
+      },
+      "baseline": null
+    },
+    "subtle-17": {
+      "split": "dev",
+      "class": "subtle",
+      "expected": [
+        "BV-006"
+      ],
+      "governed": {
+        "postId": "subtle-17",
+        "findings": [
+          {
+            "clauseId": "BV-006",
+            "category": "tone",
+            "severity": "minor",
+            "agreement": "deterministic",
+            "source": "gate"
+          }
+        ],
+        "gatesFailed": [],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 0,
+        "llmCalls": 0,
+        "verdict": "READY_FOR_HUMAN",
+        "score": 95
+      },
+      "baseline": null
+    },
+    "subtle-18": {
+      "split": "test",
+      "class": "subtle",
+      "expected": [
+        "SR-007"
+      ],
+      "governed": {
+        "postId": "subtle-18",
+        "findings": [],
+        "gatesFailed": [],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 0,
+        "llmCalls": 0,
+        "verdict": "READY_FOR_HUMAN",
+        "score": 100
+      },
+      "baseline": null
+    },
+    "subtle-19": {
+      "split": "dev",
+      "class": "subtle",
+      "expected": [
+        "SR-006"
+      ],
+      "governed": {
+        "postId": "subtle-19",
+        "findings": [
+          {
+            "clauseId": "SR-006",
+            "category": "disclosure",
+            "severity": "critical",
+            "agreement": "deterministic",
+            "source": "gate"
+          }
+        ],
+        "gatesFailed": [
+          "SR-006"
+        ],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 0,
+        "llmCalls": 0,
+        "verdict": "BLOCKED",
+        "score": 60
+      },
+      "baseline": null
+    },
+    "subtle-20": {
+      "split": "test",
+      "class": "subtle",
+      "expected": [
+        "BV-008"
+      ],
+      "governed": {
+        "postId": "subtle-20",
+        "findings": [
+          {
+            "clauseId": "BV-008",
+            "category": "tone",
+            "severity": "minor",
+            "agreement": "deterministic",
+            "source": "gate"
+          }
+        ],
+        "gatesFailed": [],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 0,
+        "llmCalls": 0,
+        "verdict": "READY_FOR_HUMAN",
+        "score": 95
+      },
+      "baseline": null
+    },
+    "clear-01": {
+      "split": "dev",
+      "class": "clear",
+      "expected": [
+        "AF-003"
+      ],
+      "governed": {
+        "postId": "clear-01",
+        "findings": [
+          {
+            "clauseId": "AF-003",
+            "category": "factual_accuracy",
+            "severity": "critical",
+            "agreement": "deterministic",
+            "source": "gate"
+          }
+        ],
+        "gatesFailed": [
+          "AF-003"
+        ],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 0,
+        "llmCalls": 0,
+        "verdict": "BLOCKED",
+        "score": 60
+      },
+      "baseline": null
+    },
+    "clear-02": {
+      "split": "test",
+      "class": "clear",
+      "expected": [
+        "CL-002",
+        "CL-003"
+      ],
+      "governed": {
+        "postId": "clear-02",
+        "findings": [
+          {
+            "clauseId": "CL-002",
+            "category": "claims",
+            "severity": "critical",
+            "agreement": "deterministic",
+            "source": "gate"
+          },
+          {
+            "clauseId": "CL-003",
+            "category": "claims",
+            "severity": "critical",
+            "agreement": "deterministic",
+            "source": "gate"
+          }
+        ],
+        "gatesFailed": [
+          "CL-002",
+          "CL-003"
+        ],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 0,
+        "llmCalls": 0,
+        "verdict": "BLOCKED",
+        "score": 20
+      },
+      "baseline": null
+    },
+    "clear-03": {
+      "split": "dev",
+      "class": "clear",
+      "expected": [
+        "TM-002",
+        "AF-004"
+      ],
+      "governed": {
+        "postId": "clear-03",
+        "findings": [
+          {
+            "clauseId": "TM-002",
+            "category": "terminology",
+            "severity": "major",
+            "agreement": "deterministic",
+            "source": "gate"
+          },
+          {
+            "clauseId": "TM-002",
+            "category": "terminology",
+            "severity": "major",
+            "agreement": "deterministic",
+            "source": "gate"
+          },
+          {
+            "clauseId": "AF-004",
+            "category": "factual_accuracy",
+            "severity": "major",
+            "agreement": "deterministic",
+            "source": "gate"
+          }
+        ],
+        "gatesFailed": [
+          "TM-002",
+          "TM-002",
+          "AF-004"
+        ],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 0,
+        "llmCalls": 0,
+        "verdict": "BLOCKED",
+        "score": 55
+      },
+      "baseline": null
+    },
+    "clear-04": {
+      "split": "test",
+      "class": "clear",
+      "expected": [
+        "AF-001",
+        "AF-007"
+      ],
+      "governed": {
+        "postId": "clear-04",
+        "findings": [
+          {
+            "clauseId": "AF-001",
+            "category": "factual_accuracy",
+            "severity": "major",
+            "agreement": "deterministic",
+            "source": "gate"
+          },
+          {
+            "clauseId": "AF-007",
+            "category": "factual_accuracy",
+            "severity": "critical",
+            "agreement": "deterministic",
+            "source": "gate"
+          }
+        ],
+        "gatesFailed": [
+          "AF-001",
+          "AF-007"
+        ],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 0,
+        "llmCalls": 0,
+        "verdict": "BLOCKED",
+        "score": 45
+      },
+      "baseline": null
+    },
+    "clear-05": {
+      "split": "dev",
+      "class": "clear",
+      "expected": [
+        "BV-003"
+      ],
+      "governed": {
+        "postId": "clear-05",
+        "findings": [
+          {
+            "clauseId": "BV-003",
+            "category": "tone",
+            "severity": "major",
+            "agreement": "deterministic",
+            "source": "gate"
+          }
+        ],
+        "gatesFailed": [
+          "BV-003"
+        ],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 1,
+        "llmCalls": 0,
+        "verdict": "BLOCKED",
+        "score": 85
+      },
+      "baseline": null
+    },
+    "clear-06": {
+      "split": "test",
+      "class": "clear",
+      "expected": [
+        "BV-004",
+        "CL-007"
+      ],
+      "governed": {
+        "postId": "clear-06",
+        "findings": [
+          {
+            "clauseId": "BV-004",
+            "category": "tone",
+            "severity": "major",
+            "agreement": "deterministic",
+            "source": "gate"
+          }
+        ],
+        "gatesFailed": [
+          "BV-004"
+        ],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 0,
+        "llmCalls": 0,
+        "verdict": "BLOCKED",
+        "score": 85
+      },
+      "baseline": null
+    },
+    "clear-07": {
+      "split": "dev",
+      "class": "clear",
+      "expected": [
+        "EM-000",
+        "TM-002"
+      ],
+      "governed": {
+        "postId": "clear-07",
+        "findings": [
+          {
+            "clauseId": "TM-002",
+            "category": "terminology",
+            "severity": "major",
+            "agreement": "deterministic",
+            "source": "gate"
+          },
+          {
+            "clauseId": "EM-000",
+            "category": "security",
+            "severity": "critical",
+            "agreement": "deterministic",
+            "source": "gate"
+          }
+        ],
+        "gatesFailed": [
+          "TM-002",
+          "EM-000"
+        ],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 0,
+        "llmCalls": 0,
+        "verdict": "BLOCKED",
+        "score": 45
+      },
+      "baseline": null
+    },
+    "clear-08": {
+      "split": "test",
+      "class": "clear",
+      "expected": [
+        "AR-001"
+      ],
+      "governed": {
+        "postId": "clear-08",
+        "findings": [],
+        "gatesFailed": [],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 0,
+        "llmCalls": 0,
+        "verdict": "READY_FOR_HUMAN",
+        "score": 100
+      },
+      "baseline": null
+    },
+    "clear-09": {
+      "split": "dev",
+      "class": "clear",
+      "expected": [
+        "SR-006"
+      ],
+      "governed": {
+        "postId": "clear-09",
+        "findings": [
+          {
+            "clauseId": "SR-006",
+            "category": "disclosure",
+            "severity": "critical",
+            "agreement": "deterministic",
+            "source": "gate"
+          }
+        ],
+        "gatesFailed": [
+          "SR-006"
+        ],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 0,
+        "llmCalls": 0,
+        "verdict": "BLOCKED",
+        "score": 60
+      },
+      "baseline": null
+    },
+    "clear-10": {
+      "split": "test",
+      "class": "clear",
+      "expected": [
+        "CL-005",
+        "TM-002"
+      ],
+      "governed": {
+        "postId": "clear-10",
+        "findings": [
+          {
+            "clauseId": "TM-002",
+            "category": "terminology",
+            "severity": "major",
+            "agreement": "deterministic",
+            "source": "gate"
+          },
+          {
+            "clauseId": "CL-005",
+            "category": "claims",
+            "severity": "critical",
+            "agreement": "deterministic",
+            "source": "gate"
+          }
+        ],
+        "gatesFailed": [
+          "TM-002",
+          "CL-005"
+        ],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 0,
+        "llmCalls": 0,
+        "verdict": "BLOCKED",
+        "score": 45
+      },
+      "baseline": null
+    },
+    "clear-11": {
+      "split": "dev",
+      "class": "clear",
+      "expected": [
+        "CL-006"
+      ],
+      "governed": {
+        "postId": "clear-11",
+        "findings": [
+          {
+            "clauseId": "CL-006",
+            "category": "claims",
+            "severity": "major",
+            "agreement": "deterministic",
+            "source": "gate"
+          }
+        ],
+        "gatesFailed": [
+          "CL-006"
+        ],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 0,
+        "llmCalls": 0,
+        "verdict": "BLOCKED",
+        "score": 85
+      },
+      "baseline": null
+    },
+    "clear-12": {
+      "split": "test",
+      "class": "clear",
+      "expected": [
+        "CL-002",
+        "TM-010"
+      ],
+      "governed": {
+        "postId": "clear-12",
+        "findings": [
+          {
+            "clauseId": "TM-010",
+            "category": "terminology",
+            "severity": "major",
+            "agreement": "deterministic",
+            "source": "gate"
+          },
+          {
+            "clauseId": "CL-002",
+            "category": "claims",
+            "severity": "critical",
+            "agreement": "deterministic",
+            "source": "gate"
+          }
+        ],
+        "gatesFailed": [
+          "TM-010",
+          "CL-002"
+        ],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 0,
+        "llmCalls": 0,
+        "verdict": "BLOCKED",
+        "score": 45
+      },
+      "baseline": null
+    },
+    "clear-13": {
+      "split": "dev",
+      "class": "clear",
+      "expected": [
+        "TM-003",
+        "TM-002",
+        "TM-007"
+      ],
+      "governed": {
+        "postId": "clear-13",
+        "findings": [
+          {
+            "clauseId": "TM-002",
+            "category": "terminology",
+            "severity": "major",
+            "agreement": "deterministic",
+            "source": "gate"
+          },
+          {
+            "clauseId": "TM-003",
+            "category": "terminology",
+            "severity": "major",
+            "agreement": "deterministic",
+            "source": "gate"
+          },
+          {
+            "clauseId": "TM-007",
+            "category": "terminology",
+            "severity": "major",
+            "agreement": "deterministic",
+            "source": "gate"
+          }
+        ],
+        "gatesFailed": [
+          "TM-002",
+          "TM-003",
+          "TM-007"
+        ],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 0,
+        "llmCalls": 0,
+        "verdict": "BLOCKED",
+        "score": 55
+      },
+      "baseline": null
+    },
+    "clear-14": {
+      "split": "test",
+      "class": "clear",
+      "expected": [
+        "CL-007"
+      ],
+      "governed": {
+        "postId": "clear-14",
+        "findings": [
+          {
+            "clauseId": "CL-007",
+            "category": "claims",
+            "severity": "major",
+            "agreement": "deterministic",
+            "source": "gate"
+          }
+        ],
+        "gatesFailed": [
+          "CL-007"
+        ],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 0,
+        "llmCalls": 0,
+        "verdict": "BLOCKED",
+        "score": 85
+      },
+      "baseline": null
+    },
+    "clear-15": {
+      "split": "dev",
+      "class": "clear",
+      "expected": [
+        "AF-003",
+        "AF-001"
+      ],
+      "governed": {
+        "postId": "clear-15",
+        "findings": [
+          {
+            "clauseId": "AF-001",
+            "category": "factual_accuracy",
+            "severity": "major",
+            "agreement": "deterministic",
+            "source": "gate"
+          },
+          {
+            "clauseId": "AF-003",
+            "category": "factual_accuracy",
+            "severity": "critical",
+            "agreement": "deterministic",
+            "source": "gate"
+          }
+        ],
+        "gatesFailed": [
+          "AF-001",
+          "AF-003"
+        ],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 0,
+        "llmCalls": 0,
+        "verdict": "BLOCKED",
+        "score": 45
+      },
+      "baseline": null
+    },
+    "clear-16": {
+      "split": "test",
+      "class": "clear",
+      "expected": [
+        "EM-000"
+      ],
+      "governed": {
+        "postId": "clear-16",
+        "findings": [
+          {
+            "clauseId": "EM-000",
+            "category": "security",
+            "severity": "critical",
+            "agreement": "deterministic",
+            "source": "gate"
+          }
+        ],
+        "gatesFailed": [
+          "EM-000"
+        ],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 0,
+        "llmCalls": 0,
+        "verdict": "BLOCKED",
+        "score": 60
+      },
+      "baseline": null
+    },
+    "clear-17": {
+      "split": "dev",
+      "class": "clear",
+      "expected": [
+        "BV-003",
+        "CL-002"
+      ],
+      "governed": {
+        "postId": "clear-17",
+        "findings": [
+          {
+            "clauseId": "BV-003",
+            "category": "tone",
+            "severity": "major",
+            "agreement": "deterministic",
+            "source": "gate"
+          },
+          {
+            "clauseId": "CL-002",
+            "category": "claims",
+            "severity": "critical",
+            "agreement": "deterministic",
+            "source": "gate"
+          }
+        ],
+        "gatesFailed": [
+          "BV-003",
+          "CL-002"
+        ],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 0,
+        "llmCalls": 0,
+        "verdict": "BLOCKED",
+        "score": 45
+      },
+      "baseline": null
+    },
+    "clear-18": {
+      "split": "test",
+      "class": "clear",
+      "expected": [
+        "TM-007"
+      ],
+      "governed": {
+        "postId": "clear-18",
+        "findings": [
+          {
+            "clauseId": "TM-007",
+            "category": "terminology",
+            "severity": "major",
+            "agreement": "deterministic",
+            "source": "gate"
+          },
+          {
+            "clauseId": "TM-007",
+            "category": "terminology",
+            "severity": "major",
+            "agreement": "deterministic",
+            "source": "gate"
+          }
+        ],
+        "gatesFailed": [
+          "TM-007",
+          "TM-007"
+        ],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 0,
+        "llmCalls": 0,
+        "verdict": "BLOCKED",
+        "score": 70
+      },
+      "baseline": null
+    },
+    "clear-19": {
+      "split": "dev",
+      "class": "clear",
+      "expected": [
+        "AF-007",
+        "TM-002",
+        "AF-004"
+      ],
+      "governed": {
+        "postId": "clear-19",
+        "findings": [
+          {
+            "clauseId": "TM-002",
+            "category": "terminology",
+            "severity": "major",
+            "agreement": "deterministic",
+            "source": "gate"
+          },
+          {
+            "clauseId": "AF-004",
+            "category": "factual_accuracy",
+            "severity": "major",
+            "agreement": "deterministic",
+            "source": "gate"
+          },
+          {
+            "clauseId": "AF-007",
+            "category": "factual_accuracy",
+            "severity": "critical",
+            "agreement": "deterministic",
+            "source": "gate"
+          }
+        ],
+        "gatesFailed": [
+          "TM-002",
+          "AF-004",
+          "AF-007"
+        ],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 0,
+        "llmCalls": 0,
+        "verdict": "BLOCKED",
+        "score": 30
+      },
+      "baseline": null
+    },
+    "clear-20": {
+      "split": "test",
+      "class": "clear",
+      "expected": [
+        "SR-006",
+        "CL-005"
+      ],
+      "governed": {
+        "postId": "clear-20",
+        "findings": [
+          {
+            "clauseId": "CL-005",
+            "category": "claims",
+            "severity": "critical",
+            "agreement": "deterministic",
+            "source": "gate"
+          },
+          {
+            "clauseId": "SR-006",
+            "category": "disclosure",
+            "severity": "critical",
+            "agreement": "deterministic",
+            "source": "gate"
+          }
+        ],
+        "gatesFailed": [
+          "CL-005",
+          "SR-006"
+        ],
+        "rawLlmCitations": 0,
+        "invalidLlmCitations": 0,
+        "debateAgreed": 0,
+        "debateDisputed": 0,
+        "ms": 0,
+        "llmCalls": 0,
+        "verdict": "BLOCKED",
+        "score": 20
+      },
+      "baseline": null
+    }
+  }
+}

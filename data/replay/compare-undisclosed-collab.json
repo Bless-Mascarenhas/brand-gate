@@ -1,0 +1,179 @@
+{
+  "schemaVersion": 1,
+  "kind": "compare",
+  "id": "compare-undisclosed-collab",
+  "title": "5. Undisclosed influencer collab",
+  "provenance": "illustrative_fixture",
+  "recordedAt": "2026-10-24T13:42:46.815Z",
+  "packHash": "pack_2fc4b94dd474",
+  "demoDate": "2026-10-24",
+  "generator": "scripts/record-replay.ts",
+  "notes": [
+    "No provider credentials were available when this was recorded.",
+    "Columns A and B are hand-written illustrations, not model output. All three are scored by the real gate engine.",
+    "Run `npm run record-replay` with GEMINI, XAI and NVIDIA keys to replace this with a live recording."
+  ],
+  "scenarioId": "undisclosed-collab",
+  "brief": "Post about our collab with stylist @mumbai.stylist who picked her favourite jackets from our rack. Keep it natural, no ads vibe.",
+  "columns": [
+    {
+      "key": "bare",
+      "label": "A · Bare AI",
+      "provenance": "illustrative_fixture",
+      "post": {
+        "caption": "Our collab with @mumbai.stylist is here! She picked her favourite jackets from our rack 🧥 #ThriftIt #StyleCollab",
+        "hashtags": [
+          "#ThriftIt",
+          "#StyleCollab"
+        ],
+        "altText": "Stylist holding a jacket",
+        "format": "feed_4_5",
+        "language": "en"
+      },
+      "metrics": {
+        "gateFailures": 1,
+        "staleOrWrongFacts": 0,
+        "bannedTerms": 0,
+        "unsupportedClaims": 0,
+        "accessibilityGaps": 0,
+        "bySeverity": {
+          "critical": 1,
+          "major": 0,
+          "minor": 0,
+          "info": 0
+        },
+        "score": 60,
+        "verdict": "BLOCKED"
+      },
+      "findings": [
+        {
+          "id": "finding-R-SOC-005-1792849366846-0",
+          "source": "gate",
+          "category": "disclosure",
+          "severity": "critical",
+          "clauseId": "SR-006",
+          "clauseQuote": "All sponsored posts, gifted endorsements, or influencer collaborations must activate Instagram's native Paid Partnership tag and must clearly place `#ad` or `#collab` as the very first hashtag or at the beginning of the caption in compliance with ASCI guidelines",
+          "postField": "caption",
+          "postQuote": "collab",
+          "explanation": "Collaboration marker 'collab' detected without mandatory '#ad' hashtag and paid partnership flag.",
+          "autoFixable": false,
+          "confidence": 1,
+          "verified": true,
+          "agreement": "deterministic"
+        }
+      ],
+      "llmCalls": [],
+      "wallMs": null,
+      "note": "Hand-written example of a typical unguided answer. Not model output."
+    },
+    {
+      "key": "policies",
+      "label": "B · AI + policies",
+      "provenance": "illustrative_fixture",
+      "post": {
+        "caption": "Stylist @mumbai.stylist picked her favourite pre-loved jackets from our rack in this collab. Tap the link in bio to shop her edit. #ThriftIt #StylistEdit",
+        "hashtags": [
+          "#ThriftIt",
+          "#StylistEdit"
+        ],
+        "altText": "Stylist holding a pre-loved denim jacket in the Bandra pop-up",
+        "format": "feed_4_5",
+        "language": "en"
+      },
+      "metrics": {
+        "gateFailures": 1,
+        "staleOrWrongFacts": 0,
+        "bannedTerms": 0,
+        "unsupportedClaims": 0,
+        "accessibilityGaps": 0,
+        "bySeverity": {
+          "critical": 1,
+          "major": 0,
+          "minor": 0,
+          "info": 0
+        },
+        "score": 60,
+        "verdict": "BLOCKED"
+      },
+      "findings": [
+        {
+          "id": "finding-R-SOC-005-1792849366846-0",
+          "source": "gate",
+          "category": "disclosure",
+          "severity": "critical",
+          "clauseId": "SR-006",
+          "clauseQuote": "All sponsored posts, gifted endorsements, or influencer collaborations must activate Instagram's native Paid Partnership tag and must clearly place `#ad` or `#collab` as the very first hashtag or at the beginning of the caption in compliance with ASCI guidelines",
+          "postField": "caption",
+          "postQuote": "collab",
+          "explanation": "Collaboration marker 'collab' detected without mandatory '#ad' hashtag and paid partnership flag.",
+          "autoFixable": false,
+          "confidence": 1,
+          "verified": true,
+          "agreement": "deterministic"
+        }
+      ],
+      "llmCalls": [],
+      "wallMs": null,
+      "note": "Hand-written example of a policy-aware but unverified answer. Not model output."
+    },
+    {
+      "key": "governed",
+      "label": "C · Governed",
+      "provenance": "deterministic_recording",
+      "post": {
+        "caption": "Stylist @mumbai.stylist picked her favourite pre-loved jackets from our rack in this collab. Tap the link in bio to shop her edit. #ThriftIt #StylistEdit",
+        "hashtags": [
+          "#ThriftIt",
+          "#StylistEdit"
+        ],
+        "altText": "Stylist holding a pre-loved denim jacket in the Bandra pop-up",
+        "format": "feed_4_5",
+        "language": "en"
+      },
+      "metrics": {
+        "gateFailures": 1,
+        "staleOrWrongFacts": 0,
+        "bannedTerms": 0,
+        "unsupportedClaims": 0,
+        "accessibilityGaps": 0,
+        "bySeverity": {
+          "critical": 1,
+          "major": 0,
+          "minor": 0,
+          "info": 0
+        },
+        "score": 60,
+        "verdict": "BLOCKED"
+      },
+      "findings": [
+        {
+          "id": "finding-R-SOC-005-1792849366846-0",
+          "source": "gate",
+          "category": "disclosure",
+          "severity": "critical",
+          "clauseId": "SR-006",
+          "clauseQuote": "All sponsored posts, gifted endorsements, or influencer collaborations must activate Instagram's native Paid Partnership tag and must clearly place `#ad` or `#collab` as the very first hashtag or at the beginning of the caption in compliance with ASCI guidelines",
+          "postField": "caption",
+          "postQuote": "collab",
+          "explanation": "Collaboration marker 'collab' detected without mandatory '#ad' hashtag and paid partnership flag.",
+          "autoFixable": false,
+          "confidence": 1,
+          "verified": true,
+          "agreement": "deterministic"
+        }
+      ],
+      "pipelineVerdict": {
+        "status": "BLOCKED",
+        "score": 60,
+        "gatesFailed": [
+          "SR-006"
+        ],
+        "needsHuman": [],
+        "hallucinationsBlocked": 0
+      },
+      "llmCalls": [],
+      "wallMs": null,
+      "note": "The governed pipeline's deterministic stages (gates → verifier → scoring) run on draft B. Generation and LLM review were not recorded, so this shows what governance catches and blocks, not a rewritten post."
+    }
+  ]
+}

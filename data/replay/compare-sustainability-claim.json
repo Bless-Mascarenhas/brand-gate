@@ -1,0 +1,210 @@
+{
+  "schemaVersion": 1,
+  "kind": "compare",
+  "id": "compare-sustainability-claim",
+  "title": "2. Unsupported sustainability claim",
+  "provenance": "illustrative_fixture",
+  "recordedAt": "2026-10-24T13:42:46.815Z",
+  "packHash": "pack_2fc4b94dd474",
+  "demoDate": "2026-10-24",
+  "generator": "scripts/record-replay.ts",
+  "notes": [
+    "No provider credentials were available when this was recorded.",
+    "Columns A and B are hand-written illustrations, not model output. All three are scored by the real gate engine.",
+    "Run `npm run record-replay` with GEMINI, XAI and NVIDIA keys to replace this with a live recording."
+  ],
+  "scenarioId": "sustainability-claim",
+  "brief": "Write a post saying thrifting with us is eco-friendly and every tee saves 2,000 litres of water.",
+  "columns": [
+    {
+      "key": "bare",
+      "label": "A · Bare AI",
+      "provenance": "illustrative_fixture",
+      "post": {
+        "caption": "Thrifting is eco-friendly fashion at its best 🌍 Every tee saves 2,000 litres of water! Shop sustainable today. #ThriftIt #EcoFriendly #SustainableFashion",
+        "hashtags": [
+          "#ThriftIt",
+          "#EcoFriendly",
+          "#SustainableFashion"
+        ],
+        "altText": "",
+        "format": "feed_4_5",
+        "language": "en"
+      },
+      "metrics": {
+        "gateFailures": 2,
+        "staleOrWrongFacts": 0,
+        "bannedTerms": 0,
+        "unsupportedClaims": 2,
+        "accessibilityGaps": 1,
+        "bySeverity": {
+          "critical": 2,
+          "major": 0,
+          "minor": 1,
+          "info": 0
+        },
+        "score": 15,
+        "verdict": "BLOCKED"
+      },
+      "findings": [
+        {
+          "id": "finding-R-CLAIM-001-1792849366843-0",
+          "source": "gate",
+          "category": "claims",
+          "severity": "critical",
+          "clauseId": "CL-002",
+          "clauseQuote": "Copywriters must not claim garments or purchases are \"eco-friendly\", \"sustainable\" (when unqualified), \"zero waste\", \"green\", or \"planet positive\"",
+          "postField": "caption",
+          "postQuote": "eco-friendly",
+          "explanation": "Unqualified environmental assertions are prohibited without third-party audit certification.",
+          "autoFixable": false,
+          "confidence": 1,
+          "verified": true,
+          "agreement": "deterministic"
+        },
+        {
+          "id": "finding-R-CLAIM-002-1792849366843-1",
+          "source": "gate",
+          "category": "claims",
+          "severity": "critical",
+          "clauseId": "CL-003",
+          "clauseQuote": "Specific carbon and water metrics prohibition.",
+          "postField": "caption",
+          "postQuote": "saves 2,000 l",
+          "explanation": "Specific water or carbon reduction figures are prohibited without certified item-specific audit documents.",
+          "autoFixable": false,
+          "confidence": 1,
+          "verified": true,
+          "agreement": "deterministic"
+        },
+        {
+          "id": "finding-R-ACC-006-1792849366843-2",
+          "source": "gate",
+          "category": "accessibility",
+          "severity": "minor",
+          "clauseId": "AR-006",
+          "clauseQuote": "Emoji usage restrictions mid-sentence.",
+          "postField": "caption",
+          "postQuote": "t 🌍 E",
+          "explanation": "Emojis must not replace semantic words mid-sentence. Place emojis at the end of thoughts or sentences.",
+          "autoFixable": false,
+          "confidence": 1,
+          "verified": true,
+          "agreement": "deterministic"
+        }
+      ],
+      "llmCalls": [],
+      "wallMs": null,
+      "note": "Hand-written example of a typical unguided answer. Not model output."
+    },
+    {
+      "key": "policies",
+      "label": "B · AI + policies",
+      "provenance": "illustrative_fixture",
+      "post": {
+        "caption": "Choose pre-loved: every tee saves 2,000 litres of water and gives clothes a second life. Tap the link in bio. #ThriftIt #SecondLife",
+        "hashtags": [
+          "#ThriftIt",
+          "#SecondLife"
+        ],
+        "altText": "Stack of folded pre-loved tees on a wooden table in daylight",
+        "format": "feed_4_5",
+        "language": "en"
+      },
+      "metrics": {
+        "gateFailures": 1,
+        "staleOrWrongFacts": 0,
+        "bannedTerms": 0,
+        "unsupportedClaims": 1,
+        "accessibilityGaps": 0,
+        "bySeverity": {
+          "critical": 1,
+          "major": 0,
+          "minor": 0,
+          "info": 0
+        },
+        "score": 60,
+        "verdict": "BLOCKED"
+      },
+      "findings": [
+        {
+          "id": "finding-R-CLAIM-002-1792849366843-0",
+          "source": "gate",
+          "category": "claims",
+          "severity": "critical",
+          "clauseId": "CL-003",
+          "clauseQuote": "Specific carbon and water metrics prohibition.",
+          "postField": "caption",
+          "postQuote": "saves 2,000 l",
+          "explanation": "Specific water or carbon reduction figures are prohibited without certified item-specific audit documents.",
+          "autoFixable": false,
+          "confidence": 1,
+          "verified": true,
+          "agreement": "deterministic"
+        }
+      ],
+      "llmCalls": [],
+      "wallMs": null,
+      "note": "Hand-written example of a policy-aware but unverified answer. Not model output."
+    },
+    {
+      "key": "governed",
+      "label": "C · Governed",
+      "provenance": "deterministic_recording",
+      "post": {
+        "caption": "Choose pre-loved: every tee saves 2,000 litres of water and gives clothes a second life. Tap the link in bio. #ThriftIt #SecondLife",
+        "hashtags": [
+          "#ThriftIt",
+          "#SecondLife"
+        ],
+        "altText": "Stack of folded pre-loved tees on a wooden table in daylight",
+        "format": "feed_4_5",
+        "language": "en"
+      },
+      "metrics": {
+        "gateFailures": 1,
+        "staleOrWrongFacts": 0,
+        "bannedTerms": 0,
+        "unsupportedClaims": 1,
+        "accessibilityGaps": 0,
+        "bySeverity": {
+          "critical": 1,
+          "major": 0,
+          "minor": 0,
+          "info": 0
+        },
+        "score": 60,
+        "verdict": "BLOCKED"
+      },
+      "findings": [
+        {
+          "id": "finding-R-CLAIM-002-1792849366843-0",
+          "source": "gate",
+          "category": "claims",
+          "severity": "critical",
+          "clauseId": "CL-003",
+          "clauseQuote": "Specific carbon and water metrics prohibition.",
+          "postField": "caption",
+          "postQuote": "saves 2,000 l",
+          "explanation": "Specific water or carbon reduction figures are prohibited without certified item-specific audit documents.",
+          "autoFixable": false,
+          "confidence": 1,
+          "verified": true,
+          "agreement": "deterministic"
+        }
+      ],
+      "pipelineVerdict": {
+        "status": "BLOCKED",
+        "score": 60,
+        "gatesFailed": [
+          "CL-003"
+        ],
+        "needsHuman": [],
+        "hallucinationsBlocked": 0
+      },
+      "llmCalls": [],
+      "wallMs": null,
+      "note": "The governed pipeline's deterministic stages (gates → verifier → scoring) run on draft B. Generation and LLM review were not recorded, so this shows what governance catches and blocks, not a rewritten post."
+    }
+  ]
+}

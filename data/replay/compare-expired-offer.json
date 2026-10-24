@@ -1,0 +1,226 @@
+{
+  "schemaVersion": 1,
+  "kind": "compare",
+  "id": "compare-expired-offer",
+  "title": "1. Expired offer",
+  "provenance": "illustrative_fixture",
+  "recordedAt": "2026-10-24T13:42:46.815Z",
+  "packHash": "pack_2fc4b94dd474",
+  "demoDate": "2026-10-24",
+  "generator": "scripts/record-replay.ts",
+  "notes": [
+    "No provider credentials were available when this was recorded.",
+    "Columns A and B are hand-written illustrations, not model output. All three are scored by the real gate engine.",
+    "Run `npm run record-replay` with GEMINI, XAI and NVIDIA keys to replace this with a live recording."
+  ],
+  "scenarioId": "expired-offer",
+  "brief": "Write a hype post for our Monsoon Clearance: flat 40% off everything, last chance, ends tonight.",
+  "columns": [
+    {
+      "key": "bare",
+      "label": "A · Bare AI",
+      "provenance": "illustrative_fixture",
+      "post": {
+        "caption": "Flat 40% off Monsoon Clearance! Last chance, ends tonight 🔥 Grab your faves before they are gone. #ThriftIt #MonsoonSale #thriftshopping",
+        "hashtags": [
+          "#ThriftIt",
+          "#MonsoonSale",
+          "#thriftshopping"
+        ],
+        "altText": "Sale banner",
+        "format": "feed_4_5",
+        "language": "en"
+      },
+      "metrics": {
+        "gateFailures": 1,
+        "staleOrWrongFacts": 1,
+        "bannedTerms": 0,
+        "unsupportedClaims": 0,
+        "accessibilityGaps": 3,
+        "bySeverity": {
+          "critical": 1,
+          "major": 0,
+          "minor": 3,
+          "info": 0
+        },
+        "score": 45,
+        "verdict": "BLOCKED"
+      },
+      "findings": [
+        {
+          "id": "finding-R-FACT-004-1792849366841-0",
+          "source": "gate",
+          "category": "factual_accuracy",
+          "severity": "critical",
+          "clauseId": "AF-003",
+          "clauseQuote": "Expired commercial campaign: Monsoon Clearance",
+          "postField": "caption",
+          "postQuote": "Monsoon Clearance",
+          "explanation": "Campaign 'Monsoon Clearance' concluded on 2026-09-15 and is expired relative to current date (2026-10-24).",
+          "autoFixable": false,
+          "confidence": 1,
+          "verified": true,
+          "agreement": "deterministic"
+        },
+        {
+          "id": "finding-R-ACC-002-1792849366841-1",
+          "source": "gate",
+          "category": "accessibility",
+          "severity": "minor",
+          "clauseId": "AR-002",
+          "clauseQuote": "The alternative text must be between 20 and 125 characters in length",
+          "postField": "alt_text",
+          "postQuote": "Sale banner",
+          "explanation": "Alt text length is 11 characters; required between 20 and 125.",
+          "autoFixable": false,
+          "confidence": 1,
+          "verified": true,
+          "agreement": "deterministic"
+        },
+        {
+          "id": "finding-R-ACC-003-1792849366841-2",
+          "source": "gate",
+          "category": "accessibility",
+          "severity": "minor",
+          "clauseId": "AR-003",
+          "clauseQuote": "CamelCase formatting for all hashtags",
+          "postField": "hashtags",
+          "postQuote": "#thriftshopping",
+          "explanation": "Hashtags must be in CamelCase for screen-reader accessibility. Found: #thriftshopping",
+          "suggestedFix": "#Thriftshopping",
+          "autoFixable": true,
+          "confidence": 1,
+          "verified": true,
+          "agreement": "deterministic"
+        },
+        {
+          "id": "finding-R-ACC-006-1792849366841-3",
+          "source": "gate",
+          "category": "accessibility",
+          "severity": "minor",
+          "clauseId": "AR-006",
+          "clauseQuote": "Emoji usage restrictions mid-sentence.",
+          "postField": "caption",
+          "postQuote": "t 🔥 G",
+          "explanation": "Emojis must not replace semantic words mid-sentence. Place emojis at the end of thoughts or sentences.",
+          "autoFixable": false,
+          "confidence": 1,
+          "verified": true,
+          "agreement": "deterministic"
+        }
+      ],
+      "llmCalls": [],
+      "wallMs": null,
+      "note": "Hand-written example of a typical unguided answer. Not model output."
+    },
+    {
+      "key": "policies",
+      "label": "B · AI + policies",
+      "provenance": "illustrative_fixture",
+      "post": {
+        "caption": "Monsoon Clearance ends tonight: flat 40% off curated pre-loved pieces. Tap the link in bio before midnight. #ThriftIt #MonsoonClearance",
+        "hashtags": [
+          "#ThriftIt",
+          "#MonsoonClearance"
+        ],
+        "altText": "Rack of pre-loved rain jackets under a Monsoon Clearance sign",
+        "format": "feed_4_5",
+        "language": "en"
+      },
+      "metrics": {
+        "gateFailures": 1,
+        "staleOrWrongFacts": 1,
+        "bannedTerms": 0,
+        "unsupportedClaims": 0,
+        "accessibilityGaps": 0,
+        "bySeverity": {
+          "critical": 1,
+          "major": 0,
+          "minor": 0,
+          "info": 0
+        },
+        "score": 60,
+        "verdict": "BLOCKED"
+      },
+      "findings": [
+        {
+          "id": "finding-R-FACT-004-1792849366842-0",
+          "source": "gate",
+          "category": "factual_accuracy",
+          "severity": "critical",
+          "clauseId": "AF-003",
+          "clauseQuote": "Expired commercial campaign: Monsoon Clearance",
+          "postField": "caption",
+          "postQuote": "Monsoon Clearance",
+          "explanation": "Campaign 'Monsoon Clearance' concluded on 2026-09-15 and is expired relative to current date (2026-10-24).",
+          "autoFixable": false,
+          "confidence": 1,
+          "verified": true,
+          "agreement": "deterministic"
+        }
+      ],
+      "llmCalls": [],
+      "wallMs": null,
+      "note": "Hand-written example of a policy-aware but unverified answer. Not model output."
+    },
+    {
+      "key": "governed",
+      "label": "C · Governed",
+      "provenance": "deterministic_recording",
+      "post": {
+        "caption": "Monsoon Clearance ends tonight: flat 40% off curated pre-loved pieces. Tap the link in bio before midnight. #ThriftIt #MonsoonClearance",
+        "hashtags": [
+          "#ThriftIt",
+          "#MonsoonClearance"
+        ],
+        "altText": "Rack of pre-loved rain jackets under a Monsoon Clearance sign",
+        "format": "feed_4_5",
+        "language": "en"
+      },
+      "metrics": {
+        "gateFailures": 1,
+        "staleOrWrongFacts": 1,
+        "bannedTerms": 0,
+        "unsupportedClaims": 0,
+        "accessibilityGaps": 0,
+        "bySeverity": {
+          "critical": 1,
+          "major": 0,
+          "minor": 0,
+          "info": 0
+        },
+        "score": 60,
+        "verdict": "BLOCKED"
+      },
+      "findings": [
+        {
+          "id": "finding-R-FACT-004-1792849366842-0",
+          "source": "gate",
+          "category": "factual_accuracy",
+          "severity": "critical",
+          "clauseId": "AF-003",
+          "clauseQuote": "Expired commercial campaign: Monsoon Clearance",
+          "postField": "caption",
+          "postQuote": "Monsoon Clearance",
+          "explanation": "Campaign 'Monsoon Clearance' concluded on 2026-09-15 and is expired relative to current date (2026-10-24).",
+          "autoFixable": false,
+          "confidence": 1,
+          "verified": true,
+          "agreement": "deterministic"
+        }
+      ],
+      "pipelineVerdict": {
+        "status": "BLOCKED",
+        "score": 60,
+        "gatesFailed": [
+          "AF-003"
+        ],
+        "needsHuman": [],
+        "hallucinationsBlocked": 0
+      },
+      "llmCalls": [],
+      "wallMs": null,
+      "note": "The governed pipeline's deterministic stages (gates → verifier → scoring) run on draft B. Generation and LLM review were not recorded, so this shows what governance catches and blocks, not a rewritten post."
+    }
+  ]
+}

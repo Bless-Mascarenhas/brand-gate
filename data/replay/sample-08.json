@@ -1,0 +1,126 @@
+{
+  "schemaVersion": 1,
+  "kind": "sample",
+  "id": "sample-08",
+  "title": "Sample 8: Accessibility Failures",
+  "provenance": "deterministic_recording",
+  "recordedAt": "2026-10-24T13:42:46.815Z",
+  "packHash": "pack_2fc4b94dd474",
+  "demoDate": "2026-10-24",
+  "generator": "scripts/record-replay.ts",
+  "notes": [
+    "Recorded without provider credentials: gates, citation verifier, consensus and scoring ran for real; the two LLM reviewers were not called, so soft-category findings (tone, messaging) are absent."
+  ],
+  "sampleId": 8,
+  "post": {
+    "caption": "Vintage jackets drop now. #ThriftIt #thrift #vintage #denim #clothes #preloved #mumbai #fashion #ootd #style #aesthetic #shopping",
+    "hashtags": [
+      "#thrift",
+      "#vintage",
+      "#denim",
+      "#clothes",
+      "#preloved",
+      "#mumbai",
+      "#fashion",
+      "#ootd",
+      "#style",
+      "#aesthetic",
+      "#shopping"
+    ],
+    "imageDataUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+    "altText": "",
+    "format": "feed_4_5",
+    "language": "en"
+  },
+  "steps": [
+    {
+      "step": "Gates",
+      "status": "completed",
+      "message": "3 deterministic findings (1 failed gates)"
+    },
+    {
+      "step": "Independent Review",
+      "status": "skipped",
+      "message": "Reviewer calls disabled (deterministic-only run)"
+    },
+    {
+      "step": "Citation Verifier",
+      "status": "completed",
+      "message": "0 verified, 0 hallucinated citations blocked"
+    },
+    {
+      "step": "Cross-Examination",
+      "status": "skipped",
+      "message": "Fast mode: rebuttal round skipped"
+    },
+    {
+      "step": "Consensus",
+      "status": "completed",
+      "message": "0 LLM findings adjudicated"
+    },
+    {
+      "step": "Scoring & Verdict",
+      "status": "completed",
+      "message": "BLOCKED (score 50)"
+    }
+  ],
+  "findings": [
+    {
+      "id": "finding-R-ACC-001-1792849366838-0",
+      "source": "gate",
+      "category": "accessibility",
+      "severity": "critical",
+      "clauseId": "AR-001",
+      "clauseQuote": "Empty or placeholder alt text is a critical barrier for screen-reader users and will block publication",
+      "postField": "alt_text",
+      "postQuote": "missing",
+      "explanation": "Alternative text is required for every image to guarantee accessibility for screen readers.",
+      "autoFixable": false,
+      "confidence": 1,
+      "verified": true,
+      "agreement": "deterministic"
+    },
+    {
+      "id": "finding-R-ACC-003-1792849366838-1",
+      "source": "gate",
+      "category": "accessibility",
+      "severity": "minor",
+      "clauseId": "AR-003",
+      "clauseQuote": "CamelCase formatting for all hashtags",
+      "postField": "hashtags",
+      "postQuote": "#thrift #vintage #denim #clothes #preloved #mumbai #fashion #ootd #style #aesthetic #shopping",
+      "explanation": "Hashtags must be in CamelCase for screen-reader accessibility. Found: #thrift, #vintage, #denim, #clothes, #preloved, #mumbai, #fashion, #ootd, #style, #aesthetic, #shopping",
+      "suggestedFix": "#Thrift #Vintage #Denim #Clothes #Preloved #Mumbai #Fashion #Ootd #Style #Aesthetic #Shopping",
+      "autoFixable": true,
+      "confidence": 1,
+      "verified": true,
+      "agreement": "deterministic"
+    },
+    {
+      "id": "finding-R-ACC-004-1792849366838-2",
+      "source": "gate",
+      "category": "accessibility",
+      "severity": "minor",
+      "clauseId": "AR-004",
+      "clauseQuote": "A post may contain a maximum of 8 hashtags",
+      "postField": "hashtags",
+      "postQuote": "#thrift #vintage #denim",
+      "explanation": "Found 11 hashtags; maximum permitted is 8.",
+      "autoFixable": false,
+      "confidence": 1,
+      "verified": true,
+      "agreement": "deterministic"
+    }
+  ],
+  "verdict": {
+    "status": "BLOCKED",
+    "score": 50,
+    "gatesFailed": [
+      "AR-001"
+    ],
+    "needsHuman": [],
+    "hallucinationsBlocked": 0
+  },
+  "llmCalls": [],
+  "dropped": []
+}

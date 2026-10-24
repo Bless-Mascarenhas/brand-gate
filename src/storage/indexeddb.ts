@@ -1,5 +1,6 @@
 import { get, set, del, keys, clear } from 'idb-keyval';
 import { StorageAdapter } from './types';
+import { FallbackAdapter, SupabaseAdapter } from './supabase';
 
 class IndexedDbAdapter implements StorageAdapter {
   private memFallback = new Map<string, unknown>();
@@ -73,4 +74,15 @@ class IndexedDbAdapter implements StorageAdapter {
   }
 }
 
-export const storage: StorageAdapter = new IndexedDbAdapter();
+const local = new IndexedDbAdapter();
+
+/** Always the browser store, regardless of the configured mode. */
+export const localStorageAdapter: StorageAdapter = local;
+
+/**
+ * The app-wide adapter. Browser storage by default; with NEXT_PUBLIC_STORAGE_MODE=supabase
+ * (a mode flag, not a secret) it uses the server-proxied Supabase store and falls back
+ * to the browser store on any failure.
+ */
+export const storage: StorageAdapter =
+  process.env.NEXT_PUBLIC_STORAGE_MODE === 'supabase' ? new FallbackAdapter(new SupabaseAdapter(), local) : local;

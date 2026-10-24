@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 1,
+  "kind": "sample",
+  "id": "sample-02",
+  "title": "Sample 2: Stale Monsoon Offer",
+  "provenance": "deterministic_recording",
+  "recordedAt": "2026-10-24T13:42:46.815Z",
+  "packHash": "pack_2fc4b94dd474",
+  "demoDate": "2026-10-24",
+  "generator": "scripts/record-replay.ts",
+  "notes": [
+    "Recorded without provider credentials: gates, citation verifier, consensus and scoring ran for real; the two LLM reviewers were not called, so soft-category findings (tone, messaging) are absent."
+  ],
+  "sampleId": 2,
+  "post": {
+    "caption": "Hurry up! Flat 40% off Monsoon Clearance, ends tonight! Grab pre-loved denim jackets before stock runs out. #ThriftIt #CuratedFashion",
+    "hashtags": [
+      "#ThriftIt",
+      "#CuratedFashion"
+    ],
+    "altText": "Stack of folded vintage denim jackets on a wooden display table",
+    "format": "feed_4_5",
+    "language": "en",
+    "scheduledDate": "2026-10-24"
+  },
+  "steps": [
+    {
+      "step": "Gates",
+      "status": "completed",
+      "message": "1 deterministic findings (1 failed gates)"
+    },
+    {
+      "step": "Independent Review",
+      "status": "skipped",
+      "message": "Reviewer calls disabled (deterministic-only run)"
+    },
+    {
+      "step": "Citation Verifier",
+      "status": "completed",
+      "message": "0 verified, 0 hallucinated citations blocked"
+    },
+    {
+      "step": "Cross-Examination",
+      "status": "skipped",
+      "message": "Fast mode: rebuttal round skipped"
+    },
+    {
+      "step": "Consensus",
+      "status": "completed",
+      "message": "0 LLM findings adjudicated"
+    },
+    {
+      "step": "Scoring & Verdict",
+      "status": "completed",
+      "message": "BLOCKED (score 60)"
+    }
+  ],
+  "findings": [
+    {
+      "id": "finding-R-FACT-004-1792849366832-0",
+      "source": "gate",
+      "category": "factual_accuracy",
+      "severity": "critical",
+      "clauseId": "AF-003",
+      "clauseQuote": "Expired commercial campaign: Monsoon Clearance",
+      "postField": "caption",
+      "postQuote": "Monsoon Clearance",
+      "explanation": "Campaign 'Monsoon Clearance' concluded on 2026-09-15 and is expired relative to current date (2026-10-24).",
+      "autoFixable": false,
+      "confidence": 1,
+      "verified": true,
+      "agreement": "deterministic"
+    }
+  ],
+  "verdict": {
+    "status": "BLOCKED",
+    "score": 60,
+    "gatesFailed": [
+      "AF-003"
+    ],
+    "needsHuman": [],
+    "hallucinationsBlocked": 0
+  },
+  "llmCalls": [],
+  "dropped": []
+}

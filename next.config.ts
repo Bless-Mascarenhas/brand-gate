@@ -3,6 +3,8 @@ import path from 'path';
 
 const nextConfig: NextConfig = {
   outputFileTracingRoot: path.join(__dirname, './'),
+  // Recorded runs are read from disk at request time; ship them with the route.
+  outputFileTracingIncludes: { '/api/replay': ['./data/replay/**/*'] },
   reactStrictMode: true,
   allowedDevOrigins: ['127.0.0.1', 'localhost'],
   async headers() {

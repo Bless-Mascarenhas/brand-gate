@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "kind": "sample",
+  "id": "sample-01",
+  "title": "Sample 1: Clean Control (Diwali Thrift Fest)",
+  "provenance": "deterministic_recording",
+  "recordedAt": "2026-10-24T13:42:46.815Z",
+  "packHash": "pack_2fc4b94dd474",
+  "demoDate": "2026-10-24",
+  "generator": "scripts/record-replay.ts",
+  "notes": [
+    "Recorded without provider credentials: gates, citation verifier, consensus and scoring ran for real; the two LLM reviewers were not called, so soft-category findings (tone, messaging) are absent."
+  ],
+  "sampleId": 1,
+  "post": {
+    "caption": "Diwali vibes are here! ✨ Get up to 30% off our curated pre-loved collection during the Diwali Thrift Fest. Free shipping on orders above ₹999. Visit our Bandra pop-up this weekend! #ThriftIt #PreLovedFashion #DiwaliThriftFest",
+    "hashtags": [
+      "#ThriftIt",
+      "#PreLovedFashion",
+      "#DiwaliThriftFest"
+    ],
+    "altText": "Rack of curated pre-loved autumn jackets in warm ambient studio lighting at Bandra pop-up",
+    "format": "feed_4_5",
+    "paidPartnership": false,
+    "language": "en",
+    "scheduledDate": "2026-10-24"
+  },
+  "steps": [
+    {
+      "step": "Gates",
+      "status": "completed",
+      "message": "0 deterministic findings (0 failed gates)"
+    },
+    {
+      "step": "Independent Review",
+      "status": "skipped",
+      "message": "Reviewer calls disabled (deterministic-only run)"
+    },
+    {
+      "step": "Citation Verifier",
+      "status": "completed",
+      "message": "0 verified, 0 hallucinated citations blocked"
+    },
+    {
+      "step": "Cross-Examination",
+      "status": "skipped",
+      "message": "Fast mode: rebuttal round skipped"
+    },
+    {
+      "step": "Consensus",
+      "status": "completed",
+      "message": "0 LLM findings adjudicated"
+    },
+    {
+      "step": "Scoring & Verdict",
+      "status": "completed",
+      "message": "READY_FOR_HUMAN (score 100)"
+    }
+  ],
+  "findings": [],
+  "verdict": {
+    "status": "READY_FOR_HUMAN",
+    "score": 100,
+    "gatesFailed": [],
+    "needsHuman": [],
+    "hallucinationsBlocked": 0
+  },
+  "llmCalls": [],
+  "dropped": []
+}

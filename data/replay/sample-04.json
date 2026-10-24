@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "kind": "sample",
+  "id": "sample-04",
+  "title": "Sample 4: Banned Terms & ₹299 Price",
+  "provenance": "deterministic_recording",
+  "recordedAt": "2026-10-24T13:42:46.815Z",
+  "packHash": "pack_2fc4b94dd474",
+  "demoDate": "2026-10-24",
+  "generator": "scripts/record-replay.ts",
+  "notes": [
+    "Recorded without provider credentials: gates, citation verifier, consensus and scoring ran for real; the two LLM reviewers were not called, so soft-category findings (tone, messaging) are absent."
+  ],
+  "sampleId": 4,
+  "post": {
+    "caption": "Grab these cheap used jeans for only ₹299! Fresh lot of old clothes ready for pickup at Bandra. #ThriftIt",
+    "hashtags": [
+      "#ThriftIt"
+    ],
+    "altText": "Pair of washed vintage jeans laid flat on neutral background",
+    "format": "feed_4_5",
+    "language": "en"
+  },
+  "steps": [
+    {
+      "step": "Gates",
+      "status": "completed",
+      "message": "2 deterministic findings (2 failed gates)"
+    },
+    {
+      "step": "Independent Review",
+      "status": "skipped",
+      "message": "Reviewer calls disabled (deterministic-only run)"
+    },
+    {
+      "step": "Citation Verifier",
+      "status": "completed",
+      "message": "0 verified, 0 hallucinated citations blocked"
+    },
+    {
+      "step": "Cross-Examination",
+      "status": "skipped",
+      "message": "Fast mode: rebuttal round skipped"
+    },
+    {
+      "step": "Consensus",
+      "status": "completed",
+      "message": "0 LLM findings adjudicated"
+    },
+    {
+      "step": "Scoring & Verdict",
+      "status": "completed",
+      "message": "BLOCKED (score 70)"
+    }
+  ],
+  "findings": [
+    {
+      "id": "finding-R-TERM-001-1792849366834-0",
+      "source": "gate",
+      "category": "terminology",
+      "severity": "major",
+      "clauseId": "TM-002",
+      "clauseQuote": "The following terms are strictly banned in all customer-facing text: \"cheap\", \"junk\", \"old clothes\", \"second-hand\" (in captions; permitted only in alt text or hashtags), and \"used\" as a garment quality descriptor",
+      "postField": "caption",
+      "postQuote": "cheap",
+      "explanation": "Use approved positive descriptors such as 'pre-loved' or 'curated' instead of derogatory terms like cheap or junk.",
+      "suggestedFix": "pre-loved",
+      "autoFixable": true,
+      "confidence": 1,
+      "verified": true,
+      "agreement": "deterministic"
+    },
+    {
+      "id": "finding-R-TERM-003-1792849366834-1",
+      "source": "gate",
+      "category": "terminology",
+      "severity": "major",
+      "clauseId": "TM-002",
+      "clauseQuote": "The following terms are strictly banned in all customer-facing text: \"cheap\", \"junk\", \"old clothes\", \"second-hand\" (in captions; permitted only in alt text or hashtags), and \"used\" as a garment quality descriptor",
+      "postField": "caption",
+      "postQuote": "used",
+      "explanation": "Do not describe garments as 'used'. Prefer 'pre-loved' or 'thrifted'.",
+      "suggestedFix": "pre-loved",
+      "autoFixable": true,
+      "confidence": 1,
+      "verified": true,
+      "agreement": "deterministic"
+    }
+  ],
+  "verdict": {
+    "status": "BLOCKED",
+    "score": 70,
+    "gatesFailed": [
+      "TM-002",
+      "TM-002"
+    ],
+    "needsHuman": [],
+    "hallucinationsBlocked": 0
+  },
+  "llmCalls": [],
+  "dropped": []
+}

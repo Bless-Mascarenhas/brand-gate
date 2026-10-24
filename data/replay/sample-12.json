@@ -1,0 +1,100 @@
+{
+  "schemaVersion": 1,
+  "kind": "sample",
+  "id": "sample-12",
+  "title": "Sample 12: Prohibited Street Slang & Unapproved Greeting",
+  "provenance": "deterministic_recording",
+  "recordedAt": "2026-10-24T13:42:46.815Z",
+  "packHash": "pack_2fc4b94dd474",
+  "demoDate": "2026-10-24",
+  "generator": "scripts/record-replay.ts",
+  "notes": [
+    "Recorded without provider credentials: gates, citation verifier, consensus and scoring ran for real; the two LLM reviewers were not called, so soft-category findings (tone, messaging) are absent."
+  ],
+  "sampleId": 12,
+  "post": {
+    "caption": "Yo bro, sasta and chindi collections are out, curated vintage is in! Happy Festivities from Thrift-It. #ThriftIt",
+    "hashtags": [
+      "#ThriftIt"
+    ],
+    "altText": "Stylishly curated vintage blazer collection on brass garment rack",
+    "format": "feed_4_5",
+    "language": "hinglish"
+  },
+  "steps": [
+    {
+      "step": "Gates",
+      "status": "completed",
+      "message": "2 deterministic findings (2 failed gates)"
+    },
+    {
+      "step": "Independent Review",
+      "status": "skipped",
+      "message": "Reviewer calls disabled (deterministic-only run)"
+    },
+    {
+      "step": "Citation Verifier",
+      "status": "completed",
+      "message": "0 verified, 0 hallucinated citations blocked"
+    },
+    {
+      "step": "Cross-Examination",
+      "status": "skipped",
+      "message": "Fast mode: rebuttal round skipped"
+    },
+    {
+      "step": "Consensus",
+      "status": "completed",
+      "message": "0 LLM findings adjudicated"
+    },
+    {
+      "step": "Scoring & Verdict",
+      "status": "completed",
+      "message": "BLOCKED (score 70)"
+    }
+  ],
+  "findings": [
+    {
+      "id": "finding-R-TERM-007-1792849366841-0",
+      "source": "gate",
+      "category": "terminology",
+      "severity": "major",
+      "clauseId": "TM-007",
+      "clauseQuote": "Informal street slang that detracts from a curated, premium experience is banned, including: \"chindi\", \"kachra\", \"ghanta\", \"faltu\", \"bakwaas\", \"chapri\", \"sasta\", \"loot lo\", and \"bhasad\"",
+      "postField": "caption",
+      "postQuote": "chindi",
+      "explanation": "Prohibited slang term detected. Use respectful, curated Hinglish expressions.",
+      "autoFixable": false,
+      "confidence": 1,
+      "verified": true,
+      "agreement": "deterministic"
+    },
+    {
+      "id": "finding-R-TERM-009-1792849366841-1",
+      "source": "gate",
+      "category": "terminology",
+      "severity": "major",
+      "clauseId": "TM-007",
+      "clauseQuote": "Informal street slang that detracts from a curated, premium experience is banned, including: \"chindi\", \"kachra\", \"ghanta\", \"faltu\", \"bakwaas\", \"chapri\", \"sasta\", \"loot lo\", and \"bhasad\"",
+      "postField": "caption",
+      "postQuote": "sasta",
+      "explanation": "Informal discount slang like 'sasta' or 'loot lo' undermines our curated vintage positioning.",
+      "autoFixable": false,
+      "confidence": 1,
+      "verified": true,
+      "agreement": "deterministic"
+    }
+  ],
+  "verdict": {
+    "status": "BLOCKED",
+    "score": 70,
+    "gatesFailed": [
+      "TM-007",
+      "TM-007"
+    ],
+    "needsHuman": [],
+    "hallucinationsBlocked": 0
+  },
+  "llmCalls": [],
+  "dropped": []
+}

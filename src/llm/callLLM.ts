@@ -22,7 +22,7 @@ export interface CallLlmResult<T> {
   modeSuggestion?: 'replay';
 }
 
-const TIMEOUT_MS = 45000;
+const TIMEOUT_MS = 60000;
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));

@@ -16,6 +16,7 @@ export async function POST(req: NextRequest) {
     const prompt: string = body.prompt;
     const language = body.language || 'en';
     const format = body.format || 'feed_4_5';
+    const festival = body.festival;
     const iteration = body.iteration || 1;
     const previousFindings = body.previousFindings || [];
     const originalPurpose = body.originalPurpose;
@@ -26,7 +27,7 @@ export async function POST(req: NextRequest) {
 
     const pack = getPolicyPack();
     const routedClauses = getRoutedClausesForCategories(
-      ['tone', 'terminology', 'messaging', 'factual_accuracy', 'claims', 'visual', 'accessibility'],
+      ['tone', 'terminology', 'messaging', 'claims', 'accessibility'],
       pack
     );
     const clauseIds = routedClauses.map((c) => c.id);
@@ -37,12 +38,14 @@ export async function POST(req: NextRequest) {
       activeFacts: pack.facts,
       language,
       format,
+      festival,
       iteration,
       previousFindings,
       originalPurpose,
     });
 
-    const result = await callLLM<{
+    // Attempt Gemini with a 10s fast-race; if Gemini is slow/rate-limited, fallback immediately to Groq (XAI)
+    const geminiCall = callLLM<{
       caption: string;
       hashtags: string[];
       altText: string;
@@ -57,20 +60,46 @@ export async function POST(req: NextRequest) {
       clauseIdsSent: clauseIds,
     });
 
-    if (!result.ok) {
+    const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 10000));
+    const raceResult = await Promise.race([geminiCall, timeoutPromise]);
+
+    let finalResult = raceResult && raceResult.ok ? raceResult : null;
+
+    if (!finalResult && process.env.XAI_API_KEY) {
+      finalResult = await callLLM<{
+        caption: string;
+        hashtags: string[];
+        altText: string;
+        imagePrompt: string;
+        marketingScript: string;
+        purpose: any;
+      }>({
+        provider: 'xai',
+        system,
+        user,
+        purpose: `Post drafting generation fast fallback (Iteration ${iteration})`,
+        clauseIdsSent: clauseIds,
+      });
+    }
+
+    if (!finalResult) {
+      finalResult = await geminiCall;
+    }
+
+    if (!finalResult.ok) {
       return NextResponse.json(
         {
-          error: result.error,
-          modeSuggestion: result.modeSuggestion,
-          log: result.log,
+          error: finalResult.error,
+          modeSuggestion: finalResult.modeSuggestion,
+          log: finalResult.log,
         },
         { status: 503 }
       );
     }
 
     return NextResponse.json({
-      draft: result.data,
-      log: result.log,
+      draft: finalResult.data,
+      log: finalResult.log,
     });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });

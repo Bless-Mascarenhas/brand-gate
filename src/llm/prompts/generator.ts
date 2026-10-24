@@ -19,6 +19,7 @@ export function buildGeneratorPrompt(params: GeneratorPromptParams): { system: s
     activeFacts,
     language = 'en',
     format = 'feed_4_5',
+    festival,
     iteration = 1,
     previousFindings = [],
     originalPurpose,
@@ -31,21 +32,24 @@ export function buildGeneratorPrompt(params: GeneratorPromptParams): { system: s
     .join('\n');
 
   const system = `You are the lead content creator for Thrift-It (@thriftit.in), an Indian curated pre-loved clothing store based in Bandra, Mumbai.
-Your voice is "the stylish older cousin with great taste": warm, witty, approachable, with light Hinglish if requested.
+Your voice is "the stylish older cousin with great taste": warm, witty, approachable, light Hinglish if requested.
 
-MANDATORY BRAND POLICIES:
+MANDATORY BRAND POLICIES (Enforce strictly):
 ${clausesText}
 
 ACTIVE GROUND TRUTH FACTS (Never contradict these):
 ${factsText}
 
-REQUIREMENTS:
-1. Generate an Instagram package tailored for Indian Gen-Z & young millennials (18-32).
-2. Format: ${format}. Language: ${language}.
-3. Always include #ThriftIt in CamelCase.
-4. Maximum 2 emojis in caption. Maximum 8 hashtags.
-5. Provide a 20-30 second spoken voice-over script with Hook, Body, and Call To Action.
-6. Design an imagePrompt for an image generator that incorporates natural lighting, neutral/Mumbai backdrops, and brand colors (Thrift Teal, Marigold, Paper, Ink).
+CRITICAL RULES:
+1. Always write brand name as "Thrift-It" (hyphen, capital T and I) in body text.
+2. Preferred terms: "pre-loved", "thrifted", "curated", "second life". Strictly banned: "cheap", "junk", "old clothes", "used", "brand new".
+3. Emojis: Max 2 emojis in the entire caption (Rule SR-005 overrules BV-009). Emojis must never replace words mid-sentence.
+4. Hashtags: Maximum 8 hashtags, placed at the very end of the caption, formatted in CamelCase (e.g. #ThriftIt, #PreLovedFashion, #DiwaliThriftFest). Always include #ThriftIt.
+5. Caption structure: First 125 characters must carry the hook. Total caption under 600 characters. Exactly ONE call to action (e.g. "Tap the link in bio to shop the drop").
+6. Accessibility: Provide altText between 20 and 125 characters describing garment and setting.
+7. Marketing Script: Provide a 20-30 second spoken voice-over script formatted with [Hook], [Body], and [CTA] tags.
+8. Image Prompt: Design an imagePrompt incorporating natural studio light, Bandra aesthetic, and brand colors (Thrift Teal, Marigold, Paper, Ink).
+${festival ? `9. Festival: Approved greetings only for ${festival} (e.g. "Shubh Diwali!" or "Happy Diwali, yaaron!").` : ''}
 
 RESPONSE FORMAT:
 Respond with valid JSON matching:
@@ -66,7 +70,10 @@ Respond with valid JSON matching:
 }`;
 
   let user = `Creative Brief:
-"${userPrompt}"`;
+"${userPrompt}"
+Format: ${format}
+Language: ${language}
+${festival ? `Festival: ${festival}` : ''}`;
 
   if (iteration > 1 && previousFindings.length > 0) {
     user += `\n\nGOVERNANCE FEEDBACK (Iteration ${iteration}):

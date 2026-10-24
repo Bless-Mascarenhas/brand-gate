@@ -63,3 +63,31 @@ body {
 .dark ::-webkit-scrollbar-thumb:hover {
   background: #475569;
 }
+
+/* Accessibility (Phase 9): visible keyboard focus everywhere */
+:focus-visible {
+  outline: 2px solid #4f46e5;
+  outline-offset: 2px;
+}
+.dark :focus-visible {
+  outline-color: #a5b4fc;
+}
+
+/* Guided tour target highlight */
+.tour-highlight {
+  outline: 3px solid #4f46e5 !important;
+  outline-offset: 4px;
+  border-radius: 12px;
+}
+
+/* Respect reduced-motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

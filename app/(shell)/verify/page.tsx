@@ -21,6 +21,8 @@ import { usePipeline } from '@/src/pipeline';
 import { PolicyPack, PostContent } from '@/src/types';
 import { SAMPLE_POSTS, SamplePostItem } from '@/data/samples/samplePosts';
 import { SampleReplayPanel } from '@/src/ui/components/ReplayViewer';
+import { ArchitectureDiagram } from '@/src/ui/components/ArchitectureDiagram';
+import { AiBadge } from '@/src/ui/components/AiBadge';
 import { sampleReplayId } from '@/src/replay/schema';
 
 export default function VerifyPage() {
@@ -125,16 +127,16 @@ export default function VerifyPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
         <div>
           <h1 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
-            <ShieldCheck className="w-6 h-6 text-indigo-500" />
+            <ShieldCheck className="w-6 h-6 text-indigo-600 dark:text-indigo-300" />
             Verify: Multi-Model Audit Pipeline
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <p className="text-sm text-slate-600 dark:text-slate-400">
             Upload or paste social posts. Deterministic gates execute first, followed by Grok &amp; NVIDIA debate, verbatim citation checks, and code-governed scoring.
           </p>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-xs font-mono text-slate-400 px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+          <span className="text-xs font-mono text-slate-600 px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 dark:text-slate-400">
             Mode: <strong className="text-indigo-600 dark:text-indigo-400 uppercase">{speedMode}</strong> ({mode})
           </span>
           {verdict && (
@@ -156,10 +158,10 @@ export default function VerifyPage() {
       {/* 12 Sample Post Quick Selector Carousel / Pills */}
       <div>
         <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+          <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
             12 Benchmark Sample Posts (Section 21)
           </span>
-          <span className="text-[11px] text-slate-400">Click any card to load planted test scenario</span>
+          <span className="text-[11px] text-slate-600 dark:text-slate-400">Click any card to load planted test scenario</span>
         </div>
         <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
           {SAMPLE_POSTS.map((sample) => {
@@ -175,7 +177,7 @@ export default function VerifyPage() {
                 }`}
               >
                 <div className="flex items-center justify-between w-full">
-                  <span className={`text-[10px] font-bold uppercase font-mono ${isSelected ? 'text-indigo-200' : 'text-slate-400'}`}>
+                  <span className={`text-[10px] font-bold uppercase font-mono ${isSelected ? 'text-indigo-200' : 'text-slate-600 dark:text-slate-400'}`}>
                     Post #{sample.id}
                   </span>
                   <span
@@ -191,7 +193,7 @@ export default function VerifyPage() {
                   </span>
                 </div>
                 <div className="font-semibold truncate w-full">{sample.title.split(': ')[1]}</div>
-                <div className={`text-[10px] truncate w-full ${isSelected ? 'text-indigo-100' : 'text-slate-400'}`}>
+                <div className={`text-[10px] truncate w-full ${isSelected ? 'text-indigo-100' : 'text-slate-600 dark:text-slate-400'}`}>
                   {sample.category}
                 </div>
               </button>
@@ -208,11 +210,11 @@ export default function VerifyPage() {
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <span>Post Input</span>
-                <span className="text-[11px] font-normal text-slate-400">(@thriftit.in)</span>
+                <span className="text-[11px] font-normal text-slate-600 dark:text-slate-400">(@thriftit.in)</span>
               </h2>
               <button
                 onClick={() => handleSelectSample(SAMPLE_POSTS[selectedSampleId - 1])}
-                className="text-xs text-indigo-500 hover:text-indigo-400 flex items-center gap-1 font-semibold"
+                className="text-xs text-indigo-600 hover:text-indigo-400 flex items-center gap-1 font-semibold dark:text-indigo-300"
                 title="Reset current sample"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
@@ -265,7 +267,7 @@ export default function VerifyPage() {
             {/* Format & Partnership Toggles */}
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div>
-                <label className="block text-slate-500 font-semibold mb-1">Format</label>
+                <label className="block text-slate-600 font-semibold mb-1 dark:text-slate-400">Format</label>
                 <select
                   value={format}
                   onChange={(e) => setFormat(e.target.value as any)}
@@ -279,7 +281,7 @@ export default function VerifyPage() {
               </div>
 
               <div>
-                <label className="block text-slate-500 font-semibold mb-1">Language</label>
+                <label className="block text-slate-600 font-semibold mb-1 dark:text-slate-400">Language</label>
                 <select
                   value={language}
                   onChange={(e) => setLanguage(e.target.value as any)}
@@ -304,7 +306,7 @@ export default function VerifyPage() {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-2 pt-2">
+            <div className="flex gap-2 pt-2" data-tour="verify-run">
               {mode === 'replay' && (
                 <button
                   onClick={() => setMode('live')}
@@ -349,11 +351,15 @@ export default function VerifyPage() {
         <div className="lg:col-span-7 space-y-5">
           {mode === 'replay' && <SampleReplayPanel key={selectedSampleId} id={sampleReplayId(selectedSampleId)} />}
           <div className={mode === 'replay' ? 'hidden' : 'space-y-5'}>
+          <details className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800" open>
+            <summary className="cursor-pointer text-xs font-bold uppercase text-slate-600 dark:text-slate-400">Architecture — the active step lights up during a live run</summary>
+            <div className="mt-3"><ArchitectureDiagram activeStep={status === 'running' ? currentStep : null} title="Live verification pipeline" /></div>
+          </details>
           {/* Live Pipeline Stepper */}
           <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold uppercase text-slate-400">Pipeline State Machine</span>
-              <span className="text-xs font-mono font-bold text-indigo-500">{currentStep || 'Idle'}</span>
+              <span className="text-xs font-bold uppercase text-slate-600 dark:text-slate-400">Pipeline State Machine</span>
+              <span className="text-xs font-mono font-bold text-indigo-600 dark:text-indigo-300">{currentStep || 'Idle'}</span>
             </div>
 
             {/* Stepper Progress Bar */}
@@ -365,12 +371,12 @@ export default function VerifyPage() {
             </div>
 
             {/* Stepper Nodes */}
-            <div className="grid grid-cols-5 text-center text-[10px] font-mono text-slate-400">
+            <div className="grid grid-cols-5 text-center text-[10px] font-mono text-slate-600 dark:text-slate-400">
               <div className={progressPercent >= 15 ? 'text-indigo-600 dark:text-indigo-400 font-bold' : ''}>1. Ingest</div>
               <div className={progressPercent >= 40 ? 'text-indigo-600 dark:text-indigo-400 font-bold' : ''}>2. Gates</div>
               <div className={progressPercent >= 60 ? 'text-indigo-600 dark:text-indigo-400 font-bold' : ''}>3. Review</div>
               <div className={progressPercent >= 75 ? 'text-indigo-600 dark:text-indigo-400 font-bold' : ''}>4. Verify</div>
-              <div className={progressPercent >= 100 ? 'text-emerald-600 dark:text-emerald-400 font-bold' : ''}>5. Verdict</div>
+              <div className={progressPercent >= 100 ? 'text-emerald-700 dark:text-emerald-400 font-bold' : ''}>5. Verdict</div>
             </div>
           </div>
 
@@ -379,12 +385,12 @@ export default function VerifyPage() {
             <div className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
                 <div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Brand Compliance Score</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">Brand Compliance Score</span>
                   <div className="flex items-baseline gap-2">
                     <span className="text-4xl font-black text-slate-900 dark:text-white font-mono">
                       {verdict.score}
                     </span>
-                    <span className="text-sm font-semibold text-slate-400">/ 100</span>
+                    <span className="text-sm font-semibold text-slate-600 dark:text-slate-400">/ 100</span>
                   </div>
                 </div>
 
@@ -410,9 +416,9 @@ export default function VerifyPage() {
                         : 'bg-red-50 dark:bg-red-950/60 border-red-300 dark:border-red-800 text-red-700 dark:text-red-300'
                     }`}
                   >
-                    {verdict.status === 'READY_FOR_HUMAN' && <CheckCircle className="w-5 h-5 text-emerald-500" />}
-                    {verdict.status === 'REVISE' && <AlertTriangle className="w-5 h-5 text-amber-500" />}
-                    {verdict.status === 'BLOCKED' && <XCircle className="w-5 h-5 text-red-500" />}
+                    {verdict.status === 'READY_FOR_HUMAN' && <CheckCircle className="w-5 h-5 text-emerald-700 dark:text-emerald-300" />}
+                    {verdict.status === 'REVISE' && <AlertTriangle className="w-5 h-5 text-amber-700 dark:text-amber-300" />}
+                    {verdict.status === 'BLOCKED' && <XCircle className="w-5 h-5 text-red-700 dark:text-red-300" />}
                     <span>{verdict.status}</span>
                   </div>
                 </div>
@@ -434,7 +440,7 @@ export default function VerifyPage() {
               )}
             </div>
           ) : (
-            <div className="p-8 rounded-2xl bg-white dark:bg-slate-900 border border-dashed border-slate-200 dark:border-slate-800 text-center text-xs text-slate-400">
+            <div className="p-8 rounded-2xl bg-white dark:bg-slate-900 border border-dashed border-slate-200 dark:border-slate-800 text-center text-xs text-slate-600 dark:text-slate-400">
               Click &quot;Run Verification Pipeline&quot; to inspect this post against deterministic gates and multi-model reviews.
             </div>
           )}
@@ -448,7 +454,7 @@ export default function VerifyPage() {
                 className={`py-2 px-3 border-b-2 transition ${
                   activeTab === 'findings'
                     ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400'
-                    : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                    : 'border-transparent text-slate-600 hover:text-slate-800 dark:hover:text-slate-200 dark:text-slate-400'
                 }`}
               >
                 Verified Findings ({verifiedFindings.length})
@@ -458,7 +464,7 @@ export default function VerifyPage() {
                 className={`py-2 px-3 border-b-2 transition ${
                   activeTab === 'debate'
                     ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400'
-                    : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                    : 'border-transparent text-slate-600 hover:text-slate-800 dark:hover:text-slate-200 dark:text-slate-400'
                 }`}
               >
                 2-Model Debate ({reviewerAFindings.length + reviewerBFindings.length})
@@ -468,7 +474,7 @@ export default function VerifyPage() {
                 className={`py-2 px-3 border-b-2 transition ${
                   activeTab === 'diff'
                     ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400'
-                    : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                    : 'border-transparent text-slate-600 hover:text-slate-800 dark:hover:text-slate-200 dark:text-slate-400'
                 }`}
               >
                 Fix Suggestions {fixSuggestions ? '✨' : ''}
@@ -478,7 +484,7 @@ export default function VerifyPage() {
                 className={`py-2 px-3 border-b-2 transition ${
                   activeTab === 'dataflow'
                     ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400'
-                    : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                    : 'border-transparent text-slate-600 hover:text-slate-800 dark:hover:text-slate-200 dark:text-slate-400'
                 }`}
               >
                 Data-Flow &amp; Routing
@@ -488,7 +494,7 @@ export default function VerifyPage() {
                 className={`py-2 px-3 border-b-2 transition ${
                   activeTab === 'trace'
                     ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400'
-                    : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                    : 'border-transparent text-slate-600 hover:text-slate-800 dark:hover:text-slate-200 dark:text-slate-400'
                 }`}
               >
                 Live Trace ({traceEvents.length})
@@ -499,8 +505,8 @@ export default function VerifyPage() {
             {activeTab === 'findings' && (
               <div className="p-5 space-y-3">
                 {verifiedFindings.length === 0 ? (
-                  <div className="text-center py-8 text-xs text-slate-400">
-                    <CheckCircle className="w-8 h-8 text-emerald-500 mx-auto mb-2 opacity-80" />
+                  <div className="text-center py-8 text-xs text-slate-600 dark:text-slate-400">
+                    <CheckCircle className="w-8 h-8 text-emerald-700 mx-auto mb-2 opacity-80 dark:text-emerald-300" />
                     <span>No policy violations detected. Content is compliant with brand guidelines.</span>
                   </div>
                 ) : (
@@ -522,10 +528,10 @@ export default function VerifyPage() {
                           >
                             {f.severity}
                           </span>
-                          <span className="font-semibold text-slate-500 uppercase text-[10px]">
+                          <span className="font-semibold text-slate-600 uppercase text-[10px] dark:text-slate-400">
                             {f.category}
                           </span>
-                          <span className="font-mono text-slate-400 text-[10px]">&bull; {f.source}</span>
+                          <span className="font-mono text-slate-600 text-[10px] dark:text-slate-400">&bull; {f.source}</span>
                         </div>
 
                         {/* Clickable link directly to policy clause in Company KB */}
@@ -544,12 +550,12 @@ export default function VerifyPage() {
                       {/* Verbatim Quotes */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] font-mono pt-1">
                         <div className="p-2 rounded bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                          <span className="text-[9px] uppercase font-bold text-slate-400 block">Post Quote ({f.postField}):</span>
+                          <span className="text-[9px] uppercase font-bold text-slate-600 block dark:text-slate-400">Post Quote ({f.postField}):</span>
                           <span className="text-red-600 dark:text-red-400">&quot;{f.postQuote}&quot;</span>
                         </div>
                         <div className="p-2 rounded bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                          <span className="text-[9px] uppercase font-bold text-slate-400 block">Clause Quote:</span>
-                          <span className="text-emerald-600 dark:text-emerald-400">&quot;{f.clauseQuote}&quot;</span>
+                          <span className="text-[9px] uppercase font-bold text-slate-600 block dark:text-slate-400">Clause Quote:</span>
+                          <span className="text-emerald-700 dark:text-emerald-400">&quot;{f.clauseQuote}&quot;</span>
                         </div>
                       </div>
 
@@ -573,7 +579,7 @@ export default function VerifyPage() {
                   </div>
                   <button
                     onClick={() => setIsDebateExpanded(!isDebateExpanded)}
-                    className="text-xs text-indigo-500 flex items-center gap-1"
+                    className="text-xs text-indigo-600 flex items-center gap-1 dark:text-indigo-300"
                   >
                     <span>{isDebateExpanded ? 'Collapse' : 'Expand'}</span>
                     {isDebateExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
@@ -585,20 +591,20 @@ export default function VerifyPage() {
                     {/* Reviewer A Column */}
                     <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-sky-600 dark:text-sky-400">Reviewer A (Grok)</span>
-                        <span className="font-mono text-[10px] text-slate-400">{reviewerAFindings.length} findings</span>
+                        <span className="font-bold text-sky-700 dark:text-sky-400">Reviewer A (Grok)</span>
+                        <span className="font-mono text-[10px] text-slate-600 dark:text-slate-400">{reviewerAFindings.length} findings</span>
                       </div>
                       {reviewerAFindings.length === 0 ? (
-                        <p className="text-slate-400 text-[11px] italic">No soft violations detected by Reviewer A.</p>
+                        <p className="text-slate-600 text-[11px] italic dark:text-slate-400">No soft violations detected by Reviewer A.</p>
                       ) : (
                         reviewerAFindings.map((f, i) => (
                           <div key={i} className="p-2.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-1">
                             <div className="flex justify-between font-mono text-[10px]">
-                              <span className="font-bold text-slate-500">[{f.clauseId}]</span>
-                              <span className="uppercase text-amber-500">{f.severity}</span>
+                              <span className="font-bold text-slate-600 dark:text-slate-400">[{f.clauseId}]</span>
+                              <span className="uppercase text-amber-700 dark:text-amber-300">{f.severity}</span>
                             </div>
                             <div className="font-medium">{f.explanation}</div>
-                            <div className="text-[10px] text-slate-400 font-mono truncate">&quot;{f.postQuote}&quot;</div>
+                            <div className="text-[10px] text-slate-600 font-mono truncate dark:text-slate-400">&quot;{f.postQuote}&quot;</div>
                           </div>
                         ))
                       )}
@@ -607,20 +613,20 @@ export default function VerifyPage() {
                     {/* Reviewer B Column */}
                     <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-emerald-600 dark:text-emerald-400">Reviewer B (NVIDIA)</span>
-                        <span className="font-mono text-[10px] text-slate-400">{reviewerBFindings.length} findings</span>
+                        <span className="font-bold text-emerald-700 dark:text-emerald-400">Reviewer B (NVIDIA)</span>
+                        <span className="font-mono text-[10px] text-slate-600 dark:text-slate-400">{reviewerBFindings.length} findings</span>
                       </div>
                       {reviewerBFindings.length === 0 ? (
-                        <p className="text-slate-400 text-[11px] italic">No soft violations detected by Reviewer B.</p>
+                        <p className="text-slate-600 text-[11px] italic dark:text-slate-400">No soft violations detected by Reviewer B.</p>
                       ) : (
                         reviewerBFindings.map((f, i) => (
                           <div key={i} className="p-2.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-1">
                             <div className="flex justify-between font-mono text-[10px]">
-                              <span className="font-bold text-slate-500">[{f.clauseId}]</span>
-                              <span className="uppercase text-amber-500">{f.severity}</span>
+                              <span className="font-bold text-slate-600 dark:text-slate-400">[{f.clauseId}]</span>
+                              <span className="uppercase text-amber-700 dark:text-amber-300">{f.severity}</span>
                             </div>
                             <div className="font-medium">{f.explanation}</div>
-                            <div className="text-[10px] text-slate-400 font-mono truncate">&quot;{f.postQuote}&quot;</div>
+                            <div className="text-[10px] text-slate-600 font-mono truncate dark:text-slate-400">&quot;{f.postQuote}&quot;</div>
                           </div>
                         ))
                       )}
@@ -636,15 +642,15 @@ export default function VerifyPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="text-xs font-bold text-slate-900 dark:text-white">
-                      Surgical Fix Suggestions
+                      Surgical Fix Suggestions <AiBadge what="AI-suggested" />
                     </h3>
-                    <p className="text-[11px] text-slate-400">Minimal edits preserving creator purpose &amp; voice</p>
+                    <p className="text-[11px] text-slate-600 dark:text-slate-400">Minimal edits preserving creator purpose &amp; voice</p>
                   </div>
 
                   {fixSuggestions?.correctedCaption && (
                     <button
                       onClick={handleApplySafeFixes}
-                      className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex items-center gap-1.5 shadow-sm transition"
+                      className="px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-500 text-white font-semibold text-xs flex items-center gap-1.5 shadow-sm transition"
                     >
                       <Wand2 className="w-3.5 h-3.5" />
                       <span>Apply Safe Fixes &amp; Re-verify</span>
@@ -669,13 +675,13 @@ export default function VerifyPage() {
                       })}
                     </div>
                     {fixSuggestions.diffSummary && (
-                      <p className="text-xs text-slate-500 italic">
+                      <p className="text-xs text-slate-600 italic dark:text-slate-400">
                         {fixSuggestions.diffSummary}
                       </p>
                     )}
                   </div>
                 ) : (
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-slate-600 dark:text-slate-400">
                     No active fix suggestions. Post is either compliant or awaiting pipeline evaluation.
                   </p>
                 )}
@@ -687,12 +693,12 @@ export default function VerifyPage() {
               <div className="p-5 space-y-4 text-xs">
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-slate-900 dark:text-white">Minimum Necessary Disclosure Routing</span>
-                  <span className="font-mono text-slate-400 text-[10px]">Zero Unnecessary Clause Leakage</span>
+                  <span className="font-mono text-slate-600 text-[10px] dark:text-slate-400">Zero Unnecessary Clause Leakage</span>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left font-mono text-[11px]">
                     <thead>
-                      <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-400">
+                      <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400">
                         <th className="py-2">Category</th>
                         <th className="py-2">Document Prefix</th>
                         <th className="py-2">Sent To Provider</th>
@@ -701,34 +707,34 @@ export default function VerifyPage() {
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                       <tr>
-                        <td className="py-2 text-indigo-500 font-bold">tone</td>
+                        <td className="py-2 text-indigo-600 font-bold dark:text-indigo-300">tone</td>
                         <td className="py-2">BV</td>
                         <td className="py-2">Grok / NVIDIA</td>
-                        <td className="py-2 text-slate-400">Persona &amp; conversational style</td>
+                        <td className="py-2 text-slate-600 dark:text-slate-400">Persona &amp; conversational style</td>
                       </tr>
                       <tr>
-                        <td className="py-2 text-indigo-500 font-bold">terminology</td>
+                        <td className="py-2 text-indigo-600 font-bold dark:text-indigo-300">terminology</td>
                         <td className="py-2">TM</td>
                         <td className="py-2">Grok / NVIDIA</td>
-                        <td className="py-2 text-slate-400">Approved vocabulary &amp; slang</td>
+                        <td className="py-2 text-slate-600 dark:text-slate-400">Approved vocabulary &amp; slang</td>
                       </tr>
                       <tr>
-                        <td className="py-2 text-indigo-500 font-bold">messaging</td>
+                        <td className="py-2 text-indigo-600 font-bold dark:text-indigo-300">messaging</td>
                         <td className="py-2">BV, SR</td>
                         <td className="py-2">Grok / NVIDIA</td>
-                        <td className="py-2 text-slate-400">Tone &amp; social constraints</td>
+                        <td className="py-2 text-slate-600 dark:text-slate-400">Tone &amp; social constraints</td>
                       </tr>
                       <tr>
-                        <td className="py-2 text-indigo-500 font-bold">claims</td>
+                        <td className="py-2 text-indigo-600 font-bold dark:text-indigo-300">claims</td>
                         <td className="py-2">CL, AF</td>
                         <td className="py-2">Grok / NVIDIA</td>
-                        <td className="py-2 text-slate-400">Substantiation &amp; greenwashing</td>
+                        <td className="py-2 text-slate-600 dark:text-slate-400">Substantiation &amp; greenwashing</td>
                       </tr>
                       <tr>
-                        <td className="py-2 text-indigo-500 font-bold">security</td>
+                        <td className="py-2 text-indigo-600 font-bold dark:text-indigo-300">security</td>
                         <td className="py-2">EM</td>
-                        <td className="py-2 font-bold text-red-500">None (Pure Code)</td>
-                        <td className="py-2 text-slate-400">Hard deterministic gate blocks injection</td>
+                        <td className="py-2 font-bold text-red-700 dark:text-red-300">None (Pure Code)</td>
+                        <td className="py-2 text-slate-600 dark:text-slate-400">Hard deterministic gate blocks injection</td>
                       </tr>
                     </tbody>
                   </table>
@@ -740,7 +746,7 @@ export default function VerifyPage() {
             {activeTab === 'trace' && (
               <div className="p-5 space-y-2 max-h-96 overflow-y-auto font-mono text-xs">
                 {traceEvents.length === 0 ? (
-                  <p className="text-slate-400">No trace events recorded yet.</p>
+                  <p className="text-slate-600 dark:text-slate-400">No trace events recorded yet.</p>
                 ) : (
                   traceEvents.map((t) => (
                     <div
@@ -748,10 +754,10 @@ export default function VerifyPage() {
                       className="p-2 rounded bg-slate-50 dark:bg-slate-800/40 border border-slate-200/50 dark:border-slate-800 flex items-start justify-between gap-3"
                     >
                       <div>
-                        <span className="font-bold text-indigo-500 mr-2">[{t.step}]</span>
+                        <span className="font-bold text-indigo-600 mr-2 dark:text-indigo-300">[{t.step}]</span>
                         <span className="text-slate-700 dark:text-slate-300">{t.message}</span>
                       </div>
-                      <span className="text-[10px] text-slate-400 shrink-0">
+                      <span className="text-[10px] text-slate-600 shrink-0 dark:text-slate-400">
                         {new Date(t.timestamp).toLocaleTimeString()}
                       </span>
                     </div>

@@ -30,7 +30,7 @@ export const AccessModal: React.FC = () => {
       <div className="w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 shadow-2xl relative">
         <button
           onClick={() => setIsAccessModalOpen(false)}
-          className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+          className="absolute top-4 right-4 text-slate-600 hover:text-slate-600 dark:hover:text-slate-200 dark:text-slate-400"
         >
           <X className="w-5 h-5" />
         </button>
@@ -41,7 +41,7 @@ export const AccessModal: React.FC = () => {
           </div>
           <div>
             <h3 className="text-lg font-bold text-slate-900 dark:text-white">Demo Access Gate</h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Judges access code authorization</p>
+            <p className="text-xs text-slate-600 dark:text-slate-400">Judges access code authorization</p>
           </div>
         </div>
 
@@ -94,7 +94,7 @@ export const AccessModal: React.FC = () => {
             </div>
 
             <div className="flex items-center justify-between pt-2">
-              <span className="text-xs text-slate-400">Replay mode works without a code</span>
+              <span className="text-xs text-slate-600 dark:text-slate-400">Replay mode works without a code</span>
               <div className="flex gap-2">
                 <button
                   type="button"

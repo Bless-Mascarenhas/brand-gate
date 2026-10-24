@@ -108,10 +108,10 @@ export default function ReviewQueue() {
   if (loadError && !posts) {
     return <div role="alert" className="p-4 rounded-lg border border-red-300 bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 text-sm">{loadError}</div>;
   }
-  if (!posts) return <div className="text-sm text-slate-500 py-8 text-center">Loading workflow records…</div>;
+  if (!posts) return <div className="text-sm text-slate-600 py-8 text-center dark:text-slate-400">Loading workflow records…</div>;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" data-tour="review-queue">
       {notice && <div className="text-xs p-3 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300">{notice}</div>}
       {loadError && <div role="alert" className="text-xs p-3 rounded-lg bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300">{loadError}</div>}
 
@@ -147,7 +147,7 @@ export default function ReviewQueue() {
         {/* Queue */}
         <div className="space-y-2">
           {filtered.length === 0 && (
-            <div className="text-sm text-slate-500 dark:text-slate-400 p-6 text-center rounded-xl border border-dashed border-slate-300 dark:border-slate-700">
+            <div className="text-sm text-slate-600 dark:text-slate-400 p-6 text-center rounded-xl border border-dashed border-slate-300 dark:border-slate-700">
               No posts match these filters. Clear a filter, or create one from Build.
             </div>
           )}
@@ -163,7 +163,7 @@ export default function ReviewQueue() {
                   <span className="font-semibold text-sm text-slate-800 dark:text-white truncate">{p.title}</span>
                   <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 shrink-0">{p.state}</span>
                 </div>
-                <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400">
+                <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-slate-600 dark:text-slate-400">
                   {p.isSampleData && <span className="px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 font-semibold">sample data</span>}
                   <span>v{p.currentRevision.versionNumber} · score {p.currentRevision.score}</span>
                   {open.map((f) => <span key={f.id} className={`px-1.5 py-0.5 rounded ${sevClass[f.severity]}`}>{f.severity} {f.clauseId}</span>)}
@@ -178,7 +178,7 @@ export default function ReviewQueue() {
         {selected ? (
           <PostDetail key={`${selected.id}-v${selected.currentRevision.versionNumber}`} post={selected} ctx={ctx} run={run} actionError={actionError} ruleClauses={ruleClauses} />
         ) : (
-          <div className="text-sm text-slate-500 dark:text-slate-400 p-8 text-center rounded-xl border border-dashed border-slate-300 dark:border-slate-700">
+          <div className="text-sm text-slate-600 dark:text-slate-400 p-8 text-center rounded-xl border border-dashed border-slate-300 dark:border-slate-700">
             Select a post to see its findings, approvals, comments, revisions and audit log.
           </div>
         )}
@@ -239,18 +239,18 @@ function PostDetail({ post, ctx, run, actionError, ruleClauses }: { post: Workfl
           <h2 className="font-bold text-lg text-slate-900 dark:text-white">{post.title}</h2>
           {post.isSampleData && <span className="text-[10px] px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 font-semibold">SAMPLE DATA</span>}
         </div>
-        <p className="text-xs text-slate-500 dark:text-slate-400">State <strong>{post.state}</strong> · author {post.author} · v{post.currentRevision.versionNumber} · score {post.currentRevision.score} ({post.currentRevision.verdict.status})</p>
+        <p className="text-xs text-slate-600 dark:text-slate-400">State <strong>{post.state}</strong> · author {post.author} · v{post.currentRevision.versionNumber} · score {post.currentRevision.score} ({post.currentRevision.verdict.status})</p>
       </div>
 
       <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/60 text-sm text-slate-800 dark:text-slate-100 whitespace-pre-wrap">
         {post.currentRevision.post.caption}
         <div className="mt-1 text-xs text-indigo-600 dark:text-indigo-300">{post.currentRevision.post.hashtags.join(' ')}</div>
-        <div className="mt-1 text-[11px] text-slate-500">Alt text: {post.currentRevision.post.altText || <em>missing</em>}</div>
+        <div className="mt-1 text-[11px] text-slate-600 dark:text-slate-400">Alt text: {post.currentRevision.post.altText || <em>missing</em>}</div>
       </div>
 
       {/* Required approvers */}
       <section aria-label="Required approvers">
-        <h3 className="text-xs font-bold uppercase text-slate-500 mb-1">Required approvers (escalation matrix)</h3>
+        <h3 className="text-xs font-bold uppercase text-slate-600 mb-1 dark:text-slate-400">Required approvers (escalation matrix)</h3>
         <ul className="flex flex-wrap gap-2">
           {required.map((r) => (
             <li key={r.role} className={`text-xs px-2 py-1 rounded-lg border ${approvedRoles.has(r.role) ? 'border-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300' : 'border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300'}`}>
@@ -268,12 +268,12 @@ function PostDetail({ post, ctx, run, actionError, ruleClauses }: { post: Workfl
             <button className={`${btn} bg-indigo-600 text-white hover:bg-indigo-500`} onClick={() => run(() => submitForReview(post, ctx))}><Send className="inline w-3.5 h-3.5 mr-1" />Submit for review</button>
           )}
           {post.state === 'in_review' && (
-            <button className={`${btn} bg-emerald-600 text-white hover:bg-emerald-500`} disabled={!approveCheck.allowed} title={approveCheck.reason} onClick={() => run(() => approve(post, ctx))}>
+            <button className={`${btn} bg-emerald-700 text-white hover:bg-emerald-500`} disabled={!approveCheck.allowed} title={approveCheck.reason} onClick={() => run(() => approve(post, ctx))}>
               <CheckCircle2 className="inline w-3.5 h-3.5 mr-1" />Approve as {role}
             </button>
           )}
           {canTransition(post.state, 'published_mock', role, post).allowed && (
-            <button className={`${btn} bg-fuchsia-600 text-white hover:bg-fuchsia-500`} onClick={() => run(() => publishMock(post, ctx))}>Publish (mock — simulated, nothing is posted)</button>
+            <button className={`${btn} bg-fuchsia-700 text-white hover:bg-fuchsia-500`} onClick={() => run(() => publishMock(post, ctx))}>Publish (mock — simulated, nothing is posted)</button>
           )}
           {post.state === 'in_review' && canTransition('in_review', 'draft', role).allowed && (
             <button className={`${btn} border border-slate-300 dark:border-slate-700`} onClick={() => run(() => revertToDraft(post, ctx))}>Revert to draft</button>
@@ -285,7 +285,7 @@ function PostDetail({ post, ctx, run, actionError, ruleClauses }: { post: Workfl
             <button className={`${btn} border border-indigo-300 dark:border-indigo-700 text-indigo-700 dark:text-indigo-300`} onClick={() => setEditing({ ...post.currentRevision.post })}>Edit → new revision</button>
           )}
         </div>
-        {post.state === 'in_review' && !approveCheck.allowed && <p className="text-xs text-slate-500">Approve unavailable: {approveCheck.reason}</p>}
+        {post.state === 'in_review' && !approveCheck.allowed && <p className="text-xs text-slate-600 dark:text-slate-400">Approve unavailable: {approveCheck.reason}</p>}
 
         {post.state === 'in_review' && canTransition('in_review', 'changes_requested', role).allowed && (
           <div className="flex flex-wrap items-end gap-2 p-2 rounded-lg border border-slate-200 dark:border-slate-700">
@@ -297,7 +297,7 @@ function PostDetail({ post, ctx, run, actionError, ruleClauses }: { post: Workfl
             <label className="text-xs flex flex-col gap-1 flex-1 min-w-[12rem]">What needs to change
               <input value={changeText} onChange={(e) => setChangeText(e.target.value)} className="px-2 py-1 rounded bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm" />
             </label>
-            <button className={`${btn} bg-amber-500 text-white hover:bg-amber-400`} disabled={!changeText.trim()} onClick={async () => { if (await run(() => requestChanges(post, ctx, { reason: changeReason, text: changeText }))) setChangeText(''); }}>
+            <button className={`${btn} bg-amber-700 text-white hover:bg-amber-400`} disabled={!changeText.trim()} onClick={async () => { if (await run(() => requestChanges(post, ctx, { reason: changeReason, text: changeText }))) setChangeText(''); }}>
               Request changes
             </button>
           </div>
@@ -308,7 +308,7 @@ function PostDetail({ post, ctx, run, actionError, ruleClauses }: { post: Workfl
 
       {editing && (
         <section aria-label="New revision" className="space-y-2 p-3 rounded-lg border border-indigo-200 dark:border-indigo-800">
-          <h3 className="text-xs font-bold uppercase text-slate-500">New revision (re-checked by the gate engine on save)</h3>
+          <h3 className="text-xs font-bold uppercase text-slate-600 dark:text-slate-400">New revision (re-checked by the gate engine on save)</h3>
           <textarea value={editing.caption} onChange={(e) => setEditing({ ...editing, caption: e.target.value })} rows={4} aria-label="Caption" className="w-full p-2 rounded bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm" />
           <input value={editing.hashtags.join(' ')} onChange={(e) => setEditing({ ...editing, hashtags: e.target.value.split(/\s+/).filter(Boolean) })} aria-label="Hashtags" className="w-full p-2 rounded bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm" />
           <input value={editing.altText ?? ''} onChange={(e) => setEditing({ ...editing, altText: e.target.value })} aria-label="Alt text" className="w-full p-2 rounded bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm" />
@@ -321,8 +321,8 @@ function PostDetail({ post, ctx, run, actionError, ruleClauses }: { post: Workfl
 
       {/* Findings */}
       <section aria-label="Findings">
-        <h3 className="text-xs font-bold uppercase text-slate-500 mb-1 flex items-center gap-1"><ShieldAlert className="w-3.5 h-3.5" />Findings on v{post.currentRevision.versionNumber}</h3>
-        {post.currentRevision.findings.length === 0 && <p className="text-xs text-emerald-600">No findings on the current revision.</p>}
+        <h3 className="text-xs font-bold uppercase text-slate-600 mb-1 flex items-center gap-1 dark:text-slate-400"><ShieldAlert className="w-3.5 h-3.5" />Findings on v{post.currentRevision.versionNumber}</h3>
+        {post.currentRevision.findings.length === 0 && <p className="text-xs text-emerald-700 dark:text-emerald-300">No findings on the current revision.</p>}
         <ul className="space-y-2">
           {post.currentRevision.findings.map((f) => {
             const ov = overridden.get(f.id);
@@ -332,20 +332,20 @@ function PostDetail({ post, ctx, run, actionError, ruleClauses }: { post: Workfl
               <li key={f.id} className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 text-xs space-y-1">
                 <div className="flex flex-wrap items-center gap-1.5">
                   <span className={`px-1.5 py-0.5 rounded font-semibold ${sevClass[f.severity]}`}>{f.severity}</span>
-                  <span className="text-slate-500">{f.category}</span>
+                  <span className="text-slate-600 dark:text-slate-400">{f.category}</span>
                   <ClauseLink id={f.clauseId} />
-                  <span className="text-slate-400">{f.source} · {f.agreement}</span>
+                  <span className="text-slate-600 dark:text-slate-400">{f.source} · {f.agreement}</span>
                   {ov && <span className="px-1.5 py-0.5 rounded bg-violet-100 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300">overridden by {ov.role}: “{ov.justification}”</span>}
                 </div>
                 <div className="text-slate-700 dark:text-slate-200">“{f.postQuote}” — {f.explanation}</div>
-                {f.clauseQuote && <div className="text-slate-500 italic">Clause: “{f.clauseQuote}”</div>}
+                {f.clauseQuote && <div className="text-slate-600 italic dark:text-slate-400">Clause: “{f.clauseQuote}”</div>}
                 {fComments.map((c) => <div key={c.id} className="pl-2 border-l-2 border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300"><strong className="capitalize">{c.role}</strong>: {c.text}</div>)}
                 <div className="flex flex-wrap gap-2 pt-1">
                   <button className="text-indigo-600 dark:text-indigo-400 hover:underline" onClick={() => setFindingComment({ id: f.id, text: '' })}>Comment</button>
                   {!ov && role !== 'creator' && post.state !== 'approved' && post.state !== 'published_mock' && !(f.severity === 'critical' && role !== 'manager') && (
                     <button className="text-violet-600 dark:text-violet-400 hover:underline" onClick={() => { setOverrideFor(f.id); setJustification(''); }}>Override…</button>
                   )}
-                  {!ov && f.severity === 'critical' && role !== 'manager' && <span className="text-slate-400">Only a Manager can override (EM-007)</span>}
+                  {!ov && f.severity === 'critical' && role !== 'manager' && <span className="text-slate-600 dark:text-slate-400">Only a Manager can override (EM-007)</span>}
                 </div>
                 {findingComment?.id === f.id && (
                   <div className="flex gap-2">
@@ -358,7 +358,7 @@ function PostDetail({ post, ctx, run, actionError, ruleClauses }: { post: Workfl
                     <textarea autoFocus value={justification} onChange={(e) => setJustification(e.target.value)} rows={2} aria-label="Override justification" placeholder={`Written justification (min ${MIN_OVERRIDE_JUSTIFICATION} characters, logged permanently)`} className="w-full px-2 py-1 rounded bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700" />
                     <div className="flex items-center gap-2">
                       <button className={`${btn} bg-violet-600 text-white`} disabled={!ovCheck.allowed} title={ovCheck.reason} onClick={async () => { if (await run(() => overrideFinding(post, ctx, f.id, justification))) setOverrideFor(null); }}>Confirm override</button>
-                      <span className="text-slate-500">{ovCheck.allowed ? 'Will be logged to the audit trail and Insights.' : ovCheck.reason}</span>
+                      <span className="text-slate-600 dark:text-slate-400">{ovCheck.allowed ? 'Will be logged to the audit trail and Insights.' : ovCheck.reason}</span>
                     </div>
                   </div>
                 )}
@@ -370,12 +370,12 @@ function PostDetail({ post, ctx, run, actionError, ruleClauses }: { post: Workfl
 
       {/* Post comments */}
       <section aria-label="Comments">
-        <h3 className="text-xs font-bold uppercase text-slate-500 mb-1 flex items-center gap-1"><MessageSquare className="w-3.5 h-3.5" />Post comments</h3>
+        <h3 className="text-xs font-bold uppercase text-slate-600 mb-1 flex items-center gap-1 dark:text-slate-400"><MessageSquare className="w-3.5 h-3.5" />Post comments</h3>
         <ul className="space-y-1 text-xs">
           {post.comments.filter((c) => !c.findingId).map((c) => (
-            <li key={c.id} className="text-slate-700 dark:text-slate-200"><strong className="capitalize">{c.role}</strong> <span className="text-slate-400">{c.timestamp.slice(0, 16).replace('T', ' ')}</span>: {c.text}</li>
+            <li key={c.id} className="text-slate-700 dark:text-slate-200"><strong className="capitalize">{c.role}</strong> <span className="text-slate-600 dark:text-slate-400">{c.timestamp.slice(0, 16).replace('T', ' ')}</span>: {c.text}</li>
           ))}
-          {post.comments.filter((c) => !c.findingId).length === 0 && <li className="text-slate-400">No comments yet.</li>}
+          {post.comments.filter((c) => !c.findingId).length === 0 && <li className="text-slate-600 dark:text-slate-400">No comments yet.</li>}
         </ul>
         <div className="flex gap-2 mt-2">
           <input value={comment} onChange={(e) => setComment(e.target.value)} aria-label="Post comment" placeholder={`Comment as ${role}`} className="flex-1 px-2 py-1 rounded bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm" />
@@ -385,7 +385,7 @@ function PostDetail({ post, ctx, run, actionError, ruleClauses }: { post: Workfl
 
       {(post.changeRequests ?? []).length > 0 && (
         <section aria-label="Change requests">
-          <h3 className="text-xs font-bold uppercase text-slate-500 mb-1 flex items-center gap-1"><AlertTriangle className="w-3.5 h-3.5" />Change requests</h3>
+          <h3 className="text-xs font-bold uppercase text-slate-600 mb-1 flex items-center gap-1 dark:text-slate-400"><AlertTriangle className="w-3.5 h-3.5" />Change requests</h3>
           <ul className="space-y-1 text-xs">
             {(post.changeRequests ?? []).map((c, i) => (
               <li key={i} className="text-slate-700 dark:text-slate-200"><strong className="capitalize">{c.role}</strong> [{c.reason.replace('_', ' ')}] {c.text} {c.clauseIds.map((id) => <ClauseLink key={id} id={id} />)}</li>
@@ -396,7 +396,7 @@ function PostDetail({ post, ctx, run, actionError, ruleClauses }: { post: Workfl
 
       {/* Revisions */}
       <section aria-label="Revisions">
-        <h3 className="text-xs font-bold uppercase text-slate-500 mb-1 flex items-center gap-1"><History className="w-3.5 h-3.5" />Revision history</h3>
+        <h3 className="text-xs font-bold uppercase text-slate-600 mb-1 flex items-center gap-1 dark:text-slate-400"><History className="w-3.5 h-3.5" />Revision history</h3>
         <ul className="text-xs space-y-0.5 mb-2">
           {revisions.map((r) => (
             <li key={r.id} className="text-slate-600 dark:text-slate-300">v{r.versionNumber} · score <strong>{r.score}</strong> ({r.verdict.status}) · {r.findings.length} finding(s) · {r.author}{r.diffSummary ? ` · ${r.diffSummary}` : ''}</li>
@@ -421,7 +421,7 @@ function PostDetail({ post, ctx, run, actionError, ruleClauses }: { post: Workfl
                     <div className="font-semibold">v{r.versionNumber} · score {r.score} · {r.verdict.status}</div>
                     {diffs.map((d) => (
                       <div key={d.field}>
-                        <span className="text-slate-400">{d.field}: </span>
+                        <span className="text-slate-600 dark:text-slate-400">{d.field}: </span>
                         {d.parts.filter((p) => (side === 0 ? !p.added : !p.removed)).map((p, i) => (
                           <span key={i} className={p.removed ? 'bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-300 line-through' : p.added ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300' : ''}>{p.value}</span>
                         ))}
@@ -433,16 +433,16 @@ function PostDetail({ post, ctx, run, actionError, ruleClauses }: { post: Workfl
             )}
           </div>
         ) : (
-          <p className="text-xs text-slate-400">Only one revision so far — edit the post to create another and compare.</p>
+          <p className="text-xs text-slate-600 dark:text-slate-400">Only one revision so far — edit the post to create another and compare.</p>
         )}
       </section>
 
       {/* Audit log */}
       <section aria-label="Audit log">
-        <h3 className="text-xs font-bold uppercase text-slate-500 mb-1">Audit log (append-only)</h3>
+        <h3 className="text-xs font-bold uppercase text-slate-600 mb-1 dark:text-slate-400">Audit log (append-only)</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-[11px]">
-            <thead><tr className="text-left text-slate-500"><th className="pr-2">When</th><th className="pr-2">Who</th><th className="pr-2">Role</th><th className="pr-2">Action</th><th className="pr-2">Before → After</th><th className="pr-2">Details</th><th>Pack</th></tr></thead>
+            <thead><tr className="text-left text-slate-600 dark:text-slate-400"><th className="pr-2">When</th><th className="pr-2">Who</th><th className="pr-2">Role</th><th className="pr-2">Action</th><th className="pr-2">Before → After</th><th className="pr-2">Details</th><th>Pack</th></tr></thead>
             <tbody>
               {post.auditLog.map((a) => (
                 <tr key={a.id} className="border-t border-slate-100 dark:border-slate-800 align-top text-slate-700 dark:text-slate-300">

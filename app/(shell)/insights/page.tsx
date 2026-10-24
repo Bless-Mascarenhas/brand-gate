@@ -26,12 +26,12 @@ type Suggestion = { text: string; source: 'model' | 'template'; model?: string; 
 const Card = ({ title, children, note }: { title: string; children: React.ReactNode; note?: string }) => (
   <section className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5">
     <h2 className="font-bold text-slate-800 dark:text-white">{title}</h2>
-    {note && <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">{note}</p>}
+    {note && <p className="text-xs text-slate-600 dark:text-slate-400 mb-3">{note}</p>}
     <div className={note ? '' : 'mt-3'}>{children}</div>
   </section>
 );
 
-const Empty = ({ what }: { what: string }) => <p className="text-sm text-slate-400 py-6 text-center">No {what} in the selected data yet.</p>;
+const Empty = ({ what }: { what: string }) => <p className="text-sm text-slate-600 py-6 text-center dark:text-slate-400">No {what} in the selected data yet.</p>;
 
 export default function InsightsPage() {
   const [allEvents, setAllEvents] = useState<InsightEvent[] | null>(null);
@@ -96,17 +96,17 @@ export default function InsightsPage() {
   };
 
   if (error && !allEvents) return <div role="alert" className="p-4 rounded-lg bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 text-sm">{error}</div>;
-  if (!allEvents) return <div className="text-sm text-slate-500 py-8 text-center">Loading insight events…</div>;
+  if (!allEvents) return <div className="text-sm text-slate-600 py-8 text-center dark:text-slate-400">Loading insight events…</div>;
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
-            <BarChart3 className="w-6 h-6 text-indigo-500" />
+            <BarChart3 className="w-6 h-6 text-indigo-600 dark:text-indigo-300" />
             Insights &amp; Ambiguity Index
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-2xl">
+          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 max-w-2xl">
             Recurring mistakes and unclear clauses, computed from stored checks, reviewer disagreements and human overrides/rejections. Aggregated by role only — never by individual.
           </p>
         </div>
@@ -135,13 +135,14 @@ export default function InsightsPage() {
         ].map(([label, value]) => (
           <div key={label} className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
             <div className="text-2xl font-black text-slate-900 dark:text-white">{value}</div>
-            <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{label}</div>
+            <div className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">{label}</div>
           </div>
         ))}
       </div>
 
       <Card title="Violations by category over time" note="Findings per ISO week (Monday start), all severities.">
         {byWeek.length === 0 ? <Empty what="checks" /> : (
+          <div role="img" aria-label={`Stacked bar chart of findings per week by category: ${byWeek.map((r) => `${r.week}: ${Object.entries(r).filter(([k]) => k !== 'week').map(([k, v]) => `${k} ${v}`).join(', ') || 'none'}`).join('; ')}`}>
           <ResponsiveContainer width="100%" height={240}>
             <BarChart data={byWeek} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#94a3b833" />
@@ -152,6 +153,7 @@ export default function InsightsPage() {
               {categoriesPresent.map((c) => <Bar key={c} dataKey={c} stackId="a" fill={CATEGORY_COLORS[c]} name={c} />)}
             </BarChart>
           </ResponsiveContainer>
+          </div>
         )}
       </Card>
 
@@ -170,6 +172,7 @@ export default function InsightsPage() {
           )}
         </Card>
         <Card title="Score distribution: first pass vs after fix" note="Number of checks per score bucket.">
+          <div role="img" aria-label={`Bar chart of checks per score bucket: ${dist.map((d) => `${d.bucket} first pass ${d.firstPass}, after fix ${d.afterFix}`).join('; ')}`}>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={dist} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#94a3b833" />
@@ -181,6 +184,7 @@ export default function InsightsPage() {
               <Bar dataKey="afterFix" name="After fix" fill="#6366f1" />
             </BarChart>
           </ResponsiveContainer>
+          </div>
         </Card>
       </div>
 
@@ -201,16 +205,16 @@ export default function InsightsPage() {
                     </div>
                     <div className="text-right shrink-0">
                       <div className="text-lg font-black tabular-nums text-slate-900 dark:text-white">{row.index === null ? '—' : row.index.toFixed(2)}</div>
-                      <div className="text-[10px] text-slate-500">({row.disputed}+{row.overrides}+{row.rejections})/{row.totalChecks}</div>
+                      <div className="text-[10px] text-slate-600 dark:text-slate-400">({row.disputed}+{row.overrides}+{row.rejections})/{row.totalChecks}</div>
                     </div>
                   </button>
                   {expanded === row.clauseId && (
                     <div className="border-t border-slate-200 dark:border-slate-700 p-3 space-y-3 text-sm">
                       <div>
-                        <div className="text-xs font-semibold text-slate-500 mb-1">Evidence ({row.evidence.length})</div>
+                        <div className="text-xs font-semibold text-slate-600 mb-1 dark:text-slate-400">Evidence ({row.evidence.length})</div>
                         <ul className="text-xs space-y-0.5 max-h-40 overflow-y-auto">
                           {row.evidence.slice(0, 12).map((e, j) => (
-                            <li key={j}><span className="text-slate-400">{e.kind.replace('_', ' ')}{e.sample ? ' · sample' : ' · live'}:</span> {e.text}</li>
+                            <li key={j}><span className="text-slate-600 dark:text-slate-400">{e.kind.replace('_', ' ')}{e.sample ? ' · sample' : ' · live'}:</span> {e.text}</li>
                           ))}
                         </ul>
                       </div>
@@ -218,10 +222,10 @@ export default function InsightsPage() {
                         <div className="rounded-lg bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 p-3 space-y-2">
                           <div className="text-xs font-semibold text-indigo-700 dark:text-indigo-300 flex items-center gap-1"><Lightbulb className="w-3.5 h-3.5" />Suggested clarification — a suggestion only, not an approved policy change</div>
                           {!sug && <button onClick={() => draftClarification(row)} className="text-xs px-3 py-1 rounded bg-indigo-600 text-white">Draft clarification (Gemini)</button>}
-                          {sug === 'loading' && <p className="text-xs text-slate-500">Drafting…</p>}
+                          {sug === 'loading' && <p className="text-xs text-slate-600 dark:text-slate-400">Drafting…</p>}
                           {sug && sug !== 'loading' && (
                             <>
-                              <p className="text-[11px] text-slate-500">
+                              <p className="text-[11px] text-slate-600 dark:text-slate-400">
                                 {sug.source === 'model' ? `AI-generated by ${sug.model} — review before applying.` : `Template suggestion (no model call; generated from the evidence). Live drafting failed: ${sug.error}`}
                               </p>
                               <p className="text-slate-800 dark:text-slate-100">{sug.text}</p>
@@ -243,6 +247,7 @@ export default function InsightsPage() {
 
       <div className="grid md:grid-cols-2 gap-4">
         <Card title="Rule coverage by clause" note={`${coverage.filter((c) => c.coverage === 'deterministic').length} of ${coverage.length} clauses have at least one deterministic rule; the rest rely on LLM review only. Computed from rules.json.`}>
+          <div role="img" aria-label={`Bar chart of clauses with deterministic rules versus LLM-only coverage per document: ${coverageByDoc.map((d) => `${d.doc} ${d.deterministic} deterministic, ${d.llmOnly} LLM-only`).join('; ')}`}>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={coverageByDoc} layout="vertical" margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#94a3b833" />
@@ -254,11 +259,12 @@ export default function InsightsPage() {
               <Bar dataKey="llmOnly" name="LLM-only" fill="#f59e0b" stackId="a" />
             </BarChart>
           </ResponsiveContainer>
+          </div>
           <details className="mt-2 text-xs">
             <summary className="cursor-pointer text-indigo-600 dark:text-indigo-400">Per-clause list</summary>
             <ul className="mt-1 grid grid-cols-2 gap-x-3 max-h-48 overflow-y-auto">
               {coverage.map((c) => (
-                <li key={c.clauseId}><Link href={`/company#${c.clauseId}`} className="font-mono hover:underline">{c.clauseId}</Link> {c.coverage === 'deterministic' ? c.ruleIds.join(', ') : <span className="text-amber-600">LLM-only</span>}</li>
+                <li key={c.clauseId}><Link href={`/company#${c.clauseId}`} className="font-mono hover:underline">{c.clauseId}</Link> {c.coverage === 'deterministic' ? c.ruleIds.join(', ') : <span className="text-amber-700 dark:text-amber-300">LLM-only</span>}</li>
               ))}
             </ul>
           </details>
@@ -277,7 +283,7 @@ export default function InsightsPage() {
           )}
           <h3 className="mt-4 text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-1"><Users className="w-4 h-4" />Human decisions by role</h3>
           <table className="w-full text-xs mt-1">
-            <thead><tr className="text-left text-slate-500"><th>Role</th><th>Overrides</th><th>Change requests</th></tr></thead>
+            <thead><tr className="text-left text-slate-600 dark:text-slate-400"><th>Role</th><th>Overrides</th><th>Change requests</th></tr></thead>
             <tbody>{byRole.map((r) => <tr key={r.role} className="border-t border-slate-100 dark:border-slate-800"><td className="capitalize">{r.role}</td><td>{r.overrides}</td><td>{r.rejections}</td></tr>)}</tbody>
           </table>
         </Card>

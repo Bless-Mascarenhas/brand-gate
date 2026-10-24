@@ -26,6 +26,7 @@ import { compositeBrandPost } from '@/src/canvas/composite';
 import { runGovernanceLoop, IterationResult, GovernanceLoopOutput } from '@/src/build/governanceLoop';
 import { PolicyPack } from '@/src/types';
 import { storage } from '@/src/storage';
+import { AiBadge } from '@/src/ui/components/AiBadge';
 import { saveWorkflowPost } from '@/src/workflow/store';
 import { appendInsightEvents } from '@/src/insights/store';
 import { workflowPostFromBuild, checkEventsFromBuild } from '@/src/build/toWorkflow';
@@ -310,10 +311,10 @@ export default function BuildPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
-            <Sparkles className="w-6 h-6 text-indigo-500" />
+            <Sparkles className="w-6 h-6 text-indigo-600 dark:text-indigo-300" />
             Build: Governed Content Studio
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+          <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
             Brief &rarr; Draft &rarr; Gemini Imagen &rarr; Canvas Wordmark Compositing &rarr; Self-Governing Loop
           </p>
         </div>
@@ -321,7 +322,7 @@ export default function BuildPage() {
         {/* Studio Controls Toolbar */}
         <div className="flex flex-wrap items-center gap-2 p-1.5 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
           <div className="flex items-center gap-1.5 px-2 text-xs font-semibold text-slate-600 dark:text-slate-300">
-            <Sliders className="w-3.5 h-3.5 text-indigo-500" />
+            <Sliders className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-300" />
             <span>Format:</span>
             <select
               value={format}
@@ -366,7 +367,7 @@ export default function BuildPage() {
             className={`px-2.5 py-1 text-xs font-medium rounded-md transition-all flex items-center gap-1 ${
               showTrace
                 ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800'
-                : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                : 'text-slate-600 hover:text-slate-800 dark:hover:text-slate-200 dark:text-slate-400'
             }`}
           >
             <Layers className="w-3.5 h-3.5" />
@@ -387,17 +388,17 @@ export default function BuildPage() {
                 </div>
                 <div>
                   <h3 className="text-xs font-bold text-slate-900 dark:text-white">Gemini Content Creator</h3>
-                  <p className="text-[10px] text-slate-400">Grounded in 8 Thrift-It policies &amp; active facts</p>
+                  <p className="text-[10px] text-slate-600 dark:text-slate-400">Grounded in 8 Thrift-It policies &amp; active facts</p>
                 </div>
               </div>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
                 Auto-Governing Loop
               </span>
             </div>
 
             {/* Quick Prompt Chips */}
             <div className="mb-3 space-y-1.5">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Quick Briefs</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">Quick Briefs</span>
               <div className="flex flex-wrap gap-1.5">
                 {quickPrompts.map((qp, idx) => (
                   <button
@@ -414,10 +415,10 @@ export default function BuildPage() {
             {/* Messages Scroll Area */}
             <div className="flex-1 overflow-y-auto space-y-3 pr-1 text-xs">
               {messages.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-center text-slate-400 space-y-2 p-6">
+                <div className="h-full flex flex-col items-center justify-center text-center text-slate-600 space-y-2 p-6 dark:text-slate-400">
                   <Sparkles className="w-8 h-8 text-indigo-400 opacity-60" />
                   <p className="text-xs font-medium">Type a creative brief or click a quick prompt above.</p>
-                  <p className="text-[11px] text-slate-400 max-w-xs">
+                  <p className="text-[11px] text-slate-600 max-w-xs dark:text-slate-400">
                     Brand Gate will draft your post, generate editorial imagery, composite official logos, and run an automated 3-iteration governance check.
                   </p>
                 </div>
@@ -436,7 +437,7 @@ export default function BuildPage() {
                     >
                       <p className="leading-relaxed whitespace-pre-wrap">{m.text}</p>
                     </div>
-                    <span className="text-[9px] text-slate-400 mt-1 px-1">{m.timestamp}</span>
+                    <span className="text-[9px] text-slate-600 mt-1 px-1 dark:text-slate-400">{m.timestamp}</span>
                   </div>
                 ))
               )}
@@ -490,10 +491,10 @@ export default function BuildPage() {
             <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                  <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                  <ShieldCheck className="w-4 h-4 text-emerald-700 dark:text-emerald-300" />
                   Self-Governance Progression
                 </span>
-                <span className="text-[11px] font-semibold text-slate-500">
+                <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-400">
                   {currentIterations.length} Iteration(s) run
                 </span>
               </div>
@@ -527,9 +528,9 @@ export default function BuildPage() {
                           Score: {iter.score}/100
                         </span>
                         {expandedIterations[iter.iteration] ? (
-                          <ChevronUp className="w-4 h-4 text-slate-400" />
+                          <ChevronUp className="w-4 h-4 text-slate-600 dark:text-slate-400" />
                         ) : (
-                          <ChevronDown className="w-4 h-4 text-slate-400" />
+                          <ChevronDown className="w-4 h-4 text-slate-600 dark:text-slate-400" />
                         )}
                       </div>
                     </div>
@@ -544,7 +545,7 @@ export default function BuildPage() {
                         </p>
                         {iter.findings.length > 0 && (
                           <div className="space-y-1 mt-2">
-                            <span className="font-bold text-amber-600 dark:text-amber-400">
+                            <span className="font-bold text-amber-700 dark:text-amber-400">
                               Issues Handled:
                             </span>
                             {iter.findings.map((f, i) => (
@@ -577,7 +578,7 @@ export default function BuildPage() {
                     <InstagramIcon className="w-5 h-5 text-pink-500" />
                     Human Review: Instagram Draft
                   </h2>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-slate-600 dark:text-slate-400">
                     Governed preview with client-side composited brand assets
                   </p>
                 </div>
@@ -588,8 +589,8 @@ export default function BuildPage() {
                     <span
                       className={
                         currentOutput.verdict.score >= 90
-                          ? 'text-emerald-500'
-                          : 'text-amber-500'
+                          ? 'text-emerald-700 dark:text-emerald-300'
+                          : 'text-amber-700 dark:text-amber-300'
                       }
                     >
                       {currentOutput.verdict.score}/100
@@ -599,7 +600,7 @@ export default function BuildPage() {
                     className={`px-2.5 py-1 text-[11px] font-black rounded-lg ${
                       currentOutput.verdict.status === 'READY_FOR_HUMAN'
                         ? 'bg-emerald-500 text-white'
-                        : 'bg-amber-500 text-white'
+                        : 'bg-amber-700 text-white'
                     }`}
                   >
                     {currentOutput.verdict.status}
@@ -620,13 +621,14 @@ export default function BuildPage() {
                         className="w-full h-auto object-cover max-h-[420px]"
                       />
                     ) : (
-                      <div className="h-64 flex flex-col items-center justify-center text-slate-400 text-xs">
+                      <div className="h-64 flex flex-col items-center justify-center text-slate-600 text-xs dark:text-slate-400">
                         <RotateCcw className="w-6 h-6 animate-spin mb-2" />
                         <span>Rendering canvas overlays...</span>
                       </div>
                     )}
                   </div>
 
+                  {compositedImage && <div><AiBadge what="AI-generated image · brand overlays added in your browser" /></div>}
                   {compositedImage && (
                     <a
                       href={compositedImage}
@@ -642,8 +644,8 @@ export default function BuildPage() {
                 {/* Right: Copy & Caption */}
                 <div className="space-y-4 text-xs">
                   <div>
-                    <div className="flex items-center justify-between text-slate-400 font-semibold mb-1">
-                      <span>Caption &amp; Hashtags</span>
+                    <div className="flex items-center justify-between text-slate-600 font-semibold mb-1 dark:text-slate-400">
+                      <span className="flex items-center gap-1.5">Caption &amp; Hashtags <AiBadge /></span>
                       <button
                         onClick={() =>
                           copyToClipboard(
@@ -653,7 +655,7 @@ export default function BuildPage() {
                         }
                         className="hover:text-indigo-500 flex items-center gap-1"
                       >
-                        {copiedCaption ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
+                        {copiedCaption ? <Check className="w-3 h-3 text-emerald-700 dark:text-emerald-300" /> : <Copy className="w-3 h-3" />}
                         {copiedCaption ? 'Copied' : 'Copy'}
                       </button>
                     </div>
@@ -667,8 +669,8 @@ export default function BuildPage() {
 
                   {/* Alt Text */}
                   <div>
-                    <span className="text-slate-400 font-semibold block mb-1">
-                      Accessibility Alt Text ({currentOutput.governedPost.altText?.length || 0} chars)
+                    <span className="text-slate-600 font-semibold block mb-1 dark:text-slate-400">
+                      Accessibility Alt Text ({currentOutput.governedPost.altText?.length || 0} chars) <AiBadge />
                     </span>
                     <p className="p-2.5 bg-slate-50 dark:bg-slate-800/80 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 italic text-[11px]">
                       &quot;{currentOutput.governedPost.altText}&quot;
@@ -678,16 +680,16 @@ export default function BuildPage() {
                   {/* Marketing VO Script */}
                   {currentOutput.marketingScript && (
                     <div>
-                      <div className="flex items-center justify-between text-slate-400 font-semibold mb-1">
+                      <div className="flex items-center justify-between text-slate-600 font-semibold mb-1 dark:text-slate-400">
                         <span className="flex items-center gap-1.5">
-                          <Mic className="w-3.5 h-3.5 text-indigo-500" />
-                          20-30s Spoken Script
+                          <Mic className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-300" />
+                          20-30s Spoken Script <AiBadge />
                         </span>
                         <button
                           onClick={() => copyToClipboard(currentOutput.marketingScript, 'script')}
                           className="hover:text-indigo-500 flex items-center gap-1"
                         >
-                          {copiedScript ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
+                          {copiedScript ? <Check className="w-3 h-3 text-emerald-700 dark:text-emerald-300" /> : <Copy className="w-3 h-3" />}
                           {copiedScript ? 'Copied' : 'Copy'}
                         </button>
                       </div>
@@ -705,7 +707,7 @@ export default function BuildPage() {
                   <span>Policy Compliance Status</span>
                   <span>
                     Hard Gates:{' '}
-                    <span className="text-emerald-500">Passed (8/8)</span>
+                    <span className="text-emerald-700 dark:text-emerald-300">Passed (8/8)</span>
                   </span>
                 </div>
 
@@ -716,7 +718,7 @@ export default function BuildPage() {
                         key={i}
                         className="p-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 text-xs flex items-start gap-2"
                       >
-                        <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                        <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5 dark:text-amber-300" />
                         <div>
                           <div className="flex items-center gap-2">
                             <Link
@@ -739,7 +741,7 @@ export default function BuildPage() {
                   </div>
                 ) : (
                   <div className="p-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 text-xs flex items-center gap-2 text-emerald-700 dark:text-emerald-300">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                    <CheckCircle2 className="w-4 h-4 text-emerald-700 dark:text-emerald-300" />
                     <span>All brand policies, facts, and accessibility gates verified with 0 violations.</span>
                   </div>
                 )}
@@ -767,7 +769,7 @@ export default function BuildPage() {
 
                 <button
                   onClick={handleApprove}
-                  className="px-6 py-2 text-xs font-bold rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-600/20 transition-all flex items-center gap-1.5"
+                  className="px-6 py-2 text-xs font-bold rounded-xl bg-emerald-700 hover:bg-emerald-500 text-white shadow-md shadow-emerald-600/20 transition-all flex items-center gap-1.5"
                 >
                   <FileCheck2 className="w-4 h-4" />
                   Approve Draft
@@ -805,7 +807,7 @@ export default function BuildPage() {
                   <div className="flex justify-end gap-2">
                     <button
                       onClick={() => setIsChangeRequestOpen(false)}
-                      className="px-3 py-1 text-xs text-slate-500"
+                      className="px-3 py-1 text-xs text-slate-600 dark:text-slate-400"
                     >
                       Cancel
                     </button>
@@ -823,7 +825,7 @@ export default function BuildPage() {
               {isOverrideOpen && (
                 <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 space-y-3">
                   <div className="flex items-center gap-1.5 text-xs font-bold text-amber-900 dark:text-amber-200">
-                    <AlertTriangle className="w-4 h-4 text-amber-600" />
+                    <AlertTriangle className="w-4 h-4 text-amber-700 dark:text-amber-300" />
                     <span>Manager Policy Override [EM-000]</span>
                   </div>
                   <p className="text-[11px] text-amber-800 dark:text-amber-300">
@@ -844,13 +846,13 @@ export default function BuildPage() {
                   <div className="flex justify-end gap-2">
                     <button
                       onClick={() => setIsOverrideOpen(false)}
-                      className="px-3 py-1 text-xs text-slate-500"
+                      className="px-3 py-1 text-xs text-slate-600 dark:text-slate-400"
                     >
                       Cancel
                     </button>
                     <button
                       onClick={handleApproveAnyway}
-                      className="px-4 py-1.5 text-xs font-bold rounded-lg bg-amber-600 text-white hover:bg-amber-500"
+                      className="px-4 py-1.5 text-xs font-bold rounded-lg bg-amber-700 text-white hover:bg-amber-500"
                     >
                       Confirm Logged Override
                     </button>
@@ -859,11 +861,11 @@ export default function BuildPage() {
               )}
             </div>
           ) : (
-            <div className="p-8 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center text-center text-slate-400 space-y-3 h-[420px]">
+            <div className="p-8 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center text-center text-slate-600 space-y-3 h-[420px] dark:text-slate-400">
               <Sparkles className="w-10 h-10 text-slate-300 dark:text-slate-700" />
               <div>
                 <h3 className="text-sm font-bold text-slate-600 dark:text-slate-300">Studio Inactive</h3>
-                <p className="text-xs text-slate-400 mt-1 max-w-sm">
+                <p className="text-xs text-slate-600 mt-1 max-w-sm dark:text-slate-400">
                   Send a brief or select a quick prompt to generate, composite, and review an India-targeted post.
                 </p>
               </div>
@@ -882,9 +884,9 @@ export default function BuildPage() {
                     <h3 className="text-sm font-black text-slate-900 dark:text-white">
                       Approved Final Card &amp; Audit Receipt
                     </h3>
-                    <p className="text-[11px] text-slate-400">
+                    <p className="text-[11px] text-slate-600 dark:text-slate-400">
                       Approved by <strong className="capitalize">{role}</strong> role &bull; Pack Hash:{' '}
-                      <code className="text-emerald-600 dark:text-emerald-400">
+                      <code className="text-emerald-700 dark:text-emerald-400">
                         {pack?.hash?.slice(0, 10)}...
                       </code>
                     </p>
@@ -903,25 +905,25 @@ export default function BuildPage() {
               {/* Receipt Details Grid */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs bg-white dark:bg-slate-900 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800">
                 <div>
-                  <span className="text-[10px] text-slate-400 uppercase font-bold block">Final Score</span>
-                  <span className="text-sm font-black text-emerald-500">
+                  <span className="text-[10px] text-slate-600 uppercase font-bold block dark:text-slate-400">Final Score</span>
+                  <span className="text-sm font-black text-emerald-700 dark:text-emerald-300">
                     {approvedPost.verdict.score}/100
                   </span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-400 uppercase font-bold block">Iterations</span>
+                  <span className="text-[10px] text-slate-600 uppercase font-bold block dark:text-slate-400">Iterations</span>
                   <span className="text-sm font-black text-slate-800 dark:text-slate-200">
                     {approvedPost.iterations.length} Cycle(s)
                   </span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-400 uppercase font-bold block">Approver Role</span>
+                  <span className="text-[10px] text-slate-600 uppercase font-bold block dark:text-slate-400">Approver Role</span>
                   <span className="text-sm font-black capitalize text-slate-800 dark:text-slate-200">
                     {role}
                   </span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-400 uppercase font-bold block">Timestamp</span>
+                  <span className="text-[10px] text-slate-600 uppercase font-bold block dark:text-slate-400">Timestamp</span>
                   <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">
                     {new Date().toLocaleTimeString()}
                   </span>
@@ -949,12 +951,12 @@ export default function BuildPage() {
                     thriftit.in
                     <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
                   </div>
-                  <div className="text-[10px] text-slate-400">Bandra West, Mumbai</div>
+                  <div className="text-[10px] text-slate-600 dark:text-slate-400">Bandra West, Mumbai</div>
                 </div>
               </div>
               <button
                 onClick={() => setIsMockPublishOpen(false)}
-                className="text-slate-400 hover:text-slate-600 text-xs font-bold p-1"
+                className="text-slate-600 hover:text-slate-600 text-xs font-bold p-1 dark:text-slate-400"
               >
                 &times;
               </button>
@@ -973,9 +975,9 @@ export default function BuildPage() {
             {/* Post Metadata & Caption */}
             <div className="p-4 space-y-2 text-xs">
               <div className="flex items-center justify-between text-slate-800 dark:text-slate-200">
-                <span className="font-bold">Liked by 1,420 others</span>
-                <span className="text-[10px] text-emerald-500 font-bold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60">
-                  Brand Gate Verified
+                <span className="font-bold">Simulated preview — not posted to Instagram</span>
+                <span className="text-[10px] text-emerald-700 font-bold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 dark:text-emerald-300">
+                  Brand Gate Verified · AI-generated
                 </span>
               </div>
               <p className="text-slate-800 dark:text-slate-200 leading-relaxed text-[11px]">

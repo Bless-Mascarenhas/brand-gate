@@ -40,7 +40,7 @@ const COLUMN_META: Record<ColumnKey, { label: string; note: string }> = {
 const idle = (key: ColumnKey): ColumnView => ({ key, ...COLUMN_META[key], source: 'live', status: 'idle', findings: [], llmCalls: [], wallMs: null });
 
 const verdictClass = (v?: string) =>
-  v === 'BLOCKED' ? 'text-red-600 dark:text-red-400' : v === 'REVISE' ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400';
+  v === 'BLOCKED' ? 'text-red-600 dark:text-red-400' : v === 'REVISE' ? 'text-amber-700 dark:text-amber-400' : 'text-emerald-700 dark:text-emerald-400';
 
 export default function ComparePage() {
   const { mode, setMode, speedMode, setIsAccessModalOpen } = useApp();
@@ -99,16 +99,16 @@ export default function ComparePage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
-          <Scale className="w-6 h-6 text-indigo-500" />
+          <Scale className="w-6 h-6 text-indigo-600 dark:text-indigo-300" />
           Compare: Bare AI vs AI + policies vs Governed
         </h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-3xl">
+        <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 max-w-3xl">
           One brief, three systems. Every output is scored by the same independent scorer — the deterministic gate engine — so the numbers are comparable.
           Column C additionally shows its own pipeline verdict, which includes verified LLM findings.
         </p>
       </div>
 
-      <section className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 space-y-3">
+      <section data-tour="compare-scenarios" className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-200">Scenario</h2>
           <div role="radiogroup" aria-label="Run mode" className="flex gap-1 text-xs">
@@ -125,7 +125,7 @@ export default function ComparePage() {
             <button key={s.id} onClick={() => { setScenarioId(s.id); setLive((cols) => cols.map((c) => idle(c.key))); }} aria-pressed={scenarioId === s.id}
               className={`text-left p-3 rounded-lg border text-xs transition ${scenarioId === s.id ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-950/40' : 'border-slate-200 dark:border-slate-700 hover:border-indigo-300'}`}>
               <div className="font-semibold text-slate-800 dark:text-slate-100">{s.label}</div>
-              <div className="text-slate-500 dark:text-slate-400 mt-0.5">{s.tempts}</div>
+              <div className="text-slate-600 dark:text-slate-400 mt-0.5">{s.tempts}</div>
             </button>
           ))}
         </div>
@@ -138,19 +138,19 @@ export default function ComparePage() {
             <Play className="w-4 h-4" />{live.some((c) => c.status === 'running') ? 'Running three systems…' : 'Run live comparison (uses real model calls)'}
           </button>
         ) : (
-          <p className="text-xs text-slate-500 flex items-center gap-1"><History className="w-3.5 h-3.5" />Replay shows a recorded run for this scenario; no model is called.</p>
+          <p className="text-xs text-slate-600 flex items-center gap-1 dark:text-slate-400"><History className="w-3.5 h-3.5" />Replay shows a recorded run for this scenario; no model is called.</p>
         )}
         {anyError && (
           <div role="alert" className="text-xs p-3 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 text-amber-800 dark:text-amber-300 flex flex-wrap items-center gap-2">
             <AlertTriangle className="w-4 h-4" />
             One or more systems could not run live (missing keys, access code, provider failure or exhausted budget).
             {live.some((c) => c.needsAccess) && <button onClick={() => setIsAccessModalOpen(true)} className="underline">Enter access code</button>}
-            <button onClick={() => setMode('replay')} className="px-2 py-1 rounded bg-amber-600 text-white font-semibold">Switch to Replay mode</button>
+            <button onClick={() => setMode('replay')} className="px-2 py-1 rounded bg-amber-700 text-white font-semibold">Switch to Replay mode</button>
           </div>
         )}
       </section>
 
-      {mode === 'replay' && replay.loading && <p className="text-xs text-slate-500">Loading recorded run…</p>}
+      {mode === 'replay' && replay.loading && <p className="text-xs text-slate-600 dark:text-slate-400">Loading recorded run…</p>}
       {mode === 'replay' && replay.error && <ReplayError error={replay.error} />}
       {mode === 'replay' && replay.replay && <RecordedBanner replay={replay.replay} />}
 
@@ -175,15 +175,15 @@ function Column({ col }: { col: ColumnView }) {
         <div className="font-bold text-slate-900 dark:text-white">{col.label}</div>
         {col.source === 'live' ? <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300">Live run</span> : <ProvenanceBadge provenance={col.source} />}
       </div>
-      <p className="text-[11px] text-slate-500 dark:text-slate-400">{col.note}</p>
-      {col.status === 'idle' && <p className="text-xs text-slate-400">Not run yet.</p>}
-      {col.status === 'running' && <p className="text-xs text-indigo-500 animate-pulse">Running…</p>}
+      <p className="text-[11px] text-slate-600 dark:text-slate-400">{col.note}</p>
+      {col.status === 'idle' && <p className="text-xs text-slate-600 dark:text-slate-400">Not run yet.</p>}
+      {col.status === 'running' && <p className="text-xs text-indigo-600 animate-pulse dark:text-indigo-300">Running…</p>}
       {col.status === 'error' && <p role="alert" className="text-xs text-red-600 dark:text-red-400">{col.error}</p>}
       {m && (
         <>
           <div className="flex items-end gap-3">
             <div className={`text-3xl font-black tabular-nums ${verdictClass(m.verdict)}`}>{m.score}</div>
-            <div className="text-xs"><div className="text-slate-400">independent score / 100</div><div className={`font-bold ${verdictClass(m.verdict)}`}>{m.verdict}</div></div>
+            <div className="text-xs"><div className="text-slate-600 dark:text-slate-400">independent score / 100</div><div className={`font-bold ${verdictClass(m.verdict)}`}>{m.verdict}</div></div>
           </div>
           <dl className="grid grid-cols-2 gap-1 text-xs">
             {([
@@ -191,7 +191,7 @@ function Column({ col }: { col: ColumnView }) {
               ['Unsupported claims', m.unsupportedClaims], ['Accessibility gaps', m.accessibilityGaps],
               ['Crit / maj / min', `${m.bySeverity.critical} / ${m.bySeverity.major} / ${m.bySeverity.minor}`],
             ] as const).map(([k, v]) => (
-              <div key={k} className="flex justify-between bg-slate-50 dark:bg-slate-800 rounded px-2 py-1"><dt className="text-slate-500">{k}</dt><dd className="font-semibold">{v}</dd></div>
+              <div key={k} className="flex justify-between bg-slate-50 dark:bg-slate-800 rounded px-2 py-1"><dt className="text-slate-600 dark:text-slate-400">{k}</dt><dd className="font-semibold">{v}</dd></div>
             ))}
           </dl>
           <div className="text-xs text-slate-600 dark:text-slate-300 flex flex-wrap gap-x-3 gap-y-1">
@@ -208,7 +208,7 @@ function Column({ col }: { col: ColumnView }) {
             <details className="text-xs">
               <summary className="cursor-pointer text-indigo-600 dark:text-indigo-400">Output and {col.findings.length} scorer finding(s)</summary>
               <p className="mt-1 whitespace-pre-wrap text-slate-700 dark:text-slate-200">{col.post.caption}</p>
-              <p className="text-slate-500">Alt text: {col.post.altText || <em>missing</em>}</p>
+              <p className="text-slate-600 dark:text-slate-400">Alt text: {col.post.altText || <em>missing</em>}</p>
               <ul className="mt-1 space-y-1">
                 {col.findings.map((f, i) => (
                   <li key={i}><strong>{f.severity}</strong> <Link href={`/company#${f.clauseId}`} className="font-mono text-indigo-600 dark:text-indigo-400 hover:underline">[{f.clauseId}]</Link> “{f.postQuote}” — {f.explanation}</li>
@@ -262,7 +262,7 @@ function BenchmarkSection() {
     <section className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 space-y-4">
       <div>
         <h2 className="font-bold text-slate-800 dark:text-white">Benchmark (pre-computed)</h2>
-        <p className="text-xs text-slate-500 dark:text-slate-400">
+        <p className="text-xs text-slate-600 dark:text-slate-400">
           Computed on {meta.computedAt.slice(0, 10)} from <code>scripts/benchmark.ts</code> (commit {meta.gitCommit}); run it yourself with <code>npm run benchmark</code>.
           Execution: <strong>{meta.execution.replace('_', ' ')}</strong>. Labels human-reviewed: <strong>{meta.labelsHumanReviewed}</strong>. Showing the held-out {split} split.
         </p>
@@ -279,12 +279,13 @@ function BenchmarkSection() {
                 <span>Hallucinated citations {m.hallucinatedCitations}</span><span>Caught only by gates {m.caughtOnlyByGates}</span>
                 <span>TP / FP / FN</span><span>{m.tp} / {m.fp} / {m.fn}</span>
               </div>
-            ) : <p className="text-slate-500">Not run — {(benchmark.systems.baseline as { reason?: string }).reason}. No numbers are shown rather than invented ones.</p>}
+            ) : <p className="text-slate-600 dark:text-slate-400">Not run — {(benchmark.systems.baseline as { reason?: string }).reason}. No numbers are shown rather than invented ones.</p>}
           </div>
         ))}
       </div>
       <div>
         <h3 className="text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Recall by category ({split} split, %)</h3>
+        <div role="img" aria-label={`Recall by category in percent: ${chart.map((c) => `${c.category} governed ${c.governed}%${'baseline' in c ? `, baseline ${c.baseline}%` : ''}`).join('; ')}`}>
         <ResponsiveContainer width="100%" height={220}>
           <BarChart data={chart} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#94a3b833" />
@@ -296,8 +297,9 @@ function BenchmarkSection() {
             {base && <Bar dataKey="baseline" name="Baseline" fill="#f59e0b" />}
           </BarChart>
         </ResponsiveContainer>
+        </div>
       </div>
-      <p className="text-xs text-slate-500">
+      <p className="text-xs text-slate-600 dark:text-slate-400">
         Example viewer “baseline missed, governed caught” needs a baseline run; {baseRun ? 'see data/benchmark/results.json perPost.' : 'it will appear after `npm run benchmark` runs with GEMINI_API_KEY set.'}
         {' '}Limitations: synthetic posts, small N (30 per split), labels written by the system’s author and not human-reviewed.
       </p>

@@ -13,10 +13,10 @@ export default function WorkflowPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
-            <ListTodo className="w-6 h-6 text-indigo-500" />
+            <ListTodo className="w-6 h-6 text-indigo-600 dark:text-indigo-300" />
             Workflow &amp; Review Queue
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <p className="text-sm text-slate-600 dark:text-slate-400">
             draft → in_review → changes_requested → approved → published_mock. Required approvers come from the escalation matrix; nothing is ever auto-published.
           </p>
         </div>

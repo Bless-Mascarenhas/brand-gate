@@ -4,6 +4,7 @@ import path from 'path';
 const nextConfig: NextConfig = {
   outputFileTracingRoot: path.join(__dirname, './'),
   reactStrictMode: true,
+  allowedDevOrigins: ['127.0.0.1', 'localhost'],
   async headers() {
     return [
       {

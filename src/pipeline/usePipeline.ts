@@ -15,6 +15,11 @@ import { verifyCitations } from '@/src/verify/citationVerifier';
 import { computeScoreAndVerdict } from '@/src/verify/scoring';
 import { adjudicateConsensus, CrosscheckEvaluation } from '@/src/verify/consensus';
 import { storage } from '@/src/storage';
+import { getRoutedClausesForCategories } from '@/src/kb/routing';
+import { checkEventFromRun } from '@/src/insights/types';
+import { appendInsightEvents } from '@/src/insights/store';
+
+const SOFT_CATEGORIES = ['tone', 'terminology', 'messaging', 'claims', 'regional'] as const;
 
 export interface UsePipelineOptions {
   demoDate?: string;
@@ -91,7 +96,7 @@ export function usePipeline(options: UsePipelineOptions = {}) {
   };
 
   const runPipeline = useCallback(
-    async (post: PostContent, pack: PolicyPack) => {
+    async (post: PostContent, pack: PolicyPack, runOpts: { pass?: 'first' | 'after_fix' } = {}) => {
       setState({
         status: 'running',
         currentStep: 'Initializing',
@@ -396,6 +401,20 @@ export function usePipeline(options: UsePipelineOptions = {}) {
 
         try {
           await storage.setItem(`trace:${runId}`, runTrace);
+          await appendInsightEvents([
+            checkEventFromRun({
+              origin: 'verify',
+              pass: runOpts.pass ?? 'first',
+              verdict: scoreResult.verdict,
+              findings: allVerifiedFindings,
+              checkedClauseIds: [
+                ...pack.rules.map((r) => r.clause),
+                ...(mode === 'live' ? getRoutedClausesForCategories([...SOFT_CATEGORIES], pack).map((c) => c.id) : []),
+              ],
+              dropped: verification.droppedFindings,
+              droppedReasons: verification.droppedReasons,
+            }),
+          ]);
         } catch (e: any) {
           console.warn('Failed to store trace in IndexedDB:', e.message);
         }

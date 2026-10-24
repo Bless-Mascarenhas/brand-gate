@@ -1,66 +1,58 @@
 // src/workflow/permissions.ts
 /**
- * Permission and state‑transition logic for the workflow system.
+ * Permission and state-transition logic for the workflow system — the single
+ * place that decides who may do what. UI components only render what these
+ * functions allow; `src/workflow/actions.ts` re-checks every call, so hiding a
+ * button is never the enforcement.
  *
- * The workflow defines the following post states (see src/workflow/types.ts):
- *   - draft
- *   - in_review
- *   - changes_requested
- *   - approved
- *   - published_mock
+ * States: draft → in_review → changes_requested → approved → published_mock
+ * Roles:  creator | manager | reviewer (simulated in the demo, see EM-008)
  *
- * Roles are defined in src/types/index.ts as: 'creator', 'manager', 'reviewer'.
- * This module exports utilities to:
- *   1. Determine if a role is authorized to perform a given transition.
- *   2. Compute the next state given a current state, target state, and actor role.
- *   3. Provide a human‑readable reason when a transition is denied.
- *   4. Expose the transition matrix for UI components.
- *
- * The permission matrix mirrors the escalation matrix described in the project
- * documentation (EM‑000). Critical findings require a manager approval with a
- * justification; otherwise creators can submit drafts and reviewers can approve
- * or request changes.
+ * Escalation matrix (data/thrift-it/escalation-matrix.md):
+ *   EM-001 creator self-resolves minor tone/terminology — still needs one human sign-off
+ *   EM-002 major, factual or claims findings → Manager approval
+ *   EM-003 critical or disclosure findings   → Manager AND Reviewer (dual concurrence)
+ *   EM-004 visual identity findings          → Reviewer (Brand Designer)
+ *   EM-006 never auto-publish; a human publishes
+ *   EM-007 critical findings overridable only by a Manager with ≥20-char rationale
  */
 
-import { Role } from '@/src/types';
+import { Finding, Role } from '@/src/types';
 import { PostState, StateTransitionResult, WorkflowPost } from '@/src/workflow/types';
 
 /**
- * Mapping of allowed transitions per role.
- * The first level key is the current state; the nested key is the target state.
- * The value is an array of roles permitted to trigger that transition.
+ * Allowed transitions per role. First key = current state, nested key = target.
  */
 const transitionMatrix: Record<PostState, Record<PostState, Role[]>> = {
   draft: {
-    in_review: ['creator'], // creator submits for review
+    in_review: ['creator', 'manager'], // submit for review
     changes_requested: [],
     approved: [],
     published_mock: [],
     draft: [],
   },
   in_review: {
-    changes_requested: ['reviewer', 'manager'], // reviewer can request changes
-    approved: ['reviewer', 'manager'], // reviewer can approve
+    changes_requested: ['reviewer', 'manager'],
+    approved: ['reviewer', 'manager'], // only via approve(); also needs every required approver
     draft: ['manager'], // manager can revert to draft in exceptional cases
     in_review: [],
     published_mock: [],
   },
   changes_requested: {
-    draft: ['creator'], // creator revises after changes requested
-    in_review: ['creator'], // creator can resubmit directly to review
+    draft: ['creator', 'manager'],
+    in_review: ['creator', 'manager'], // resubmit
     changes_requested: [],
     approved: [],
     published_mock: [],
   },
   approved: {
-    published_mock: ['manager', 'creator'], // manager or creator can push to mock publish
-    in_review: ['manager'], // manager can rollback for last‑minute fixes
+    published_mock: ['manager'], // EM-006: a human with authority makes the publishing decision
+    in_review: ['manager'], // rollback for last-minute fixes
     approved: [],
     draft: [],
     changes_requested: [],
   },
   published_mock: {
-    // Final state – no further transitions (could add archiving later)
     published_mock: [],
     draft: [],
     in_review: [],
@@ -69,25 +61,66 @@ const transitionMatrix: Record<PostState, Record<PostState, Role[]>> = {
   },
 };
 
+export const MIN_OVERRIDE_JUSTIFICATION = 20; // EM-007
+
+/** Findings on the current revision that are neither informational nor overridden. */
+export function openFindings(post: WorkflowPost): Finding[] {
+  const overridden = new Set((post.overrides ?? []).map((o) => o.findingId));
+  return post.currentRevision.findings.filter((f) => f.severity !== 'info' && !overridden.has(f.id));
+}
+
+export interface ApproverRequirement {
+  role: Role;
+  clause: string;
+  because: string;
+}
+
+/**
+ * Roles that must each approve before a post with these open findings may move
+ * to `approved`. Returns one entry per role with the escalation clause that
+ * requires it.
+ */
+export function requiredApprovers(findings: Finding[]): ApproverRequirement[] {
+  const req = new Map<Role, ApproverRequirement>();
+  const add = (role: Role, clause: string, because: string) => {
+    if (!req.has(role)) req.set(role, { role, clause, because });
+  };
+  for (const f of findings) {
+    if (f.severity === 'info') continue;
+    if (f.severity === 'critical' || f.category === 'disclosure') {
+      add('manager', 'EM-003', `${f.severity} ${f.category} finding on ${f.clauseId}`);
+      add('reviewer', 'EM-003', `${f.severity} ${f.category} finding on ${f.clauseId}`);
+    }
+    if (f.severity === 'major' || f.category === 'factual_accuracy' || f.category === 'claims') {
+      add('manager', 'EM-002', `${f.severity} ${f.category} finding on ${f.clauseId}`);
+    }
+    if (f.category === 'visual') {
+      add('reviewer', 'EM-004', `visual finding on ${f.clauseId}`);
+    }
+  }
+  if (req.size === 0) add('reviewer', 'EM-006', 'every post needs one human sign-off');
+  return Array.from(req.values());
+}
+
+/** Required approver roles that have not yet approved the current revision. */
+export function missingApprovals(post: WorkflowPost): ApproverRequirement[] {
+  const approved = new Set((post.approvals ?? []).map((a) => a.role));
+  return requiredApprovers(openFindings(post)).filter((r) => !approved.has(r.role));
+}
+
 /**
  * Evaluate whether a role may transition a post from `current` to `next`.
- * Returns a StateTransitionResult indicating if the action is allowed and a
- * reason when it is not.
  */
 export function canTransition(
   current: PostState,
   next: PostState,
   actorRole: Role,
-  post?: WorkflowPost // optional – used for advanced guard checks (e.g., severity escalation)
+  post?: WorkflowPost
 ): StateTransitionResult {
   const allowedRoles = transitionMatrix[current]?.[next] ?? [];
-  if (!allowedRoles || allowedRoles.length === 0) {
-    return {
-      allowed: false,
-      reason: `Transition from '${current}' to '${next}' is not defined.`,
-    };
+  if (allowedRoles.length === 0) {
+    return { allowed: false, reason: `Transition from '${current}' to '${next}' is not defined.` };
   }
-
   if (!allowedRoles.includes(actorRole)) {
     return {
       allowed: false,
@@ -96,17 +129,14 @@ export function canTransition(
     };
   }
 
-  // Escalation guard: critical findings require manager approval for approve/publish.
-  if (post && (next === 'approved' || next === 'published_mock')) {
-    const hasCritical = post.currentRevision.findings.some(
-      (f) => f.severity === 'critical'
-    );
-    if (hasCritical && actorRole !== 'manager') {
+  if (post && next === 'approved') {
+    const critical = openFindings(post).filter((f) => f.severity === 'critical');
+    if (critical.length > 0) {
       return {
         allowed: false,
-        reason: 'Critical findings require manager approval.',
+        reason: `${critical.length} open critical finding(s) must be fixed or overridden by a Manager first.`,
         requiredRole: 'manager',
-        escalationClause: 'EM-000',
+        escalationClause: 'EM-007',
       };
     }
   }
@@ -114,15 +144,57 @@ export function canTransition(
   return { allowed: true };
 }
 
+/** May this role record an approval on the post right now? */
+export function canApprove(post: WorkflowPost, actorRole: Role): StateTransitionResult {
+  if (post.state !== 'in_review') {
+    return { allowed: false, reason: `Only posts in review can be approved (state is '${post.state}').` };
+  }
+  const base = canTransition('in_review', 'approved', actorRole, post);
+  if (!base.allowed) return base;
+  const required = requiredApprovers(openFindings(post));
+  const mine = required.find((r) => r.role === actorRole);
+  if (!mine) {
+    return {
+      allowed: false,
+      reason: `Approval is required from ${required.map((r) => r.role).join(' + ')}, not ${actorRole}.`,
+      requiredRole: required[0]?.role,
+      escalationClause: required[0]?.clause,
+    };
+  }
+  if ((post.approvals ?? []).some((a) => a.role === actorRole)) {
+    return { allowed: false, reason: `The ${actorRole} role has already approved this revision.` };
+  }
+  return { allowed: true, escalationClause: mine.clause };
+}
+
+/** May this role override (accept the risk of) a specific finding? */
+export function canOverride(finding: Finding, actorRole: Role, justification: string): StateTransitionResult {
+  if (finding.severity === 'critical' && actorRole !== 'manager') {
+    return {
+      allowed: false,
+      reason: 'Critical findings can only be overridden by a Manager.',
+      requiredRole: 'manager',
+      escalationClause: 'EM-007',
+    };
+  }
+  if (actorRole === 'creator') {
+    return { allowed: false, reason: 'Creators cannot override findings; fix them or ask a reviewer.', requiredRole: 'reviewer' };
+  }
+  if (justification.trim().length < MIN_OVERRIDE_JUSTIFICATION) {
+    return {
+      allowed: false,
+      reason: `A written justification of at least ${MIN_OVERRIDE_JUSTIFICATION} characters is required.`,
+      escalationClause: 'EM-007',
+    };
+  }
+  return { allowed: true };
+}
+
 /**
  * Apply a state transition after permission validation.
  * Throws an Error if the transition is not allowed.
  */
-export function transitionState(
-  post: WorkflowPost,
-  nextState: PostState,
-  actorRole: Role
-): WorkflowPost {
+export function transitionState(post: WorkflowPost, nextState: PostState, actorRole: Role): WorkflowPost {
   const result = canTransition(post.state, nextState, actorRole, post);
   if (!result.allowed) {
     throw new Error(result.reason ?? 'Transition not allowed');
@@ -131,19 +203,14 @@ export function transitionState(
 }
 
 /**
- * Simple helper to decide whether a user can edit a post in its current state.
- * Managers may edit any state; creators can edit drafts and posts with changes
- * requested; reviewers cannot edit directly.
+ * Whether a role may add a revision. Managers may edit any non-final state;
+ * creators can edit drafts and posts with changes requested; reviewers cannot
+ * edit directly.
  */
-export function canEdit(
-  post: WorkflowPost,
-  actorRole: Role,
-  actorId: string
-): boolean {
+export function canEdit(post: WorkflowPost, actorRole: Role): boolean {
+  if (post.state === 'published_mock' || post.state === 'approved') return false;
   if (actorRole === 'manager') return true;
-  if (post.state === 'draft' && actorRole === 'creator') return true;
-  if (post.state === 'changes_requested' && actorRole === 'creator') return true;
-  return false;
+  return actorRole === 'creator' && (post.state === 'draft' || post.state === 'changes_requested');
 }
 
 /**

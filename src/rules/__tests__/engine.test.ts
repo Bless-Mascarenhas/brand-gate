@@ -450,3 +450,19 @@ describe('Deterministic Rule Engine (Phase 3)', () => {
     });
   });
 });
+
+describe('R-TERM-005 brand spelling regression (Phase 7/8 fix)', () => {
+  const pack = getPolicyPack();
+  const base: PostContent = { caption: '', hashtags: ['#ThriftIt'], format: 'feed_4_5', language: 'en', altText: 'Rack of pre-loved denim jackets on a wooden rail' };
+  const tm004 = (caption: string) =>
+    evaluatePost({ ...base, caption }, pack, '2026-10-24').findings.filter((f) => f.id.startsWith('finding-R-TERM-005-'));
+
+  it('does not flag the mandated #ThriftIt hashtag (SR-004) as a misspelling', () => {
+    expect(tm004('Pre-loved denim is back. #ThriftIt')).toHaveLength(0);
+  });
+
+  it('still flags misspelled brand names in body text', () => {
+    expect(tm004('Shop ThriftIt this weekend #ThriftIt')[0]?.postQuote).toBe('ThriftIt');
+    expect(tm004('Shop Thrift it this weekend #ThriftIt')[0]?.postQuote).toBe('Thrift it');
+  });
+});

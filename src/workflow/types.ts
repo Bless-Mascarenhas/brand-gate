@@ -1,4 +1,4 @@
-import { Role, PostContent, Verdict, Finding, Category, Severity } from '@/src/types';
+import { Role, PostContent, Verdict, Finding } from '@/src/types';
 
 export type PostState = 'draft' | 'in_review' | 'changes_requested' | 'approved' | 'published_mock';
 
@@ -38,6 +38,34 @@ export interface AuditLogEntry {
   packHash: string;
 }
 
+export interface Approval {
+  role: Role;
+  user: string;
+  at: string;
+}
+
+export interface FindingOverride {
+  findingId: string;
+  clauseId: string;
+  severity: Finding['severity'];
+  role: Role;
+  user: string;
+  justification: string;
+  at: string;
+}
+
+export const CHANGE_REASONS = ['tone', 'wrong_fact', 'visual', 'claim', 'other'] as const;
+export type ChangeReason = (typeof CHANGE_REASONS)[number];
+
+export interface ChangeRequest {
+  reason: ChangeReason;
+  text: string;
+  clauseIds: string[];
+  role: Role;
+  user: string;
+  at: string;
+}
+
 export interface WorkflowPost {
   id: string;
   title: string;
@@ -48,6 +76,9 @@ export interface WorkflowPost {
   revisions: Revision[];
   comments: Comment[];
   auditLog: AuditLogEntry[];
+  approvals?: Approval[]; // reset whenever a new revision is added or changes are requested
+  overrides?: FindingOverride[]; // scoped to the current revision
+  changeRequests?: ChangeRequest[];
   createdAt: string;
   updatedAt: string;
   isSampleData?: boolean;

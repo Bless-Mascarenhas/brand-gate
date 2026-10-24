@@ -1,15 +1,11 @@
 // src/workflow/audit.ts
 /**
- * Helper to create an immutable audit‑log entry whenever a post changes state
- * or a comment/revision is added.
+ * Append-only audit log (EM-009): entries are only ever appended, never edited
+ * or removed. Ids are sequential per post so they are stable across reloads.
  */
 import { Role } from '@/src/types';
 import { AuditLogEntry, WorkflowPost } from '@/src/workflow/types';
 
-/**
- * Append a new log entry to the post's `auditLog` array and return an updated
- * post object (immutable pattern).
- */
 export function addAuditLog(
   post: WorkflowPost,
   {
@@ -20,6 +16,7 @@ export function addAuditLog(
     afterState,
     details,
     packHash,
+    timestamp,
   }: {
     user: string;
     role: Role;
@@ -27,11 +24,12 @@ export function addAuditLog(
     beforeState?: string;
     afterState?: string;
     details?: string;
-    packHash: string; // hash of the policy pack used for this post
+    packHash: string; // hash of the policy pack in force for this action
+    timestamp?: string;
   }
 ): WorkflowPost {
   const entry: AuditLogEntry = {
-    id: Math.random().toString(36).substring(2, 10),
+    id: `${post.id}-a${post.auditLog.length + 1}`,
     postId: post.id,
     user,
     role,
@@ -39,8 +37,8 @@ export function addAuditLog(
     beforeState,
     afterState,
     details,
-    timestamp: new Date().toISOString(),
+    timestamp: timestamp ?? new Date().toISOString(),
     packHash,
   };
-  return { ...post, auditLog: [...post.auditLog, entry] };
+  return { ...post, auditLog: [...post.auditLog, Object.freeze(entry)] };
 }

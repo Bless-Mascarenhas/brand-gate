@@ -103,7 +103,7 @@ export default function VerifyPage() {
           paidPartnership,
           language,
         };
-        runPipeline(revisedPost, pack);
+        runPipeline(revisedPost, pack, { pass: 'after_fix' });
       }, 100);
     }
   };

@@ -38,6 +38,8 @@ export function tokenJaccardSimilarity(textA: string, textB: string): number {
 export interface VerificationResult {
   verifiedFindings: Finding[];
   droppedFindings: Finding[];
+  /** Why each dropped finding failed verification, keyed by finding id. */
+  droppedReasons: Record<string, string>;
   hallucinationsBlocked: number;
 }
 
@@ -54,6 +56,7 @@ export function verifyCitations(
 ): VerificationResult {
   const verifiedFindings: Finding[] = [];
   const droppedFindings: Finding[] = [];
+  const droppedReasons: Record<string, string> = {};
 
   const clauseMap = new Map(pack.clauses.map((c) => [c.id, c]));
 
@@ -71,6 +74,7 @@ export function verifyCitations(
     const clause = clauseMap.get(finding.clauseId);
     if (!clause) {
       droppedFindings.push(finding);
+      droppedReasons[finding.id] = 'clauseId does not exist in the policy pack';
       continue;
     }
 
@@ -91,6 +95,7 @@ export function verifyCitations(
 
     if (!clauseQuoteValid) {
       droppedFindings.push(finding);
+      droppedReasons[finding.id] = 'clauseQuote not found in the cited clause';
       continue;
     }
 
@@ -111,6 +116,7 @@ export function verifyCitations(
 
     if (!postQuoteValid) {
       droppedFindings.push(finding);
+      droppedReasons[finding.id] = `postQuote not found in the ${finding.postField} field`;
       continue;
     }
 
@@ -124,6 +130,7 @@ export function verifyCitations(
   return {
     verifiedFindings,
     droppedFindings,
+    droppedReasons,
     hallucinationsBlocked: droppedFindings.length,
   };
 }

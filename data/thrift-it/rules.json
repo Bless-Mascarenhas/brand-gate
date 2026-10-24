@@ -58,7 +58,7 @@
     "category": "terminology",
     "severity": "minor",
     "fields": ["caption"],
-    "pattern": "\\b(ThriftIt|thrift-it|Thrift-it|Thrift it)\\b",
+    "pattern": "(?<!#)\\b(ThriftIt|thrift-it|Thrift-it|Thrift it)\\b",
     "flags": "g",
     "message": "Brand name must always be formatted as 'Thrift-It' with a hyphen and capitalized T and I.",
     "suggest": { "ThriftIt": "Thrift-It", "thrift-it": "Thrift-It", "Thrift-it": "Thrift-It", "Thrift it": "Thrift-It" },

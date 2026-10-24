@@ -26,6 +26,9 @@ import { compositeBrandPost } from '@/src/canvas/composite';
 import { runGovernanceLoop, IterationResult, GovernanceLoopOutput } from '@/src/build/governanceLoop';
 import { PolicyPack } from '@/src/types';
 import { storage } from '@/src/storage';
+import { saveWorkflowPost } from '@/src/workflow/store';
+import { appendInsightEvents } from '@/src/insights/store';
+import { workflowPostFromBuild, checkEventsFromBuild } from '@/src/build/toWorkflow';
 
 const InstagramIcon: React.FC<{ className?: string }> = ({ className = 'w-4 h-4' }) => (
   <svg
@@ -158,6 +161,14 @@ export default function BuildPage() {
 
       setCurrentOutput(loopResult);
 
+      // Save into Workflow (revision per iteration) and record the run for Insights.
+      try {
+        await saveWorkflowPost(workflowPostFromBuild(loopResult, { packHash: pack.hash, role, title: promptToRun.slice(0, 60) }));
+        await appendInsightEvents(checkEventsFromBuild(loopResult, pack.rules.map((r) => r.clause), role));
+      } catch (e: any) {
+        console.warn('Failed to save build run to workflow/insights:', e.message);
+      }
+
       // 2. Generate Base Image via Gemini Image endpoint
       setActiveStepText('2. Generating editorial imagery with Gemini Image model...');
       const accessCode =
@@ -240,6 +251,13 @@ export default function BuildPage() {
   const handleRequestChangesSubmit = () => {
     if (!currentOutput) return;
     const feedback = `[Human Change Request - Reason: ${changeReason}] ${changeFeedback}`;
+    void appendInsightEvents([
+      {
+        kind: 'human_rejection', id: `build-rej-${Date.now()}`, ts: new Date().toISOString(), sample: false, role,
+        clauseIds: Array.from(new Set(currentOutput.findings.map((f) => f.clauseId))),
+        reason: `${changeReason}: ${changeFeedback || '(no detail)'}`,
+      },
+    ]).catch(() => undefined);
     handleGenerate(feedback);
   };
 
@@ -260,6 +278,13 @@ export default function BuildPage() {
     }
 
     // Approved with logged override
+    void appendInsightEvents([
+      {
+        kind: 'human_override', id: `build-ovr-${Date.now()}`, ts: new Date().toISOString(), sample: false, role,
+        clauseIds: Array.from(new Set(currentOutput.findings.map((f) => f.clauseId))),
+        reason: overrideJustification.trim(),
+      },
+    ]).catch(() => undefined);
     setApprovedPost(currentOutput);
     setIsOverrideOpen(false);
   };

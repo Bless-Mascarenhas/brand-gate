@@ -3,7 +3,7 @@
 // Phase 8 – Live 3-column Compare: Bare AI vs AI+Policies vs Brand Gate
 // PLUS revision diff viewer (accessible from /workflow via ?mode=diff&postId=...)
 import React, { Suspense, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+
 import Link from 'next/link';
 import { Scale, CheckCircle2, XCircle, AlertTriangle, Clock, Cpu, ChevronDown, ChevronUp } from 'lucide-react';
 
@@ -277,90 +277,6 @@ function getResults(scenarioId: string): [ColumnResult, ColumnResult, ColumnResu
   return PRECOMPUTED[scenarioId] ?? PRECOMPUTED['expired-offer'];
 }
 
-// ── Revision diff viewer (accessible via ?mode=diff&postId=...) ──────────────
-import { seededWorkflowPosts } from '@/src/workflow/seedData';
-import { computeDiff } from '@/src/compare/diff';
-
-function RevisionDiffViewer({ postId }: { postId: string }) {
-  const post = seededWorkflowPosts.find((p) => p.id === postId);
-  const [revA, setRevA] = useState('');
-  const [revB, setRevB] = useState('');
-  const [diffs, setDiffs] = useState<{ field: string; before: string; after: string }[]>([]);
-  const [compared, setCompared] = useState(false);
-
-  if (!post) {
-    return (
-      <div className="text-center py-16 space-y-4">
-        <p className="text-slate-400 text-lg">No post found.</p>
-        <Link href="/workflow" className="text-indigo-400 underline">← Back to Workflow Queue</Link>
-      </div>
-    );
-  }
-  const revisions = [...(post.revisions ?? []), post.currentRevision];
-
-  const revLabel = (id: string) => {
-    const rev = revisions.find((r) => r.id === id);
-    return rev ? `v${rev.versionNumber} – ${rev.author}` : id;
-  };
-
-  const runCompare = () => {
-    if (!revA || !revB) return;
-    setDiffs(computeDiff(post, revA, revB));
-    setCompared(true);
-  };
-
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-black text-slate-900 dark:text-white">Compare Revisions</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-          Post: <span className="font-semibold text-slate-700 dark:text-slate-200">{post.title}</span>
-          {' · '}
-          <Link href="/workflow" className="text-indigo-400 hover:underline text-xs">← Back to Queue</Link>
-        </p>
-      </div>
-      <div className="bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl p-6 space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          {[['A (Before)', revA, setRevA], ['B (After)', revB, setRevB]].map(([lbl, val, set]) => (
-            <div key={String(lbl)}>
-              <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Revision {lbl}</label>
-              <select
-                value={String(val)}
-                onChange={(e) => { (set as React.Dispatch<React.SetStateAction<string>>)(e.target.value); setCompared(false); }}
-                className="w-full p-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-600 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              >
-                <option value="">Select revision {lbl}</option>
-                {revisions.map((r) => <option key={r.id} value={r.id}>{revLabel(r.id)}</option>)}
-              </select>
-            </div>
-          ))}
-        </div>
-        <button
-          onClick={runCompare}
-          disabled={!revA || !revB || revA === revB}
-          className="w-full py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:opacity-90 transition disabled:opacity-40 font-semibold text-sm"
-        >
-          {revA === revB && revA ? 'Select two different revisions' : 'Compare'}
-        </button>
-        {compared && diffs.length === 0 && (
-          <div className="text-center py-4 text-emerald-500 font-semibold">✅ Revisions are identical.</div>
-        )}
-        {diffs.length > 0 && (
-          <ul className="space-y-2">
-            {diffs.map((d, i) => (
-              <li key={i} className="bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 rounded-lg p-3 text-sm font-mono">
-                <div className="font-sans font-semibold text-slate-700 dark:text-slate-300 mb-1">{d.field}</div>
-                <div className="text-red-500 dark:text-red-400 break-all">− {d.before}</div>
-                <div className="text-emerald-500 dark:text-emerald-400 break-all">+ {d.after}</div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-    </div>
-  );
-}
-
 // ── Main Compare page ─────────────────────────────────────────────────────────
 function VerdictBadge({ verdict }: { verdict: ColumnResult['verdict'] }) {
   const map = {
@@ -374,13 +290,6 @@ function VerdictBadge({ verdict }: { verdict: ColumnResult['verdict'] }) {
 }
 
 function CompareMain() {
-  const search = useSearchParams();
-  const mode = search.get('mode');
-  const postId = search.get('postId') ?? '';
-
-  // Revision diff mode (linked from /workflow)
-  if (mode === 'diff' && postId) return <RevisionDiffViewer postId={postId} />;
-
   const [selectedScenario, setSelectedScenario] = useState(SCENARIOS[0].id);
   const [showFindings, setShowFindings] = useState<Record<string, boolean>>({});
   const [running, setRunning] = useState(false);
@@ -416,12 +325,6 @@ function CompareMain() {
           Same prompt, scored by the same deterministic gates + citation-verified findings. Results below are pre-computed
           (labelled as such). State plainly: Brand Gate is slower and uses more LLM calls.
         </p>
-        <div className="mt-2 flex gap-2">
-          <Link href="/compare?mode=diff&postId=post-003"
-            className="text-xs text-indigo-400 hover:underline">
-            → View revision diff for &quot;Safety Banner&quot;
-          </Link>
-        </div>
       </div>
 
       {/* Scenario picker */}

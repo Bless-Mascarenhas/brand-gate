@@ -11,11 +11,12 @@
  * Without provider keys the governed system runs its deterministic stages
  * only and the baseline is recorded as not run; nothing is simulated.
  */
+import './loadEnv';
 import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
 import { getPolicyPack } from '@/src/kb';
-import { callLLM } from '@/src/llm/callLLM';
+import { pacedCaller } from './pace';
 import { buildSingleModelReviewerPrompt } from '@/src/llm/prompts/baseline';
 import { runGovernedReview } from '@/src/pipeline/governed';
 import { verifyCitations } from '@/src/verify/citationVerifier';
@@ -35,19 +36,24 @@ const offline = flag('offline');
 const demoDate = process.env.DEMO_TODAY || '2026-10-24';
 const keys = { gemini: Boolean(process.env.GEMINI_API_KEY), xai: Boolean(process.env.XAI_API_KEY), nvidia: Boolean(process.env.NVIDIA_API_KEY) };
 const baselineLive = !offline && keys.gemini;
-const reviewersLive = !offline && keys.xai && keys.nvidia;
+/** --reviewers xai,nvidia (default: every reviewer whose key is configured). */
+const reviewerArg = (() => { const i = process.argv.indexOf('--reviewers'); return i >= 0 ? process.argv[i + 1] : null; })();
+const reviewerProviders = (reviewerArg ? reviewerArg.split(',') : ['xai', 'nvidia']).filter((p): p is 'xai' | 'nvidia' => (p === 'xai' || p === 'nvidia') && keys[p]);
+const skippedReviewers = (['xai', 'nvidia'] as const).filter((p) => !reviewerProviders.includes(p));
+const reviewersLive = !offline && reviewerProviders.length > 0;
 
 const root = process.cwd();
 const dataset = JSON.parse(fs.readFileSync(path.join(root, 'data', 'benchmark', 'posts.json'), 'utf-8')) as { posts: BenchmarkPost[] };
 const posts = dataset.posts.filter((p) => splitArg === 'all' || p.split === splitArg);
 const pack = getPolicyPack();
+const llm = pacedCaller();
 
 const slim = (f: Finding) => ({ clauseId: f.clauseId, category: f.category, severity: f.severity, agreement: f.agreement, source: (f.source === 'gate' ? 'gate' : 'llm') as 'gate' | 'llm' });
 
 async function runBaseline(p: BenchmarkPost): Promise<Prediction & { ms: number; tokens: number | null }> {
   const started = Date.now();
   const { system, user } = buildSingleModelReviewerPrompt(pack, p.post);
-  const res = await callLLM<{ findings: Record<string, unknown>[] }>({ provider: 'gemini', system, user, purpose: 'benchmark single-model baseline', clauseIdsSent: pack.clauses.map((c) => c.id) });
+  const res = await llm<{ findings: Record<string, unknown>[] }>({ provider: 'gemini', system, user, purpose: 'benchmark single-model baseline', clauseIdsSent: pack.clauses.map((c) => c.id) });
   const raw: Finding[] = (res.ok && Array.isArray(res.data?.findings) ? res.data!.findings : []).map((f, i) => ({
     id: `base-${i}`, source: 'grok', category: String(f.category ?? 'tone') as Category, severity: (['critical', 'major', 'minor', 'info'].includes(String(f.severity)) ? f.severity : 'minor') as Finding['severity'],
     clauseId: String(f.clauseId ?? ''), clauseQuote: String(f.clauseQuote ?? ''), postField: (['caption', 'hashtags', 'alt_text', 'image', 'meta'].includes(String(f.postField)) ? f.postField : 'caption') as Finding['postField'],
@@ -64,7 +70,7 @@ async function runBaseline(p: BenchmarkPost): Promise<Prediction & { ms: number;
 
 async function runGoverned(p: BenchmarkPost): Promise<Prediction & { ms: number; llmCalls: number; verdict: string; score: number }> {
   const started = Date.now();
-  const r = await runGovernedReview(p.post, pack, { demoDate, mode, reviewers: reviewersLive });
+  const r = await runGovernedReview(p.post, pack, { demoDate, mode, reviewers: reviewersLive, reviewerProviders, llm });
   return {
     postId: p.id, findings: r.findings.map(slim), gatesFailed: r.gate.gatesFailed, rawLlmCitations: r.rawLlmFindings.length,
     invalidLlmCitations: r.dropped.length, debateAgreed: r.debateAgreed, debateDisputed: r.debateDisputed,
@@ -84,7 +90,7 @@ function table(name: string, m: SystemMetrics) {
 }
 
 async function main() {
-  console.log(`Benchmark on ${posts.length} posts (split=${splitArg}, mode=${mode}). Baseline: ${baselineLive ? 'LIVE' : 'NOT RUN'}; governed reviewers: ${reviewersLive ? 'LIVE' : 'NOT RUN (deterministic stages only)'}.`);
+  console.log(`Benchmark on ${posts.length} posts (split=${splitArg}, mode=${mode}). Baseline: ${baselineLive ? 'LIVE' : 'NOT RUN'}; governed reviewers: ${reviewersLive ? `LIVE (${reviewerProviders.join(' + ')})` : 'NOT RUN (deterministic stages only)'}.`);
   const governed: Awaited<ReturnType<typeof runGoverned>>[] = [];
   const baseline: Awaited<ReturnType<typeof runBaseline>>[] = [];
   for (const p of posts) {
@@ -101,7 +107,7 @@ async function main() {
   const governedMetrics = metricsFor(governed);
   const baselineMetrics = baselineLive ? metricsFor(baseline) : null;
   for (const s of [...splits, 'all']) {
-    table(`GOVERNED (${reviewersLive ? 'gates + live reviewers' : 'deterministic stages only'}) — ${s}`, governedMetrics[s]);
+    table(`GOVERNED (${reviewersLive ? `gates + live ${reviewerProviders.join(' + ')}` : 'deterministic stages only'}) — ${s}`, governedMetrics[s]);
     if (baselineMetrics) table(`BASELINE single model + policies — ${s}`, baselineMetrics[s]);
   }
 
@@ -118,18 +124,19 @@ async function main() {
       demoDate,
       split: splitArg,
       mode,
-      execution: reviewersLive && baselineLive ? 'live' : reviewersLive || baselineLive ? 'partial_live' : 'deterministic_only',
+      execution: reviewersLive && baselineLive && skippedReviewers.length === 0 ? 'live' : reviewersLive || baselineLive ? 'partial_live' : 'deterministic_only',
       providersConfigured: keys,
       models: { gemini: process.env.GEMINI_TEXT_MODEL ?? null, xai: process.env.XAI_MODEL ?? null, nvidia: process.env.NVIDIA_MODEL ?? null },
       labelsHumanReviewed: `${dataset.posts.filter((p) => p.labelsReviewed).length}/${dataset.posts.length}`,
       caveats: [
         'Synthetic posts and labels written by the same author as the system; small N; not statistically conclusive.',
+        reviewersLive && skippedReviewers.length ? `Governed system ran with reviewer(s) ${reviewerProviders.join(' + ')} only; ${skippedReviewers.join(' + ')} not run (${process.env.BENCHMARK_SKIP_REASON || 'not configured or excluded with --reviewers'}). Without a second reviewer there is no cross-model agreement or debate.` : null,
         reviewersLive ? null : 'Governed system ran its deterministic stages only (gates, verifier, scoring); LLM reviewers were not called because XAI_API_KEY/NVIDIA_API_KEY were not configured or --offline was set.',
         baselineLive ? null : 'Baseline (single model + policies) was NOT run because GEMINI_API_KEY was not configured or --offline was set; no baseline numbers exist for this run.',
       ].filter(Boolean),
     },
     systems: {
-      governed: { status: 'ran', reviewers: reviewersLive ? 'live' : 'not_run', metrics: governedMetrics },
+      governed: { status: 'ran', reviewers: reviewersLive ? 'live' : 'not_run', reviewerProviders: reviewersLive ? reviewerProviders : [], skippedReviewers, metrics: governedMetrics },
       baseline: baselineLive ? { status: 'ran', metrics: baselineMetrics } : { status: 'not_run', reason: offline ? '--offline' : 'GEMINI_API_KEY not configured' },
     },
     perPost: Object.fromEntries(

@@ -131,7 +131,7 @@ export default function VerifyPage() {
             Verify: Multi-Model Audit Pipeline
           </h1>
           <p className="text-sm text-slate-600 dark:text-slate-400">
-            Upload or paste social posts. Deterministic gates execute first, followed by Grok &amp; NVIDIA debate, verbatim citation checks, and code-governed scoring.
+            Upload or paste social posts. Deterministic gates execute first, followed by two independent LLM reviewers (Reviewer A, Reviewer B), verbatim citation checks, and code-governed scoring.
           </p>
         </div>
 
@@ -575,7 +575,7 @@ export default function VerifyPage() {
               <div className="p-5 space-y-4">
                 <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
                   <div className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                    Parallel Reviewers: Grok (Reviewer A) vs NVIDIA (Reviewer B)
+                    Parallel Reviewers: Reviewer A (XAI_MODEL) vs Reviewer B (NVIDIA_MODEL)
                   </div>
                   <button
                     onClick={() => setIsDebateExpanded(!isDebateExpanded)}
@@ -591,7 +591,7 @@ export default function VerifyPage() {
                     {/* Reviewer A Column */}
                     <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-sky-700 dark:text-sky-400">Reviewer A (Grok)</span>
+                        <span className="font-bold text-sky-700 dark:text-sky-400">Reviewer A (XAI_MODEL)</span>
                         <span className="font-mono text-[10px] text-slate-600 dark:text-slate-400">{reviewerAFindings.length} findings</span>
                       </div>
                       {reviewerAFindings.length === 0 ? (
@@ -709,25 +709,25 @@ export default function VerifyPage() {
                       <tr>
                         <td className="py-2 text-indigo-600 font-bold dark:text-indigo-300">tone</td>
                         <td className="py-2">BV</td>
-                        <td className="py-2">Grok / NVIDIA</td>
+                        <td className="py-2">Reviewer A / Reviewer B</td>
                         <td className="py-2 text-slate-600 dark:text-slate-400">Persona &amp; conversational style</td>
                       </tr>
                       <tr>
                         <td className="py-2 text-indigo-600 font-bold dark:text-indigo-300">terminology</td>
                         <td className="py-2">TM</td>
-                        <td className="py-2">Grok / NVIDIA</td>
+                        <td className="py-2">Reviewer A / Reviewer B</td>
                         <td className="py-2 text-slate-600 dark:text-slate-400">Approved vocabulary &amp; slang</td>
                       </tr>
                       <tr>
                         <td className="py-2 text-indigo-600 font-bold dark:text-indigo-300">messaging</td>
                         <td className="py-2">BV, SR</td>
-                        <td className="py-2">Grok / NVIDIA</td>
+                        <td className="py-2">Reviewer A / Reviewer B</td>
                         <td className="py-2 text-slate-600 dark:text-slate-400">Tone &amp; social constraints</td>
                       </tr>
                       <tr>
                         <td className="py-2 text-indigo-600 font-bold dark:text-indigo-300">claims</td>
                         <td className="py-2">CL, AF</td>
-                        <td className="py-2">Grok / NVIDIA</td>
+                        <td className="py-2">Reviewer A / Reviewer B</td>
                         <td className="py-2 text-slate-600 dark:text-slate-400">Substantiation &amp; greenwashing</td>
                       </tr>
                       <tr>

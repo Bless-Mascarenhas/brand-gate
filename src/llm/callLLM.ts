@@ -138,6 +138,7 @@ export async function callLLM<T = any>(params: CallLlmParams<T>): Promise<CallLl
               ? process.env.XAI_BASE_URL || 'https://api.x.ai/v1'
               : process.env.NVIDIA_BASE_URL || 'https://integrate.api.nvidia.com/v1',
           timeout: TIMEOUT_MS,
+          maxRetries: 0, // our loop does the single retry the spec allows; SDK default (2) would triple the wait
         });
 
         const completion = await client.chat.completions.create({
@@ -296,6 +297,8 @@ async function repairViaPrompt(
         provider === 'xai'
           ? process.env.XAI_BASE_URL || 'https://api.x.ai/v1'
           : process.env.NVIDIA_BASE_URL || 'https://integrate.api.nvidia.com/v1',
+      timeout: TIMEOUT_MS,
+      maxRetries: 0,
     });
     const completion = await client.chat.completions.create({
       model,

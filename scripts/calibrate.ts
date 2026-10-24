@@ -9,6 +9,7 @@
  * is run on the dev posts. Test-split posts are filtered out before anything
  * else and `assertDevOnly` re-checks inside every evaluation.
  */
+import './loadEnv';
 import fs from 'fs';
 import path from 'path';
 import { getPolicyPack } from '@/src/kb';

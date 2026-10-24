@@ -3,13 +3,13 @@
   "kind": "sample",
   "id": "sample-11",
   "title": "Sample 11: Ambiguous 3 Emojis (BV vs SR Conflict)",
-  "provenance": "deterministic_recording",
-  "recordedAt": "2026-10-24T14:07:07.309Z",
+  "provenance": "live_recording",
+  "recordedAt": "2026-10-24T15:03:07.197Z",
   "packHash": "pack_93109fd9405c",
   "demoDate": "2026-10-24",
   "generator": "scripts/record-replay.ts",
   "notes": [
-    "Recorded without provider credentials: gates, citation verifier, consensus and scoring ran for real; the two LLM reviewers were not called, so soft-category findings (tone, messaging) are absent."
+    "Recorded from live reviewer calls (xai); replaying does not call any model. Reviewer(s) not run: nvidia (NVIDIA endpoint accepted the key but every tested model (z-ai/glm-5.3, z-ai/glm-5.3-flash, openai/gpt-oss-20b) timed out without a response on 2026-10-24)."
   ],
   "sampleId": 11,
   "post": {
@@ -30,13 +30,13 @@
     },
     {
       "step": "Independent Review",
-      "status": "skipped",
-      "message": "Reviewer calls disabled (deterministic-only run)"
+      "status": "completed",
+      "message": "Reviewer A (XAI_MODEL): 1, Reviewer B (NVIDIA_MODEL): not run"
     },
     {
       "step": "Citation Verifier",
       "status": "completed",
-      "message": "0 verified, 0 hallucinated citations blocked"
+      "message": "1 verified, 0 hallucinated citations blocked"
     },
     {
       "step": "Cross-Examination",
@@ -46,17 +46,17 @@
     {
       "step": "Consensus",
       "status": "completed",
-      "message": "0 LLM findings adjudicated"
+      "message": "1 LLM findings adjudicated"
     },
     {
       "step": "Scoring & Verdict",
       "status": "completed",
-      "message": "BLOCKED (score 85)"
+      "message": "BLOCKED (score 70)"
     }
   ],
   "findings": [
     {
-      "id": "finding-R-SOC-004-1792850827338-0",
+      "id": "finding-R-SOC-004-1792854382530-0",
       "source": "gate",
       "category": "messaging",
       "severity": "major",
@@ -69,17 +69,106 @@
       "confidence": 1,
       "verified": true,
       "agreement": "deterministic"
+    },
+    {
+      "id": "grok-0",
+      "source": "grok",
+      "category": "visual",
+      "severity": "major",
+      "clauseId": "SR-005",
+      "clauseQuote": "A caption must contain a maximum of 2 emojis. While Brand Voice clause BV-005 casually mentions up to 3 emojis, under operational precedence the stricter social rule limit of 2 emojis takes absolute precedence.",
+      "postField": "caption",
+      "postQuote": "✨ 👗 🪔",
+      "explanation": "The caption contains three emojis, exceeding the maximum of two allowed by SR-005, which overrides the brand‑voice allowance. This violates the visual emoji limit and must be reduced.",
+      "suggestedFix": "Remove one emoji, e.g., change caption to \"Bandra weekend pop-up reminder ✨ 👗 Drop by for pre-loved gems! #ThriftIt #WeekendDrop\"",
+      "autoFixable": false,
+      "confidence": 0.9,
+      "verified": true,
+      "agreement": "single_source"
     }
   ],
   "verdict": {
     "status": "BLOCKED",
-    "score": 85,
+    "score": 70,
     "gatesFailed": [
       "SR-005"
     ],
-    "needsHuman": [],
+    "needsHuman": [
+      "Single-source finding on clause SR-005 (major)"
+    ],
     "hallucinationsBlocked": 0
   },
-  "llmCalls": [],
+  "llmCalls": [
+    {
+      "provider": "xai",
+      "model": "openai/gpt-oss-120b",
+      "purpose": "xai independent soft-review",
+      "clauseIdsSent": [
+        "BV-000",
+        "BV-001",
+        "BV-002",
+        "BV-003",
+        "BV-004",
+        "BV-005",
+        "BV-006",
+        "BV-007",
+        "BV-008",
+        "BV-009",
+        "BV-010",
+        "BV-011",
+        "TM-000",
+        "TM-001",
+        "TM-002",
+        "TM-003",
+        "TM-004",
+        "TM-005",
+        "TM-006",
+        "TM-007",
+        "TM-008",
+        "TM-009",
+        "TM-010",
+        "TM-011",
+        "AF-000",
+        "AF-001",
+        "AF-002",
+        "AF-003",
+        "AF-004",
+        "AF-005",
+        "AF-006",
+        "AF-007",
+        "AF-008",
+        "AF-009",
+        "AF-010",
+        "AF-011",
+        "CL-000",
+        "CL-001",
+        "CL-002",
+        "CL-003",
+        "CL-004",
+        "CL-005",
+        "CL-006",
+        "CL-007",
+        "CL-008",
+        "CL-009",
+        "CL-010",
+        "CL-011",
+        "SR-000",
+        "SR-001",
+        "SR-002",
+        "SR-003",
+        "SR-004",
+        "SR-005",
+        "SR-006",
+        "SR-007",
+        "SR-008",
+        "SR-009",
+        "SR-010"
+      ],
+      "tokensIn": 4007,
+      "tokensOut": 1399,
+      "ms": 3784,
+      "ok": true
+    }
+  ],
   "dropped": []
 }

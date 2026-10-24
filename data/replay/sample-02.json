@@ -4,7 +4,7 @@
   "id": "sample-02",
   "title": "Sample 2: Stale Monsoon Offer",
   "provenance": "deterministic_recording",
-  "recordedAt": "2026-10-24T14:07:07.309Z",
+  "recordedAt": "2026-10-24T15:03:07.197Z",
   "packHash": "pack_93109fd9405c",
   "demoDate": "2026-10-24",
   "generator": "scripts/record-replay.ts",
@@ -32,7 +32,7 @@
     {
       "step": "Independent Review",
       "status": "skipped",
-      "message": "Reviewer calls disabled (deterministic-only run)"
+      "message": "Critical gate failed; post is blocked before LLM review"
     },
     {
       "step": "Citation Verifier",
@@ -57,7 +57,7 @@
   ],
   "findings": [
     {
-      "id": "finding-R-FACT-004-1792850827330-0",
+      "id": "finding-R-FACT-004-1792854190429-0",
       "source": "gate",
       "category": "factual_accuracy",
       "severity": "critical",

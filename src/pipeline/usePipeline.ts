@@ -203,7 +203,7 @@ export function usePipeline(options: UsePipelineOptions = {}) {
         let reviewerBFindings: Finding[] = [];
 
         if (!hasCriticalGate && mode === 'live') {
-          addTrace('Independent Review', 'Launching parallel independent reviews (Reviewer A: Grok, Reviewer B: NVIDIA)...', 'running');
+          addTrace('Independent Review', 'Launching parallel independent reviews (Reviewer A: XAI_MODEL, Reviewer B: NVIDIA_MODEL)...', 'running');
 
           const [resA, resB] = await Promise.allSettled([
             fetch('/api/llm/review', {
@@ -292,7 +292,7 @@ export function usePipeline(options: UsePipelineOptions = {}) {
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 provider: 'nvidia',
-                otherProvider: 'Reviewer A (Grok)',
+                otherProvider: 'Reviewer A',
                 findings: verification.verifiedFindings.filter((f) => f.source === 'grok'),
                 post,
               }),

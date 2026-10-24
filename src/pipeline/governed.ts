@@ -34,6 +34,8 @@ export interface GovernedReviewOptions {
   llm?: LlmCaller;
   /** false = deterministic stages only (no reviewer calls), e.g. when no keys are configured. */
   reviewers?: boolean;
+  /** Which independent reviewers to call (default both). A reviewer left out is recorded as not run, not as a failure. */
+  reviewerProviders?: ('xai' | 'nvidia')[];
 }
 
 export interface GovernedReviewResult {
@@ -75,7 +77,7 @@ function toFinding(raw: Record<string, unknown>, source: 'grok' | 'nvidia', i: n
 }
 
 export async function runGovernedReview(post: PostContent, pack: PolicyPack, opts: GovernedReviewOptions = {}): Promise<GovernedReviewResult> {
-  const { demoDate = '2026-10-24', mode = 'fast', llm = callLLM, reviewers = true } = opts;
+  const { demoDate = '2026-10-24', mode = 'fast', llm = callLLM, reviewers = true, reviewerProviders = ['xai', 'nvidia'] } = opts;
   const steps: PipelineStep[] = [];
   const llmCalls: LlmCallLog[] = [];
   const errors: string[] = [];
@@ -98,13 +100,18 @@ export async function runGovernedReview(post: PostContent, pack: PolicyPack, opt
       const { system, user } = buildReviewerPrompt({ providerName: provider, routedClauses: routed, post });
       return llm<{ findings: Record<string, unknown>[] }>({ provider, system, user, purpose: `${provider} independent soft-review`, clauseIdsSent: clauseIds });
     };
-    const [a, b] = await Promise.all([call('xai'), call('nvidia')]);
+    const useA = reviewerProviders.includes('xai');
+    const useB = reviewerProviders.includes('nvidia');
+    const [a, b] = await Promise.all([useA ? call('xai') : null, useB ? call('nvidia') : null]);
     for (const [res, source, set] of [[a, 'grok', (x: Finding[]) => (rawA = x)], [b, 'nvidia', (x: Finding[]) => (rawB = x)]] as const) {
+      if (!res) continue;
       llmCalls.push(res.log);
       if (res.ok) set((Array.isArray(res.data?.findings) ? res.data!.findings : []).map((f, i) => toFinding(f, source, i)));
       else errors.push(res.error ?? `${source} failed`);
     }
-    steps.push({ step: 'Independent Review', status: errors.length === 2 ? 'failed' : 'completed', message: `Reviewer A (Grok): ${rawA.length}, Reviewer B (NVIDIA): ${rawB.length}` });
+    const called = Number(useA) + Number(useB);
+    const label = (used: boolean, n: number) => (used ? String(n) : 'not run');
+    steps.push({ step: 'Independent Review', status: errors.length === called ? 'failed' : 'completed', message: `Reviewer A (XAI_MODEL): ${label(useA, rawA.length)}, Reviewer B (NVIDIA_MODEL): ${label(useB, rawB.length)}` });
   }
 
   const raw = [...rawA, ...rawB];
@@ -117,8 +124,8 @@ export async function runGovernedReview(post: PostContent, pack: PolicyPack, opt
   if (mode === 'thorough' && verifiedA.length > 0) {
     const categories = Array.from(new Set(verifiedA.map((f) => f.category)));
     const routed = getRoutedClausesForCategories(categories, pack);
-    const { system, user } = buildCrosscheckPrompt({ otherReviewerName: 'Reviewer A (Grok)', findingsToReview: verifiedA, routedClauses: routed, post });
-    const res = await llm<{ evaluations: CrosscheckEvaluation[] }>({ provider: 'nvidia', system, user, purpose: 'nvidia crosscheck on Grok findings', clauseIdsSent: routed.map((c) => c.id) });
+    const { system, user } = buildCrosscheckPrompt({ otherReviewerName: 'Reviewer A', findingsToReview: verifiedA, routedClauses: routed, post });
+    const res = await llm<{ evaluations: CrosscheckEvaluation[] }>({ provider: 'nvidia', system, user, purpose: 'nvidia crosscheck on Reviewer A findings', clauseIdsSent: routed.map((c) => c.id) });
     llmCalls.push(res.log);
     if (res.ok) evaluationsFromB = Array.isArray(res.data?.evaluations) ? res.data!.evaluations : [];
     else errors.push(res.error ?? 'crosscheck failed');

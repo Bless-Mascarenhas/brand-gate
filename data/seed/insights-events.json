@@ -203,7 +203,7 @@
     ],
     "hallucinations": [
       {
-        "model": "nvidia",
+        "model": "Reviewer B (NVIDIA_MODEL)",
         "reason": "clauseQuote not found in the cited clause"
       }
     ]
@@ -302,7 +302,7 @@
     ],
     "hallucinations": [
       {
-        "model": "xai (Grok)",
+        "model": "Reviewer A (XAI_MODEL)",
         "reason": "clauseQuote not found in the cited clause"
       }
     ]
@@ -403,7 +403,7 @@
     "findings": [],
     "hallucinations": [
       {
-        "model": "xai (Grok)",
+        "model": "Reviewer A (XAI_MODEL)",
         "reason": "clauseId does not exist in the policy pack"
       }
     ]
@@ -513,7 +513,7 @@
     ],
     "hallucinations": [
       {
-        "model": "xai (Grok)",
+        "model": "Reviewer A (XAI_MODEL)",
         "reason": "postQuote not found in the stated field"
       }
     ]
@@ -628,7 +628,7 @@
     ],
     "hallucinations": [
       {
-        "model": "xai (Grok)",
+        "model": "Reviewer A (XAI_MODEL)",
         "reason": "clauseId does not exist in the policy pack"
       }
     ]
@@ -947,7 +947,7 @@
     ],
     "hallucinations": [
       {
-        "model": "nvidia",
+        "model": "Reviewer B (NVIDIA_MODEL)",
         "reason": "postQuote not found in the stated field"
       }
     ]
@@ -1344,7 +1344,7 @@
     ],
     "hallucinations": [
       {
-        "model": "xai (Grok)",
+        "model": "Reviewer A (XAI_MODEL)",
         "reason": "postQuote not found in the stated field"
       }
     ]
@@ -1786,7 +1786,7 @@
     ],
     "hallucinations": [
       {
-        "model": "nvidia",
+        "model": "Reviewer B (NVIDIA_MODEL)",
         "reason": "clauseId does not exist in the policy pack"
       }
     ]
@@ -2084,7 +2084,7 @@
     ],
     "hallucinations": [
       {
-        "model": "xai (Grok)",
+        "model": "Reviewer A (XAI_MODEL)",
         "reason": "clauseQuote not found in the cited clause"
       }
     ]
@@ -2309,7 +2309,7 @@
     ],
     "hallucinations": [
       {
-        "model": "nvidia",
+        "model": "Reviewer B (NVIDIA_MODEL)",
         "reason": "clauseId does not exist in the policy pack"
       }
     ]
@@ -2400,7 +2400,7 @@
     "findings": [],
     "hallucinations": [
       {
-        "model": "nvidia",
+        "model": "Reviewer B (NVIDIA_MODEL)",
         "reason": "clauseQuote not found in the cited clause"
       }
     ]
@@ -2515,7 +2515,7 @@
     ],
     "hallucinations": [
       {
-        "model": "xai (Grok)",
+        "model": "Reviewer A (XAI_MODEL)",
         "reason": "postQuote not found in the stated field"
       }
     ]
@@ -2880,7 +2880,7 @@
     "findings": [],
     "hallucinations": [
       {
-        "model": "nvidia",
+        "model": "Reviewer B (NVIDIA_MODEL)",
         "reason": "clauseId does not exist in the policy pack"
       }
     ]
@@ -3065,7 +3065,7 @@
     ],
     "hallucinations": [
       {
-        "model": "xai (Grok)",
+        "model": "Reviewer A (XAI_MODEL)",
         "reason": "clauseQuote not found in the cited clause"
       }
     ]
@@ -3164,7 +3164,7 @@
     ],
     "hallucinations": [
       {
-        "model": "nvidia",
+        "model": "Reviewer B (NVIDIA_MODEL)",
         "reason": "clauseQuote not found in the cited clause"
       }
     ]
@@ -3955,7 +3955,7 @@
     "findings": [],
     "hallucinations": [
       {
-        "model": "xai (Grok)",
+        "model": "Reviewer A (XAI_MODEL)",
         "reason": "postQuote not found in the stated field"
       }
     ]
@@ -4164,7 +4164,7 @@
     ],
     "hallucinations": [
       {
-        "model": "nvidia",
+        "model": "Reviewer B (NVIDIA_MODEL)",
         "reason": "clauseId does not exist in the policy pack"
       }
     ]
@@ -4264,7 +4264,7 @@
     ],
     "hallucinations": [
       {
-        "model": "nvidia",
+        "model": "Reviewer B (NVIDIA_MODEL)",
         "reason": "clauseQuote not found in the cited clause"
       }
     ]
@@ -4354,7 +4354,7 @@
     "findings": [],
     "hallucinations": [
       {
-        "model": "xai (Grok)",
+        "model": "Reviewer A (XAI_MODEL)",
         "reason": "postQuote not found in the stated field"
       }
     ]
@@ -4657,7 +4657,7 @@
     ],
     "hallucinations": [
       {
-        "model": "nvidia",
+        "model": "Reviewer B (NVIDIA_MODEL)",
         "reason": "clauseQuote not found in the cited clause"
       }
     ]
@@ -4756,7 +4756,7 @@
     ],
     "hallucinations": [
       {
-        "model": "nvidia",
+        "model": "Reviewer B (NVIDIA_MODEL)",
         "reason": "postQuote not found in the stated field"
       }
     ]
@@ -5358,7 +5358,7 @@
     "findings": [],
     "hallucinations": [
       {
-        "model": "nvidia",
+        "model": "Reviewer B (NVIDIA_MODEL)",
         "reason": "postQuote not found in the stated field"
       }
     ]
@@ -5551,7 +5551,7 @@
     ],
     "hallucinations": [
       {
-        "model": "nvidia",
+        "model": "Reviewer B (NVIDIA_MODEL)",
         "reason": "postQuote not found in the stated field"
       }
     ]
@@ -6083,7 +6083,7 @@
     ],
     "hallucinations": [
       {
-        "model": "nvidia",
+        "model": "Reviewer B (NVIDIA_MODEL)",
         "reason": "clauseId does not exist in the policy pack"
       }
     ]
@@ -6578,7 +6578,7 @@
     "findings": [],
     "hallucinations": [
       {
-        "model": "nvidia",
+        "model": "Reviewer B (NVIDIA_MODEL)",
         "reason": "clauseId does not exist in the policy pack"
       }
     ]
@@ -6983,7 +6983,7 @@
     ],
     "hallucinations": [
       {
-        "model": "xai (Grok)",
+        "model": "Reviewer A (XAI_MODEL)",
         "reason": "clauseId does not exist in the policy pack"
       }
     ]
@@ -7160,7 +7160,7 @@
     "findings": [],
     "hallucinations": [
       {
-        "model": "nvidia",
+        "model": "Reviewer B (NVIDIA_MODEL)",
         "reason": "clauseId does not exist in the policy pack"
       }
     ]
@@ -8037,7 +8037,7 @@
     ],
     "hallucinations": [
       {
-        "model": "nvidia",
+        "model": "Reviewer B (NVIDIA_MODEL)",
         "reason": "postQuote not found in the stated field"
       }
     ]
@@ -8318,7 +8318,7 @@
     "findings": [],
     "hallucinations": [
       {
-        "model": "xai (Grok)",
+        "model": "Reviewer A (XAI_MODEL)",
         "reason": "clauseQuote not found in the cited clause"
       }
     ]
@@ -8589,7 +8589,7 @@
     ],
     "hallucinations": [
       {
-        "model": "nvidia",
+        "model": "Reviewer B (NVIDIA_MODEL)",
         "reason": "clauseId does not exist in the policy pack"
       }
     ]
@@ -9578,7 +9578,7 @@
     ],
     "hallucinations": [
       {
-        "model": "xai (Grok)",
+        "model": "Reviewer A (XAI_MODEL)",
         "reason": "postQuote not found in the stated field"
       }
     ]

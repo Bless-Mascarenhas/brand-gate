@@ -13,10 +13,11 @@
  *                            when no Gemini key was available) — NOT model output
  * A non-live run never overwrites an existing live recording.
  */
+import './loadEnv';
 import fs from 'fs';
 import path from 'path';
 import { getPolicyPack } from '@/src/kb';
-import { callLLM } from '@/src/llm/callLLM';
+import { pacedCaller } from './pace';
 import { buildBaselineGeneratorPrompt } from '@/src/llm/prompts/baseline';
 import { runGovernedGeneration, runGovernedReview } from '@/src/pipeline/governed';
 import { evaluatePost } from '@/src/rules/engine';
@@ -31,10 +32,16 @@ const args = process.argv.slice(2);
 const demoDate = process.env.DEMO_TODAY || '2026-10-24';
 const keys = { gemini: Boolean(process.env.GEMINI_API_KEY), xai: Boolean(process.env.XAI_API_KEY), nvidia: Boolean(process.env.NVIDIA_API_KEY) };
 const forceDeterministic = args.includes('--deterministic');
-const reviewersLive = !forceDeterministic && keys.xai && keys.nvidia;
-const compareLive = !forceDeterministic && keys.gemini && keys.xai && keys.nvidia;
+/** --reviewers xai,nvidia (default: every reviewer whose key is configured). */
+const reviewerArg = (() => { const i = process.argv.indexOf('--reviewers'); return i >= 0 ? process.argv[i + 1] : null; })();
+const reviewerProviders = (reviewerArg ? reviewerArg.split(',') : ['xai', 'nvidia']).filter((p): p is 'xai' | 'nvidia' => (p === 'xai' || p === 'nvidia') && keys[p]);
+const skippedReviewers = (['xai', 'nvidia'] as const).filter((p) => !reviewerProviders.includes(p));
+const reviewersLive = !forceDeterministic && reviewerProviders.length > 0;
+const compareLive = !forceDeterministic && keys.gemini && reviewersLive;
+const reviewerNote = skippedReviewers.length ? ` Reviewer(s) not run: ${skippedReviewers.join(', ')} (${process.env.BENCHMARK_SKIP_REASON || 'not configured or excluded with --reviewers'}).` : '';
 const pack = getPolicyPack();
 const now = new Date().toISOString();
+const llm = pacedCaller();
 
 function report(): number {
   const inv = replayInventory();
@@ -90,14 +97,14 @@ const scoreColumn = (post: PostContent) => {
 
 async function recordSamples() {
   for (const s of SAMPLE_POSTS) {
-    const r = await runGovernedReview(s.post, pack, { demoDate, reviewers: reviewersLive });
+    const r = await runGovernedReview(s.post, pack, { demoDate, reviewers: reviewersLive, reviewerProviders, llm });
     const live = reviewersLive && r.llmCalls.some((c) => c.ok);
     write({
       schemaVersion: 1, kind: 'sample', id: sampleReplayId(s.id), title: s.title,
       provenance: live ? 'live_recording' : 'deterministic_recording',
       recordedAt: now, packHash: pack.hash, demoDate, generator: 'scripts/record-replay.ts',
       notes: live
-        ? ['Recorded from live reviewer calls; replaying does not call any model.']
+        ? [`Recorded from live reviewer calls (${reviewerProviders.join(' + ')}); replaying does not call any model.${reviewerNote}`]
         : ['Recorded without provider credentials: gates, citation verifier, consensus and scoring ran for real; the two LLM reviewers were not called, so soft-category findings (tone, messaging) are absent.'],
       sampleId: s.id, post: s.post, steps: r.steps, findings: r.findings, verdict: r.score.verdict, llmCalls: r.llmCalls,
       dropped: r.dropped.map((f) => ({ clauseId: f.clauseId, source: f.source, reason: r.droppedReasons[f.id] ?? 'failed verification' })),
@@ -107,6 +114,7 @@ async function recordSamples() {
 
 async function recordCompare() {
   for (const sc of COMPARE_SCENARIOS) {
+    try {
     let columns: CompareReplay['columns'];
     let provenance: CompareReplay['provenance'];
     let notes: string[];
@@ -114,14 +122,14 @@ async function recordCompare() {
       const baseline = async (variant: 'bare' | 'policies') => {
         const started = Date.now();
         const { system, user } = buildBaselineGeneratorPrompt(variant, sc.brief, pack);
-        const res = await callLLM<PostContent>({ provider: 'gemini', system, user, purpose: `compare baseline (${variant})`, clauseIdsSent: variant === 'policies' ? pack.clauses.map((c) => c.id) : [] });
+        const res = await llm<PostContent>({ provider: 'gemini', system, user, purpose: `compare baseline (${variant})`, clauseIdsSent: variant === 'policies' ? pack.clauses.map((c) => c.id) : [] });
         if (!res.ok || !res.data) throw new Error(`${variant}: ${res.error}`);
         const post: PostContent = { caption: String(res.data.caption ?? ''), hashtags: Array.isArray(res.data.hashtags) ? res.data.hashtags.map(String) : [], altText: String(res.data.altText ?? ''), format: 'feed_4_5', language: 'en' };
         return { post, logs: [res.log] as LlmCallLog[], ms: Date.now() - started };
       };
       const [a, b] = [await baseline('bare'), await baseline('policies')];
       const started = Date.now();
-      const c = await runGovernedGeneration(sc.brief, pack, { demoDate, maxIterations: 2 });
+      const c = await runGovernedGeneration(sc.brief, pack, { demoDate, maxIterations: 2, reviewerProviders, llm });
       const cMs = Date.now() - started;
       columns = [
         { key: 'bare', label: 'A · Bare AI', provenance: 'live_recording', post: a.post, ...scoreColumn(a.post), llmCalls: a.logs, wallMs: a.ms, note: 'Gemini with the one-line instruction only.' },
@@ -129,7 +137,7 @@ async function recordCompare() {
         { key: 'governed', label: 'C · Governed', provenance: 'live_recording', post: c.post, ...scoreColumn(c.post), pipelineVerdict: c.review.score.verdict, llmCalls: c.llmCalls, wallMs: cMs, note: `Grounded generation + full review, ${c.iterations.length} iteration(s).` },
       ];
       provenance = 'live_recording';
-      notes = ['Recorded from live model calls. Replaying does not call any model.'];
+      notes = [`Recorded from live model calls (Gemini; reviewers ${reviewerProviders.join(' + ')}). Replaying does not call any model.${reviewerNote}`];
     } else {
       const ill = ILLUSTRATIVE[sc.id];
       const governed = await runGovernedReview(ill.policies, pack, { demoDate, reviewers: false });
@@ -150,6 +158,9 @@ async function recordCompare() {
       recordedAt: now, packHash: pack.hash, demoDate, generator: 'scripts/record-replay.ts', notes,
       scenarioId: sc.id, brief: sc.brief, columns,
     });
+    } catch (e) {
+      console.log(`FAILED ${compareReplayId(sc.id)}: ${e instanceof Error ? e.message : String(e)} (previous file kept)`);
+    }
   }
 }
 
@@ -159,8 +170,9 @@ async function main() {
   const bad = report();
   if (args.includes('--check')) process.exit(bad ? 1 : 0);
   console.log(`\nRecording (sample reviewers: ${reviewersLive ? 'LIVE' : 'deterministic'}, compare: ${compareLive ? 'LIVE' : 'illustrative + deterministic'})`);
-  await recordSamples();
-  await recordCompare();
+  const only = args.includes('--only') ? args[args.indexOf('--only') + 1] : null;
+  if (only !== 'compare') await recordSamples();
+  if (only !== 'samples') await recordCompare();
   console.log('\nAfter recording:');
   process.exit(report() ? 1 : 0);
 }

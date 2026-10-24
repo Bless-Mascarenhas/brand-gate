@@ -11,6 +11,7 @@
  *
  * Run: npm run seed
  */
+import './loadEnv';
 import fs from 'fs';
 import path from 'path';
 import { loadPolicyPack, getRoutedClausesForCategories } from '@/src/kb';
@@ -160,7 +161,7 @@ for (let i = 0; i < 98; i++) {
     });
   }
   const hallucinations = rnd() < 0.25
-    ? [{ model: pick(['xai (Grok)', 'nvidia']), reason: pick(HALLUCINATION_REASONS) }]
+    ? [{ model: pick(['Reviewer A (XAI_MODEL)', 'Reviewer B (NVIDIA_MODEL)']), reason: pick(HALLUCINATION_REASONS) }]
     : [];
   const verdict = computeScoreAndVerdict(findings, gate.gatesFailed, hallucinations.length).verdict;
   const ev: CheckEvent = {

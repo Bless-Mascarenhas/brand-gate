@@ -4,7 +4,7 @@
   "id": "sample-08",
   "title": "Sample 8: Accessibility Failures",
   "provenance": "deterministic_recording",
-  "recordedAt": "2026-10-24T14:07:07.309Z",
+  "recordedAt": "2026-10-24T15:03:07.197Z",
   "packHash": "pack_93109fd9405c",
   "demoDate": "2026-10-24",
   "generator": "scripts/record-replay.ts",
@@ -41,7 +41,7 @@
     {
       "step": "Independent Review",
       "status": "skipped",
-      "message": "Reviewer calls disabled (deterministic-only run)"
+      "message": "Critical gate failed; post is blocked before LLM review"
     },
     {
       "step": "Citation Verifier",
@@ -66,7 +66,7 @@
   ],
   "findings": [
     {
-      "id": "finding-R-ACC-001-1792850827336-0",
+      "id": "finding-R-ACC-001-1792854318522-0",
       "source": "gate",
       "category": "accessibility",
       "severity": "critical",
@@ -81,7 +81,7 @@
       "agreement": "deterministic"
     },
     {
-      "id": "finding-R-ACC-003-1792850827336-1",
+      "id": "finding-R-ACC-003-1792854318522-1",
       "source": "gate",
       "category": "accessibility",
       "severity": "minor",
@@ -97,7 +97,7 @@
       "agreement": "deterministic"
     },
     {
-      "id": "finding-R-ACC-004-1792850827336-2",
+      "id": "finding-R-ACC-004-1792854318523-2",
       "source": "gate",
       "category": "accessibility",
       "severity": "minor",

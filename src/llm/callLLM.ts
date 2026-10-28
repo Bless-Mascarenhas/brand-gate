@@ -1,10 +1,9 @@
 import { ZodSchema } from 'zod';
 import OpenAI from 'openai';
-import { GoogleGenAI } from '@google/genai';
 import { LlmCallLog } from '@/src/types';
 import { parseJsonSafe } from './jsonRepair';
 
-export type LlmProvider = 'gemini' | 'groq' | 'nvidia';
+export type LlmProvider = 'groq1' | 'groq2' | 'groq3' | 'gemini' | 'groq' | 'nvidia';
 
 export interface CallLlmParams<T> {
   provider: LlmProvider;
@@ -21,76 +20,129 @@ export interface CallLlmResult<T> {
   rawText?: string;
   log: LlmCallLog;
   error?: string;
-  modeSuggestion?: 'replay';
 }
 
-export const TIMEOUT_MS = 45000; // spec §9: 45 s per call
+export const TIMEOUT_MS = 45000; // 45 s per call
+
+export interface SlotConfig {
+  keyEnv: string;
+  modelEnv: string;
+  baseEnv: string;
+  keyFallback?: string;
+  modelFallback?: string;
+  defaultModel: string;
+  label: string;
+}
+
+export const PROVIDER_SLOTS: Record<LlmProvider, SlotConfig> = {
+  groq1: {
+    keyEnv: 'GROQ_API_KEY_1',
+    modelEnv: 'GROQ_MODEL_1',
+    baseEnv: 'GROQ_BASE_URL_1',
+    keyFallback: 'GROQ_API_KEY',
+    modelFallback: 'GROQ_MODEL',
+    defaultModel: 'openai/gpt-oss-120b',
+    label: 'Groq 1 (GPT OSS 120B)',
+  },
+  groq2: {
+    keyEnv: 'GROQ_API_KEY_2',
+    modelEnv: 'GROQ_MODEL_2',
+    baseEnv: 'GROQ_BASE_URL_2',
+    keyFallback: 'GROQ_API_KEY',
+    modelFallback: 'GROQ_MODEL',
+    defaultModel: 'openai/gpt-oss-20b',
+    label: 'Groq 2 (GPT OSS 20B)',
+  },
+  groq3: {
+    keyEnv: 'GROQ_API_KEY_3',
+    modelEnv: 'GROQ_MODEL_3',
+    baseEnv: 'GROQ_BASE_URL_3',
+    keyFallback: 'GROQ_API_KEY',
+    modelFallback: 'GROQ_MODEL',
+    defaultModel: 'qwen/qwen3.8-27b',
+    label: 'Groq 3 (Qwen 3.8 27B)',
+  },
+  gemini: {
+    keyEnv: 'GROQ_API_KEY_1',
+    modelEnv: 'GROQ_MODEL_1',
+    baseEnv: 'GROQ_BASE_URL_1',
+    keyFallback: 'GEMINI_API_KEY',
+    modelFallback: 'GEMINI_TEXT_MODEL',
+    defaultModel: 'openai/gpt-oss-120b',
+    label: 'Groq 1 (GPT OSS 120B)',
+  },
+  groq: {
+    keyEnv: 'GROQ_API_KEY_2',
+    modelEnv: 'GROQ_MODEL_2',
+    baseEnv: 'GROQ_BASE_URL_2',
+    keyFallback: 'GROQ_API_KEY',
+    modelFallback: 'GROQ_MODEL',
+    defaultModel: 'openai/gpt-oss-20b',
+    label: 'Groq 2 (GPT OSS 20B)',
+  },
+  nvidia: {
+    keyEnv: 'GROQ_API_KEY_3',
+    modelEnv: 'GROQ_MODEL_3',
+    baseEnv: 'GROQ_BASE_URL_3',
+    keyFallback: 'NVIDIA_API_KEY',
+    modelFallback: 'NVIDIA_MODEL',
+    defaultModel: 'qwen/qwen3.8-27b',
+    label: 'Groq 3 (Qwen 3.8 27B)',
+  },
+};
 
 /** Model IDs come only from environment variables (spec §0, §24) — never a hardcoded default. */
 export const MODEL_ENV: Record<LlmProvider, string> = {
-  gemini: 'GEMINI_TEXT_MODEL',
-  groq: 'GROQ_MODEL',
-  nvidia: 'NVIDIA_MODEL',
+  groq1: 'GROQ_MODEL_1',
+  groq2: 'GROQ_MODEL_2',
+  groq3: 'GROQ_MODEL_3',
+  gemini: 'GROQ_MODEL_1',
+  groq: 'GROQ_MODEL_2',
+  nvidia: 'GROQ_MODEL_3',
 };
 
 const GROQ_DEFAULT_BASE = 'https://api.groq.com/openai/v1';
-
-function groqApiKey(): string | undefined {
-  return process.env.GROQ_API_KEY?.trim();
-}
-
-function groqBaseUrl(): string {
-  return process.env.GROQ_BASE_URL?.trim() || GROQ_DEFAULT_BASE;
-}
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function resolveSlot(provider: LlmProvider) {
+  const slot = PROVIDER_SLOTS[provider] || PROVIDER_SLOTS.groq1;
+  const apiKey =
+    process.env[slot.keyEnv]?.trim() ||
+    (slot.keyFallback ? process.env[slot.keyFallback]?.trim() : undefined) ||
+    process.env.GROQ_API_KEY?.trim() ||
+    '';
+
+  const model =
+    process.env[slot.modelEnv]?.trim() ||
+    (slot.modelFallback ? process.env[slot.modelFallback]?.trim() : undefined) ||
+    '';
+
+  const baseUrl =
+    process.env[slot.baseEnv]?.trim() ||
+    process.env.GROQ_BASE_URL?.trim() ||
+    GROQ_DEFAULT_BASE;
+
+  return { slot, apiKey, model, baseUrl };
+}
+
 export async function callLLM<T = any>(params: CallLlmParams<T>): Promise<CallLlmResult<T>> {
   const { provider, system, user, schema, purpose, clauseIdsSent } = params;
   const startTime = Date.now();
-
-  const modelName = process.env[MODEL_ENV[provider]]?.trim() || '';
+  const { slot, apiKey, model: modelName, baseUrl } = resolveSlot(provider);
 
   // Pre-check for API keys
-  if (provider === 'gemini' && !process.env.GEMINI_API_KEY) {
-    return {
-      ok: false,
-      error: 'GEMINI_API_KEY is not configured on the server. Please switch to Replay mode.',
-      modeSuggestion: 'replay',
-      log: {
-        provider,
-        model: modelName,
-        purpose,
-        clauseIdsSent,
-        ms: Date.now() - startTime,
-        ok: false,
-      },
-    };
-  }
+  if (!apiKey) {
+    let keyName = slot.keyEnv;
+    if (provider === 'gemini' && !process.env.GROQ_API_KEY_1) keyName = 'GEMINI_API_KEY';
+    else if (provider === 'groq' && !process.env.GROQ_API_KEY_2) keyName = 'GROQ_API_KEY';
+    else if (provider === 'nvidia' && !process.env.GROQ_API_KEY_3) keyName = 'NVIDIA_API_KEY';
 
-  if (provider === 'groq' && !groqApiKey()) {
     return {
       ok: false,
-      error: 'GROQ_API_KEY is not configured on the server. Please switch to Replay mode.',
-      modeSuggestion: 'replay',
-      log: {
-        provider,
-        model: modelName,
-        purpose,
-        clauseIdsSent,
-        ms: Date.now() - startTime,
-        ok: false,
-      },
-    };
-  }
-
-  if (provider === 'nvidia' && !process.env.NVIDIA_API_KEY) {
-    return {
-      ok: false,
-      error: 'NVIDIA_API_KEY is not configured on the server. Please switch to Replay mode.',
-      modeSuggestion: 'replay',
+      error: `${keyName} is not configured on the server.`,
       log: {
         provider,
         model: modelName,
@@ -103,10 +155,18 @@ export async function callLLM<T = any>(params: CallLlmParams<T>): Promise<CallLl
   }
 
   if (!modelName) {
+    let modelEnvName = slot.modelEnv;
+    if (provider === 'gemini' && process.env.GEMINI_API_KEY && !process.env.GROQ_MODEL_1) {
+      modelEnvName = 'GEMINI_TEXT_MODEL';
+    } else if (provider === 'groq' && process.env.GROQ_API_KEY && !process.env.GROQ_MODEL_2 && !process.env.GROQ_MODEL) {
+      modelEnvName = 'GROQ_MODEL';
+    } else if (provider === 'nvidia' && process.env.NVIDIA_API_KEY && !process.env.GROQ_MODEL_3) {
+      modelEnvName = 'NVIDIA_MODEL';
+    }
+
     return {
       ok: false,
-      error: `${MODEL_ENV[provider]} is not configured on the server. Please switch to Replay mode.`,
-      modeSuggestion: 'replay',
+      error: `${modelEnvName} is not configured on the server.`,
       log: { provider, model: '(not configured)', purpose, clauseIdsSent, ms: Date.now() - startTime, ok: false },
     };
   }
@@ -123,49 +183,25 @@ export async function callLLM<T = any>(params: CallLlmParams<T>): Promise<CallLl
     }
 
     try {
-      if (provider === 'gemini') {
-        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-        const response = await Promise.race([
-          ai.models.generateContent({
-            model: modelName,
-            contents: `${system}\n\nUser:\n${user}`,
-            config: {
-              responseMimeType: 'application/json',
-            },
-          }),
-          new Promise<never>((_, reject) =>
-            setTimeout(() => reject(new Error('LLM call timed out after 45s')), TIMEOUT_MS)
-          ),
-        ]);
+      const client = new OpenAI({
+        apiKey,
+        baseURL: baseUrl,
+        timeout: TIMEOUT_MS,
+        maxRetries: 0,
+      });
 
-        rawResponseText = response.text || '';
-        tokensIn = response.usageMetadata?.promptTokenCount;
-        tokensOut = response.usageMetadata?.candidatesTokenCount;
-      } else {
-        // Groq or NVIDIA using OpenAI SDK
-        const client = new OpenAI({
-          apiKey: provider === 'groq' ? groqApiKey() : process.env.NVIDIA_API_KEY,
-          baseURL:
-            provider === 'groq'
-              ? groqBaseUrl()
-              : process.env.NVIDIA_BASE_URL || 'https://integrate.api.nvidia.com/v1',
-          timeout: TIMEOUT_MS,
-          maxRetries: 0, // our loop does the single retry the spec allows; SDK default (2) would triple the wait
-        });
+      const completion = await client.chat.completions.create({
+        model: modelName,
+        messages: [
+          { role: 'system', content: system },
+          { role: 'user', content: user },
+        ],
+        response_format: { type: 'json_object' },
+      });
 
-        const completion = await client.chat.completions.create({
-          model: modelName,
-          messages: [
-            { role: 'system', content: system },
-            { role: 'user', content: user },
-          ],
-          response_format: { type: 'json_object' },
-        });
-
-        rawResponseText = completion.choices[0]?.message?.content || '';
-        tokensIn = completion.usage?.prompt_tokens;
-        tokensOut = completion.usage?.completion_tokens;
-      }
+      rawResponseText = completion.choices[0]?.message?.content || '';
+      tokensIn = completion.usage?.prompt_tokens;
+      tokensOut = completion.usage?.completion_tokens;
 
       // Success in fetching raw output
       lastError = null;
@@ -183,8 +219,7 @@ export async function callLLM<T = any>(params: CallLlmParams<T>): Promise<CallLl
   if (lastError || !rawResponseText) {
     return {
       ok: false,
-      error: `${provider} provider unavailable (${lastError?.message || 'Empty response'}). Switch to Replay mode.`,
-      modeSuggestion: 'replay',
+      error: `${slot.label} unavailable (${lastError?.message || 'Empty response'}).`,
       log: {
         provider,
         model: modelName,
@@ -201,7 +236,7 @@ export async function callLLM<T = any>(params: CallLlmParams<T>): Promise<CallLl
   if (!parseResult.success) {
     // ONE repair re-prompt attempt if provider is reachable
     try {
-      const repairedResult = await repairViaPrompt(provider, modelName, rawResponseText, system);
+      const repairedResult = await repairViaPrompt(apiKey, baseUrl, modelName, rawResponseText);
       if (repairedResult) {
         rawResponseText = repairedResult;
       }
@@ -217,7 +252,6 @@ export async function callLLM<T = any>(params: CallLlmParams<T>): Promise<CallLl
       ok: false,
       error: `Invalid JSON returned by ${provider}: ${finalParsed.error}`,
       rawText: rawResponseText,
-      modeSuggestion: 'replay',
       log: {
         provider,
         model: modelName,
@@ -239,7 +273,6 @@ export async function callLLM<T = any>(params: CallLlmParams<T>): Promise<CallLl
         error: `JSON schema validation failed: ${valResult.error.message}`,
         rawText: rawResponseText,
         data: finalParsed.data,
-        modeSuggestion: 'replay',
         log: {
           provider,
           model: modelName,
@@ -287,36 +320,23 @@ export async function callLLM<T = any>(params: CallLlmParams<T>): Promise<CallLl
 }
 
 async function repairViaPrompt(
-  provider: LlmProvider,
+  apiKey: string,
+  baseURL: string,
   model: string,
-  brokenJson: string,
-  originalSystem: string
+  brokenJson: string
 ): Promise<string | null> {
   const repairPrompt = `The following output was supposed to be strictly valid JSON, but has formatting syntax errors. Please fix all syntax errors and return ONLY the corrected valid JSON:\n\n${brokenJson}`;
 
-  if (provider === 'gemini') {
-    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-    const res = await ai.models.generateContent({
-      model,
-      contents: `${originalSystem}\n\n${repairPrompt}`,
-      config: { responseMimeType: 'application/json' },
-    });
-    return res.text || null;
-  } else {
-    const client = new OpenAI({
-      apiKey: provider === 'groq' ? groqApiKey() : process.env.NVIDIA_API_KEY,
-      baseURL:
-        provider === 'groq'
-          ? groqBaseUrl()
-          : process.env.NVIDIA_BASE_URL || 'https://integrate.api.nvidia.com/v1',
-      timeout: TIMEOUT_MS,
-      maxRetries: 0,
-    });
-    const completion = await client.chat.completions.create({
-      model,
-      messages: [{ role: 'user', content: repairPrompt }],
-      response_format: { type: 'json_object' },
-    });
-    return completion.choices[0]?.message?.content || null;
-  }
+  const client = new OpenAI({
+    apiKey,
+    baseURL,
+    timeout: TIMEOUT_MS,
+    maxRetries: 0,
+  });
+  const completion = await client.chat.completions.create({
+    model,
+    messages: [{ role: 'user', content: repairPrompt }],
+    response_format: { type: 'json_object' },
+  });
+  return completion.choices[0]?.message?.content || null;
 }

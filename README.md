@@ -60,7 +60,7 @@ This stays as one Next.js app at the repository root so Vercel can deploy the br
 - `app/api/`: backend endpoints deployed as Next.js functions
 - `src/ui/`: reusable interface components and client state
 - `src/llm/`, `src/pipeline/`, `src/rules/`, `src/kb/`, `src/storage/`: server and domain logic
-- `data/`: policies, sample content, benchmarks and recorded runs
+- `data/`: policies, sample test inputs, and benchmarks
 
 ## Prerequisites
 
@@ -76,7 +76,7 @@ Copy-Item .env.example .env.local
 npm run dev
 ```
 
-Open http://localhost:3000. Everything except live model calls works with an empty `.env.local`.
+Open http://localhost:3000. Configure provider keys in `.env.local` to execute live model calls.
 
 ## Environment
 
@@ -102,39 +102,26 @@ Import this GitHub repository in Vercel and keep the project root set to `.`. Ve
 ```powershell
 npm run dev        # development server
 npm run check      # tsc --noEmit && eslint . && vitest run && next build
-npm test           # unit, contract, golden, workflow, insights, compare, benchmark, replay, security and accessibility tests
+npm test           # unit, contract, golden, workflow, insights, compare, benchmark, security and accessibility tests
 npm run lint
 ```
 
 Provider contract tests use mocked responses; no test calls a live model.
 
-## Benchmark, calibration and replays
-
+## Benchmark and calibration
+ 
 ```powershell
 npm run benchmark                    # 60 labelled posts, both systems; writes data/benchmark/results.json
 npm run benchmark -- --split test    # held-out split only
 npm run benchmark -- --offline       # deterministic stages only, no model calls
 npm run calibrate                    # dev split only; writes data/benchmark/calibration.json
-npm run record-replay                # records 12 sample posts + 6 Compare scenarios into data/replay/
-npm run record-replay -- --check     # validates all 18 replays
-npm run seed                         # regenerates labelled sample Workflow posts and Insights history
 ```
 
-Every output records how it was produced. The committed files were generated **without** provider keys: the benchmark ran the governed pipeline's deterministic stages only, the baseline was not run, and the replays are deterministic recordings or hand-written illustrative fixtures. The UI labels all of this. Run the scripts with keys to replace them with live results.
-
-## Replay mode
-
-Toggle **REPLAY** in the top bar, or use the Start-here demo. Replay serves recorded runs from `data/replay/` through `/api/replay`, validates each file against a schema, and badges it "Recorded run, not live" with its provenance. It needs no API keys. When a live call fails (missing key, provider error, rate limit or exhausted budget), the UI offers to switch to Replay.
-
-## Deploy to Vercel
-
-1. Push the repository to GitHub and import it in Vercel (framework: Next.js; build command `npm run build`).
-2. Add the environment variables above in Project → Settings → Environment Variables (server-side; do not prefix keys with `NEXT_PUBLIC_`).
-3. Deploy. API routes run on the Node.js runtime with `maxDuration = 60`; `data/replay` is bundled with `/api/replay` via `outputFileTracingIncludes`.
+All pipeline, compare, and benchmark operations execute live when provider keys are configured. The benchmark evaluates the governed system against a baseline across 60 labelled posts.
 
 ## Known limitations
 
-See `docs/KNOWN_LIMITATIONS.md` (also rendered on the Transparency page). In short: roles are simulated, publishing is a mock, storage is browser-local by default, and no live provider run has been verified in this repository yet. The benchmark is small, synthetic, self-labelled and so far deterministic-only.
+See `docs/KNOWN_LIMITATIONS.md` (also rendered on the Transparency page). In short: roles are simulated, publishing is a mock, storage is browser-local by default, and pipeline runs execute live or report honest provider errors.
 
 ## Contribution statement
 

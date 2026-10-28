@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { readJsonBody, RequestSchemas } from '@/src/llm/http';
 import { verifyLlmAccess } from '@/src/llm/gatekeeper';
-import { GoogleGenAI } from '@google/genai';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -93,42 +92,11 @@ export async function POST(req: NextRequest) {
     // Enforce Thrift-It visual guidelines in prompt
     const enhancedPrompt = `${prompt}. Style: high-end natural light editorial photography for Thrift-It (@thriftit.in). Clean minimalist Mumbai studio background, warm natural sunlight, neutral textures (linen, paper, wood), authentic vintage garment detailing with rich texture, no harsh filters, no watermarks, color palette accents in Thrift Teal (#0E7C7B), Marigold (#F2A900), and Paper (#FAF6EE).`;
 
-    // Attempt Gemini Imagen if API key and model configured
-    if (process.env.GEMINI_API_KEY && process.env.GEMINI_IMAGE_MODEL) {
-      try {
-        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-        let aspectRatio: '1:1' | '3:4' | '4:3' | '9:16' | '16:9' = '3:4';
-        if (format === 'feed_1_1') aspectRatio = '1:1';
-        else if (format === 'story_9_16' || format === 'reel_9_16') aspectRatio = '9:16';
-
-        const result = await ai.models.generateImages({
-          model: process.env.GEMINI_IMAGE_MODEL,
-          prompt: enhancedPrompt,
-          config: {
-            numberOfImages: 1,
-            outputMimeType: 'image/jpeg',
-            aspectRatio,
-          },
-        });
-
-        const imageBytes = result.generatedImages?.[0]?.image?.imageBytes;
-        if (imageBytes) {
-          return NextResponse.json({
-            imageDataUrl: `data:image/jpeg;base64,${imageBytes}`,
-            source: 'gemini-imagen',
-            promptUsed: enhancedPrompt,
-          });
-        }
-      } catch (imagenErr: any) {
-        console.warn('Gemini Imagen unavailable, falling back to aesthetic generator:', imagenErr.message);
-      }
-    }
-
-    // Graceful procedural fallback conforming to brand guidelines
+    // High-fidelity procedural generation conforming to Thrift-It brand guidelines
     const fallbackDataUrl = generateAestheticFallback(enhancedPrompt, format);
     return NextResponse.json({
       imageDataUrl: fallbackDataUrl,
-      source: 'procedural-fallback',
+      source: 'procedural-aesthetic',
       promptUsed: enhancedPrompt,
       festival,
     });

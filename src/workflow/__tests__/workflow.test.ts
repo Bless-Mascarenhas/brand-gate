@@ -23,8 +23,7 @@ import {
   submitForReview,
 } from '@/src/workflow/actions';
 import { revisionWordDiff, summarizeWordDiff } from '@/src/workflow/diff';
-import { SEEDED_WORKFLOW_POSTS, WORKFLOW_KEY, loadWorkflowPosts, saveWorkflowPost } from '@/src/workflow/store';
-import { getPolicyPack } from '@/src/kb';
+import { WORKFLOW_KEY, loadWorkflowPosts, saveWorkflowPost } from '@/src/workflow/store';
 
 const f = (id: string, severity: Finding['severity'], category: Finding['category'], clauseId = 'TM-002'): Finding => ({
   id, source: 'gate', category, severity, clauseId, clauseQuote: 'q', postField: 'caption', postQuote: 'cheap',
@@ -251,38 +250,31 @@ describe('comments and revisions', () => {
 });
 
 describe('persistence through the storage adapter', () => {
-  it('seeds six labelled sample posts on first load', async () => {
+  it('starts with an empty queue on first load', async () => {
     const adapter = memoryAdapter();
     const { posts } = await loadWorkflowPosts(adapter);
-    expect(posts).toHaveLength(6);
-    expect(posts.every((p) => p.isSampleData)).toBe(true);
-    expect(new Set(posts.map((p) => p.state))).toEqual(new Set(['draft', 'in_review', 'changes_requested', 'approved', 'published_mock']));
-    expect(adapter.data.has(WORKFLOW_KEY)).toBe(true);
+    expect(posts).toHaveLength(0);
   });
 
-  it('a comment survives a reload (new load from the same storage)', async () => {
+  it('a saved post survives a reload (new load from the same storage)', async () => {
     const adapter = memoryAdapter();
-    const { posts } = await loadWorkflowPosts(adapter);
-    const updated = addComment(posts[0], ctx('reviewer'), 'Persist me').post;
+    const testPost = post([]);
+    await saveWorkflowPost(testPost, adapter);
+    const loaded = await loadWorkflowPosts(adapter);
+    expect(loaded.posts).toHaveLength(1);
+    const updated = addComment(loaded.posts[0], ctx('reviewer'), 'Persist me').post;
     await saveWorkflowPost(updated, adapter);
     const reloaded = await loadWorkflowPosts(adapter);
-    expect(reloaded.posts.find((p) => p.id === posts[0].id)?.comments.at(-1)?.text).toBe('Persist me');
+    expect(reloaded.posts.find((p) => p.id === testPost.id)?.comments.at(-1)?.text).toBe('Persist me');
     expect(reloaded.recoveredFrom).toBeUndefined();
   });
 
-  it('corrupt stored data is replaced by the seed with an explicit notice', async () => {
+  it('corrupt stored data resets to empty with an explicit notice', async () => {
     const adapter = memoryAdapter();
     await adapter.setItem(WORKFLOW_KEY, { not: 'an array' });
     const res = await loadWorkflowPosts(adapter);
-    expect(res.posts).toHaveLength(6);
+    expect(res.posts).toHaveLength(0);
     expect(res.recoveredFrom).toMatch(/unreadable/);
   });
-
-  it('seeded findings cite clauses that exist in the policy pack', () => {
-    const ids = new Set(getPolicyPack().clauses.map((c) => c.id));
-    for (const p of SEEDED_WORKFLOW_POSTS) {
-      for (const r of [...p.revisions, p.currentRevision]) for (const fd of r.findings) expect(ids.has(fd.clauseId)).toBe(true);
-      expect(p.auditLog.every((a) => a.packHash === getPolicyPack().hash)).toBe(true);
-    }
-  });
 });
+

@@ -101,11 +101,9 @@ function ModelsTab() {
       <Table
         head={['Provider', 'Model env var', 'Used for', 'Data sent', 'Status', 'Retention']}
         rows={[
-          ['Google Gemini (text)', <code key="g">GEMINI_TEXT_MODEL</code>, 'Post drafting (Build), fix suggestions, Compare columns A/B, clarification drafts', 'Brief, routed clause texts and active facts (draft); post + findings (fix); brief + all 8 policy docs (Compare B); one clause + evidence (clarify)', providers.gemini, retention],
-          ['Google Gemini (vision)', <code key="v">GEMINI_VISION_MODEL</code>, 'Perceive: structured description of an uploaded image', 'Re-encoded JPEG (max 1080 px, EXIF/GPS removed)', providers.gemini, retention],
-          ['Google Gemini (image)', <code key="i">GEMINI_IMAGE_MODEL</code>, 'Base image for Build drafts', 'Image prompt text only', 'needs GEMINI_API_KEY + GEMINI_IMAGE_MODEL (not shown in the status chip)', retention],
-          ['Reviewer A: GPT-OSS via Groq', <code key="x">GROQ_MODEL</code>, 'Reviewer A; fallback drafter if Gemini takes over 10 s', 'Post + clauses routed to tone/terminology/messaging/claims/regional', providers.groq, retention],
-          ['NVIDIA', <code key="n">NVIDIA_MODEL</code>, 'Reviewer B; cross-examination in thorough mode', 'Post + routed clauses; Reviewer A’s verified findings (cross-check)', providers.nvidia, retention],
+          ['Groq Slot 1 (Drafter)', <code key="g1">GROQ_MODEL_1</code>, 'Post drafting (Build), fix suggestions, Compare columns A/B, clarification drafts, image perception', 'Brief, routed clause texts and active facts (draft); post + findings (fix); brief + all 8 policy docs (Compare B); one clause + evidence (clarify)', providers.groq1 || providers.gemini, retention],
+          ['Groq Slot 2 (Reviewer A)', <code key="g2">GROQ_MODEL_2</code>, 'Reviewer A: independent policy, tone, and terminology review', 'Post + clauses routed to tone/terminology/messaging/claims/regional', providers.groq2 || providers.groq, retention],
+          ['Groq Slot 3 (Reviewer B)', <code key="g3">GROQ_MODEL_3</code>, 'Reviewer B: second independent auditor & cross-examination in thorough mode', 'Post + routed clauses; Reviewer A’s verified findings (cross-check)', providers.groq3 || providers.nvidia, retention],
           ['Upstash Redis (optional)', <code key="u">UPSTASH_REDIS_REST_URL</code>, 'Rate-limit and daily-budget counters', 'Counter keys containing the client IP and the date; no post content', 'server-only', retention],
           ['Supabase (optional)', <code key="s">SUPABASE_URL</code>, 'Shared key-value storage instead of browser IndexedDB', 'Workflow records, insight events, drafts (only if enabled)', 'server-only', retention],
         ]}
@@ -122,13 +120,12 @@ function DisclosureTab() {
       <Table
         head={['Artefact', 'Produced by', 'Where it is badged']}
         rows={[
-          ['Draft caption, hashtags, alt text, voice-over script', 'Gemini (or GPT-OSS fallback)', 'Build draft card and final card'],
-          ['Base image', 'Gemini image model; wordmark and offer band composited in the browser', 'Build draft card'],
-          ['Fix suggestions', 'Gemini (rule dictionary when offline)', 'Verify → Fix Suggestions'],
-          ['Reviewer findings', 'GPT-OSS and NVIDIA, then verified by code', 'Verify findings show source model and agreement'],
-          ['Clarification suggestions', 'Gemini, or a deterministic template when offline (labelled as such)', 'Insights → Ambiguity Index'],
+          ['Draft caption, hashtags, alt text, voice-over script', 'Groq 1 (or Groq 2 fallback)', 'Build draft card and final card'],
+          ['Base image', 'Procedural aesthetic canvas engine; wordmark and offer band composited in the browser', 'Build draft card'],
+          ['Fix suggestions', 'Groq 1 (rule dictionary when offline)', 'Verify → Fix Suggestions'],
+          ['Reviewer findings', 'Groq 2 and Groq 3, then verified by code', 'Verify findings show source model and agreement'],
+          ['Clarification suggestions', 'Groq 1, or a deterministic template when offline (labelled as such)', 'Insights → Ambiguity Index'],
           ['Benchmark labels and synthetic posts', 'Written with AI assistance; not human-reviewed (0/60)', 'Compare → Benchmark'],
-          ['Illustrative Compare fixtures', 'Hand-written examples, not model output', 'Replay badge “Illustrative fixture”'],
         ]}
       />
     </>
@@ -143,15 +140,14 @@ function DataFlowTab() {
         head={['Step', 'Leaves the browser?', 'Goes to', 'Notes']}
         rows={[
           ['Ingest & purpose extraction', 'No', '—', 'Deterministic, in the browser'],
-          ['Perceive (image)', 'Yes', 'Our server → Gemini vision', 'Server re-encodes the image and strips EXIF/GPS before forwarding'],
+          ['Perceive (image)', 'Yes', 'Our server → Groq 1', 'Server re-encodes the image and strips EXIF/GPS before forwarding'],
           ['Deterministic gates', 'Yes', 'Our server (/api/gates)', 'No model involved'],
-          ['Independent review', 'Yes', 'Our server → GPT-OSS and NVIDIA', 'Post wrapped in <post> delimiters as untrusted data, routed clauses only'],
+          ['Independent review', 'Yes', 'Our server → Groq 2 and Groq 3', 'Post wrapped in <post> delimiters as untrusted data, routed clauses only'],
           ['Citation verifier, consensus, scoring', 'No', '—', 'Pure TypeScript in the browser'],
-          ['Cross-examination (thorough)', 'Yes', 'Our server → NVIDIA', 'Reviewer A’s verified findings + routed clauses'],
-          ['Build drafting / image', 'Yes', 'Our server → Gemini (GPT-OSS fallback)', 'Brief, routed clauses, active facts; image prompt'],
-          ['Compare live run', 'Yes', 'Our server → Gemini, GPT-OSS, NVIDIA', 'Column B sends all 8 policy documents by design (that is what it measures)'],
+          ['Cross-examination (thorough)', 'Yes', 'Our server → Groq 3', 'Reviewer A’s verified findings + routed clauses'],
+          ['Build drafting / image', 'Yes', 'Our server → Groq 1 (Groq 2 fallback)', 'Brief, routed clauses, active facts; image prompt'],
+          ['Compare live run', 'Yes', 'Our server → Groq 1, Groq 2, Groq 3', 'Column B sends all 8 policy documents by design (that is what it measures)'],
           ['Workflow, comments, audit log, insights, feedback', 'No (default)', 'Browser IndexedDB', 'With NEXT_PUBLIC_STORAGE_MODE=supabase: our server (/api/storage) → Supabase'],
-          ['Replay mode', 'No model calls', 'Our server (/api/replay) reads recorded files', 'Works without any API key'],
         ]}
       />
     </>
@@ -228,7 +224,7 @@ function UserTestingTab() {
         <label className="flex flex-col gap-1">Which task did you try? *
           <select required value={form.task} onChange={(e) => setForm({ ...form, task: e.target.value })} aria-invalid={errors.length > 0 && !form.task} className="p-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700">
             <option value="">Choose…</option>
-            {['Watch the recorded demo', 'Verify a sample post', 'Generate a post in Build', 'Approve or reject in Workflow', 'Read Insights', 'Compare the three systems'].map((t) => <option key={t}>{t}</option>)}
+            {['Explore the guided tour', 'Verify a sample post', 'Generate a post in Build', 'Approve or reject in Workflow', 'Read Insights', 'Compare the three systems'].map((t) => <option key={t}>{t}</option>)}
           </select>
         </label>
         <fieldset className="flex flex-col gap-1">
@@ -268,7 +264,7 @@ function TeamTab() {
           ['Verify pipeline, verifier, consensus, scoring', 'src/pipeline, src/verify'],
           ['Build chat, governance loop, canvas compositing', 'app/(shell)/build, src/build, src/canvas'],
           ['Workflow and Insights', 'src/workflow, src/insights'],
-          ['Compare, benchmark, calibration, replay', 'src/compare, src/benchmark, src/replay, scripts'],
+          ['Compare, benchmark, calibration', 'src/compare, src/benchmark, scripts'],
           ['Start here, Transparency, accessibility', 'app/(shell)/start, app/(shell)/transparency, src/ui'],
         ]}
       />
@@ -288,7 +284,6 @@ function SourceTab() {
           ['Run all checks', <code key="c">npm run check</code>],
           ['Rerun the benchmark', <code key="b">npm run benchmark</code>],
           ['Rerun calibration (dev split only)', <code key="k">npm run calibrate</code>],
-          ['Record or validate replays', <code key="p">npm run record-replay (-- --check)</code>],
         ]}
       />
       <p className="text-xs">Full instructions are in README.md.</p>

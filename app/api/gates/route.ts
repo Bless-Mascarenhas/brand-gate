@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
     if (!read.ok) return read.response;
     const body = read.data;
     const post: PostContent = body.post;
-    const demoDate = body.demoDate || process.env.DEMO_TODAY || '2026-10-24';
+    const demoDate = body.demoDate || process.env.DEMO_TODAY || new Date().toISOString().slice(0, 10);
 
     if (!post) {
       return NextResponse.json({ error: 'Missing post data in request body' }, { status: 400 });

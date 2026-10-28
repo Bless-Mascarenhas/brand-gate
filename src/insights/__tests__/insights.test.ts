@@ -13,16 +13,16 @@ import {
   violationsByCategoryOverTime,
   weekOf,
 } from '@/src/insights/aggregate';
-import { SEEDED_INSIGHT_EVENTS, appendInsightEvents, loadAllEvents } from '@/src/insights/store';
+import { appendInsightEvents, loadAllEvents } from '@/src/insights/store';
 import { StorageAdapter } from '@/src/storage';
 import { getPolicyPack } from '@/src/kb';
 
 const check = (over: Partial<CheckEvent>): CheckEvent => ({
-  kind: 'check', id: Math.random().toString(36), ts: '2026-10-21T10:00:00.000Z', sample: false, origin: 'verify', pass: 'first',
+  kind: 'check', id: Math.random().toString(36), ts: '2026-10-21T10:00:00.000Z', origin: 'verify', pass: 'first',
   score: 80, verdict: 'REVISE', checkedClauseIds: ['BV-007', 'TM-002'], findings: [], hallucinations: [], ...over,
 });
 const human = (over: Partial<HumanEvent>): HumanEvent => ({
-  kind: 'human_override', id: Math.random().toString(36), ts: '2026-10-21T11:00:00.000Z', sample: false, role: 'manager', clauseIds: ['BV-007'], reason: 'r', ...over,
+  kind: 'human_override', id: Math.random().toString(36), ts: '2026-10-21T11:00:00.000Z', role: 'manager', clauseIds: ['BV-007'], reason: 'r', ...over,
 });
 
 describe('Ambiguity Index', () => {
@@ -66,7 +66,7 @@ describe('aggregations', () => {
     check({ ts: '2026-10-13T10:00:00.000Z', findings: [{ clauseId: 'TM-002', category: 'terminology', severity: 'major', agreement: 'deterministic', source: 'gate' }, { clauseId: 'CL-002', category: 'claims', severity: 'critical', agreement: 'deterministic', source: 'gate' }], hallucinations: [{ model: 'nvidia', reason: 'clauseId does not exist' }] }),
     check({ ts: '2026-10-20T10:00:00.000Z', pass: 'after_fix', score: 95, verdict: 'READY_FOR_HUMAN', iterations: 2 }),
     check({ ts: '2026-10-21T10:00:00.000Z', pass: 'after_fix', score: 100, verdict: 'READY_FOR_HUMAN', iterations: 1, hallucinations: [{ model: 'groq (GPT-OSS)', reason: 'postQuote not found' }, { model: 'nvidia', reason: 'clauseQuote not found' }] }),
-    human({ role: 'reviewer', kind: 'human_rejection', sample: true }),
+    human({ role: 'reviewer', kind: 'human_rejection' }),
   ];
 
   it('violations by category per week', () => {
@@ -107,8 +107,8 @@ describe('aggregations', () => {
     expect(JSON.stringify(rows)).not.toMatch(/user/);
   });
 
-  it('sample vs live counts', () => {
-    expect(eventCounts(ev)).toEqual({ sample: 1, live: 4, checks: 4, human: 1 });
+  it('checks and human event counts', () => {
+    expect(eventCounts(ev)).toEqual({ total: 5, checks: 4, human: 1 });
   });
 
   it('rule coverage is computed from the real pack', () => {
@@ -122,19 +122,8 @@ describe('aggregations', () => {
   });
 });
 
-describe('seeded vs live events', () => {
-  it('seed has ~120 events, all labelled sample, all clauses real', () => {
-    const ids = new Set(getPolicyPack().clauses.map((c) => c.id));
-    expect(SEEDED_INSIGHT_EVENTS.length).toBeGreaterThanOrEqual(110);
-    expect(SEEDED_INSIGHT_EVENTS.length).toBeLessThanOrEqual(130);
-    expect(SEEDED_INSIGHT_EVENTS.every((e) => e.sample === true)).toBe(true);
-    for (const e of SEEDED_INSIGHT_EVENTS) {
-      const cited = e.kind === 'check' ? e.findings.map((f) => f.clauseId) : e.clauseIds;
-      for (const c of cited) expect(ids.has(c)).toBe(true);
-    }
-  });
-
-  it('live events are stored separately and always labelled live', async () => {
+describe('live events persistence', () => {
+  it('live events are stored and retrieved via adapter', async () => {
     const data = new Map<string, unknown>();
     const adapter: StorageAdapter = {
       getItem: async <T,>(k: string) => (data.get(k) as T) ?? null,
@@ -143,10 +132,11 @@ describe('seeded vs live events', () => {
       listKeys: async () => Array.from(data.keys()),
       clear: async () => data.clear(),
     };
-    await appendInsightEvents([check({ sample: true, id: 'live-1' })], adapter); // caller cannot smuggle sample:true in
+    const initial = await loadAllEvents(adapter);
+    expect(initial).toEqual([]);
+    await appendInsightEvents([check({ id: 'live-1' })], adapter);
     const all = await loadAllEvents(adapter);
-    expect(all.filter((e) => !e.sample).map((e) => e.id)).toEqual(['live-1']);
-    expect(all.filter((e) => e.sample)).toHaveLength(SEEDED_INSIGHT_EVENTS.length);
+    expect(all.map((e) => e.id)).toEqual(['live-1']);
   });
 });
 

@@ -3,7 +3,7 @@ import { readJsonBody, RequestSchemas } from '@/src/llm/http';
 import { verifyLlmAccess } from '@/src/llm/gatekeeper';
 import { analyzeImageBuffer } from '@/src/verify/perception';
 import { InvalidImageError, sanitizeImage } from '@/src/verify/sanitizeImage';
-import { GoogleGenAI } from '@google/genai';
+import OpenAI from 'openai';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -58,14 +58,22 @@ export async function POST(req: NextRequest) {
         console.warn('Image analysis fallback:', err.message);
       }
 
-      // If Gemini API Key exists, query Gemini Vision for structured scene comprehension
-      if (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.trim().length > 0) {
+      // Query Groq 1 for structured scene comprehension
+      const groqKey = process.env.GROQ_API_KEY_1?.trim() || process.env.GROQ_API_KEY?.trim();
+      const groqModel = process.env.GROQ_MODEL_1?.trim() || 'llama-3.3-70b-versatile';
+      const groqBase = process.env.GROQ_BASE_URL_1?.trim() || process.env.GROQ_BASE_URL?.trim() || 'https://api.groq.com/openai/v1';
+
+      if (groqKey) {
         try {
-          const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-          const visionModel = process.env.GEMINI_VISION_MODEL?.trim();
-          if (!visionModel) throw new Error('GEMINI_VISION_MODEL is not configured');
+          const client = new OpenAI({
+            apiKey: groqKey,
+            baseURL: groqBase,
+            timeout: 20000,
+            maxRetries: 0,
+          });
 
           const prompt = `Analyze this Instagram marketing image for Thrift-It, an Indian vintage pre-loved clothing brand.
+Image specifications: aspect ratio ${perception.aspectRatio}, dimensions ${perception.width}x${perception.height}, dominant colors: ${JSON.stringify(perception.dominantColors)}.
 Return ONLY valid JSON matching this schema:
 {
   "visibleText": string[],
@@ -79,34 +87,35 @@ Return ONLY valid JSON matching this schema:
   "claimsInImage": string[]
 }`;
 
-          const res = await Promise.race([
-            ai.models.generateContent({
-              model: visionModel,
-              contents: [
-                prompt,
+          const isVisionModel = groqModel.includes('vision');
+          const messages: any[] = isVisionModel
+            ? [
                 {
-                  inlineData: {
-                    mimeType: clean.mime,
-                    data: clean.buffer.toString('base64'),
-                  },
+                  role: 'user',
+                  content: [
+                    { type: 'text', text: prompt },
+                    { type: 'image_url', image_url: { url: `data:${clean.mime};base64,${clean.buffer.toString('base64')}` } },
+                  ],
                 },
-              ],
-              config: { responseMimeType: 'application/json' },
-            }),
-            new Promise<never>((_, reject) =>
-              setTimeout(() => reject(new Error('Perceive timeout')), 15000)
-            ),
-          ]);
+              ]
+            : [{ role: 'user', content: prompt }];
 
-          if (res.text) {
-            const parsed = JSON.parse(res.text.replace(/```(?:json)?/g, '').trim());
+          const completion = await client.chat.completions.create({
+            model: groqModel,
+            messages,
+            response_format: { type: 'json_object' },
+          });
+
+          const text = completion.choices[0]?.message?.content;
+          if (text) {
+            const parsed = JSON.parse(text.replace(/```(?:json)?/g, '').trim());
             perception = {
               ...perception,
               ...parsed,
             };
           }
-        } catch (visionErr: any) {
-          console.warn('Gemini vision perceive warning:', visionErr.message);
+        } catch (groqErr: any) {
+          console.warn('Groq perception warning:', groqErr.message);
         }
       }
     }

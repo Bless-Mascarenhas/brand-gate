@@ -81,7 +81,6 @@ export interface WorkflowPost {
   changeRequests?: ChangeRequest[];
   createdAt: string;
   updatedAt: string;
-  isSampleData?: boolean;
 }
 
 export interface StateTransitionResult {

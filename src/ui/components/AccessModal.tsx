@@ -19,7 +19,7 @@ export const AccessModal: React.FC = () => {
     const ok = await verifyAccess(code);
     setLoading(false);
     if (!ok) {
-      setError('Invalid Demo Access Code. Please check the README / brief or use Replay Mode.');
+      setError('Invalid Demo Access Code. Please check the README or .env configuration.');
     } else {
       setCode('');
     }
@@ -69,7 +69,7 @@ export const AccessModal: React.FC = () => {
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             <p className="text-sm text-slate-600 dark:text-slate-300">
-              Enter the demo access code to unlock live Gemini, GPT-OSS, and NVIDIA endpoints. Default demo code: <code className="bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded text-indigo-600 dark:text-indigo-400 font-mono text-xs">brandgate2026</code>
+              Enter the demo access code to unlock live Groq LLM endpoints. Default demo code: <code className="bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded text-indigo-600 dark:text-indigo-400 font-mono text-xs">brandgate2026</code>
             </p>
 
             {error && (
@@ -93,8 +93,7 @@ export const AccessModal: React.FC = () => {
               />
             </div>
 
-            <div className="flex items-center justify-between pt-2">
-              <span className="text-xs text-slate-600 dark:text-slate-400">Replay mode works without a code</span>
+            <div className="flex items-center justify-end pt-2">
               <div className="flex gap-2">
                 <button
                   type="button"

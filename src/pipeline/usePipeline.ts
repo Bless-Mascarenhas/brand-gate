@@ -24,7 +24,6 @@ const SOFT_CATEGORIES = ['tone', 'terminology', 'messaging', 'claims', 'regional
 export interface UsePipelineOptions {
   demoDate?: string;
   speedMode?: 'fast' | 'thorough';
-  mode?: 'live' | 'replay';
 }
 
 export interface PipelineState {
@@ -51,9 +50,8 @@ export interface PipelineState {
 
 export function usePipeline(options: UsePipelineOptions = {}) {
   const {
-    demoDate = '2026-10-24',
+    demoDate = typeof process !== 'undefined' && process.env.NEXT_PUBLIC_DEMO_TODAY ? process.env.NEXT_PUBLIC_DEMO_TODAY : new Date().toISOString().slice(0, 10),
     speedMode = 'fast',
-    mode = 'live',
   } = options;
 
   const [state, setState] = useState<PipelineState>({
@@ -202,8 +200,8 @@ export function usePipeline(options: UsePipelineOptions = {}) {
         let reviewerAFindings: Finding[] = [];
         let reviewerBFindings: Finding[] = [];
 
-        if (!hasCriticalGate && mode === 'live') {
-          addTrace('Independent Review', 'Launching parallel independent reviews (Reviewer A: GROQ_MODEL, Reviewer B: NVIDIA_MODEL)...', 'running');
+        if (!hasCriticalGate) {
+          addTrace('Independent Review', 'Launching parallel independent reviews (Reviewer A: Groq 2, Reviewer B: Groq 3)...', 'running');
 
           const [resA, resB] = await Promise.allSettled([
             fetch('/api/llm/review', {
@@ -215,7 +213,11 @@ export function usePipeline(options: UsePipelineOptions = {}) {
                 categories: ['tone', 'terminology', 'messaging', 'claims', 'regional'],
                 perceptionText: perceptionData ? JSON.stringify(perceptionData) : undefined,
               }),
-            }).then((r) => r.json()),
+            }).then(async (r) => {
+              const data = await r.json();
+              if (!r.ok) throw new Error(data.error || `HTTP ${r.status}`);
+              return data;
+            }),
             fetch('/api/llm/review', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -225,7 +227,11 @@ export function usePipeline(options: UsePipelineOptions = {}) {
                 categories: ['tone', 'terminology', 'messaging', 'claims', 'regional'],
                 perceptionText: perceptionData ? JSON.stringify(perceptionData) : undefined,
               }),
-            }).then((r) => r.json()),
+            }).then(async (r) => {
+              const data = await r.json();
+              if (!r.ok) throw new Error(data.error || `HTTP ${r.status}`);
+              return data;
+            }),
           ]);
 
           if (resA.status === 'fulfilled' && resA.value?.findings) {
@@ -238,6 +244,9 @@ export function usePipeline(options: UsePipelineOptions = {}) {
               agreement: 'single_source',
             }));
             if (resA.value.log) collectedLogs.push(resA.value.log);
+          } else {
+            const errA = resA.status === 'rejected' ? resA.reason?.message : (resA.value?.error || 'No response');
+            addTrace('Independent Review', `Reviewer A unavailable: ${errA}`, 'running');
           }
 
           if (resB.status === 'fulfilled' && resB.value?.findings) {
@@ -250,6 +259,9 @@ export function usePipeline(options: UsePipelineOptions = {}) {
               agreement: 'single_source',
             }));
             if (resB.value.log) collectedLogs.push(resB.value.log);
+          } else {
+            const errB = resB.status === 'rejected' ? resB.reason?.message : (resB.value?.error || 'No response');
+            addTrace('Independent Review', `Reviewer B unavailable: ${errB}. Proceeding with single-reviewer path.`, 'running');
           }
         }
 
@@ -284,7 +296,7 @@ export function usePipeline(options: UsePipelineOptions = {}) {
 
         // STEP 6: CROSS-EXAMINATION & DEBATE (Round 1)
         let evaluationsFromB: CrosscheckEvaluation[] = [];
-        if (speedMode === 'thorough' && reviewerAFindings.length > 0 && mode === 'live') {
+        if (speedMode === 'thorough' && reviewerAFindings.length > 0) {
           addTrace('Cross-Examination', 'Running 2-model debate cross-examination on verified findings...', 'running');
           try {
             const crossRes = await fetch('/api/llm/crosscheck', {
@@ -301,9 +313,13 @@ export function usePipeline(options: UsePipelineOptions = {}) {
               const crossData = await crossRes.json();
               evaluationsFromB = crossData.evaluations || [];
               if (crossData.log) collectedLogs.push(crossData.log);
+              addTrace('Cross-Examination', `Completed with ${evaluationsFromB.length} evaluations from Reviewer B`, 'completed');
+            } else {
+              const errData = await crossRes.json().catch(() => ({}));
+              addTrace('Cross-Examination', `Reviewer B unavailable for cross-examination: ${errData.error || `HTTP ${crossRes.status}`}`, 'completed');
             }
           } catch (e: any) {
-            console.warn('Crosscheck error:', e.message);
+            addTrace('Cross-Examination', `Reviewer B unavailable: ${e.message}`, 'completed');
           }
         } else {
           addTrace('Cross-Examination', 'Fast mode selected; skipping multi-model rebuttal round', 'skipped');
@@ -349,7 +365,7 @@ export function usePipeline(options: UsePipelineOptions = {}) {
 
         // STEP 9: FIX SUGGESTIONS
         let fixes: any = null;
-        if (allVerifiedFindings.length > 0 && mode === 'live') {
+        if (allVerifiedFindings.length > 0) {
           addTrace('Fix Suggestions', 'Generating minimal surgical fixes to preserve creator voice...', 'running');
           try {
             const fixRes = await fetch('/api/llm/fix', {
@@ -409,7 +425,7 @@ export function usePipeline(options: UsePipelineOptions = {}) {
               findings: allVerifiedFindings,
               checkedClauseIds: [
                 ...pack.rules.map((r) => r.clause),
-                ...(mode === 'live' ? getRoutedClausesForCategories([...SOFT_CATEGORIES], pack).map((c) => c.id) : []),
+                ...getRoutedClausesForCategories([...SOFT_CATEGORIES], pack).map((c) => c.id),
               ],
               dropped: verification.droppedFindings,
               droppedReasons: verification.droppedReasons,
@@ -439,7 +455,7 @@ export function usePipeline(options: UsePipelineOptions = {}) {
         }));
       }
     },
-    [demoDate, speedMode, mode, state.traceEvents]
+    [demoDate, speedMode, state.traceEvents]
   );
 
   const resetPipeline = () => {

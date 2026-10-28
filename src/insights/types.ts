@@ -14,9 +14,7 @@ export interface CheckEvent {
   kind: 'check';
   id: string;
   ts: string;
-  /** true = seeded sample history, false = produced by a live action in this browser */
-  sample: boolean;
-  origin: 'verify' | 'build' | 'workflow' | 'compare' | 'seed';
+  origin: 'verify' | 'build' | 'workflow' | 'compare';
   pass: 'first' | 'after_fix';
   score: number;
   verdict: Verdict['status'];
@@ -33,7 +31,6 @@ export interface HumanEvent {
   kind: 'human_override' | 'human_rejection';
   id: string;
   ts: string;
-  sample: boolean;
   role: Role;
   clauseIds: string[];
   reason: string;
@@ -42,7 +39,15 @@ export interface HumanEvent {
 
 export type InsightEvent = CheckEvent | HumanEvent;
 
-const MODEL_NAMES: Record<Finding['source'], string> = { groq: 'Reviewer A (GPT-OSS via Groq)', nvidia: 'Reviewer B (NVIDIA_MODEL)', crosscheck: 'crosscheck', gate: 'gate' };
+const MODEL_NAMES: Record<Finding['source'], string> = {
+  groq: 'Reviewer A (Groq 2)',
+  nvidia: 'Reviewer B (Groq 3)',
+  groq1: 'Groq 1 (Drafter)',
+  groq2: 'Reviewer A (Groq 2)',
+  groq3: 'Reviewer B (Groq 3)',
+  crosscheck: 'crosscheck',
+  gate: 'gate',
+};
 
 /** Build a live check event from one pipeline run. */
 export function checkEventFromRun(input: {
@@ -62,7 +67,6 @@ export function checkEventFromRun(input: {
     kind: 'check',
     id: `${input.origin}-${Date.parse(ts)}-${Math.random().toString(36).slice(2, 7)}`,
     ts,
-    sample: false,
     origin: input.origin,
     pass: input.pass,
     score: input.verdict.score,

@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
   const started = Date.now();
   try {
     const out = await runGovernedGeneration(scenario.brief, getPolicyPack(), {
-      demoDate: process.env.DEMO_TODAY || '2026-10-24',
+      demoDate: process.env.DEMO_TODAY || new Date().toISOString().slice(0, 10),
       mode: parsed.data.mode,
       maxIterations: 2, // keeps the request well under the 60 s function limit
     });
@@ -39,6 +39,6 @@ export async function POST(req: NextRequest) {
       serverMs: Date.now() - started,
     });
   } catch (e: unknown) {
-    return NextResponse.json({ error: e instanceof Error ? e.message : String(e), modeSuggestion: 'replay' }, { status: 503 });
+    return NextResponse.json({ error: e instanceof Error ? e.message : String(e) }, { status: 503 });
   }
 }

@@ -3,7 +3,7 @@ import './loadEnv';
 import { callLLM } from '@/src/llm/callLLM';
 
 async function main() {
-  for (const provider of ['gemini', 'groq', 'nvidia'] as const) {
+  for (const provider of ['groq1', 'groq2', 'groq3'] as const) {
     const r = await callLLM<{ ok: boolean }>({ provider, system: 'Reply with JSON only.', user: 'Return {"ok": true}.', purpose: 'smoke test', clauseIdsSent: [] });
     console.log(`${provider.padEnd(7)} ok=${r.ok} model=${r.log.model} ms=${r.log.ms} tokens=${r.log.tokensIn ?? '?'}/${r.log.tokensOut ?? '?'} ${r.ok ? JSON.stringify(r.data) : r.error}`);
   }

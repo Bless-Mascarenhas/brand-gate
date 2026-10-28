@@ -4,16 +4,17 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Role } from '@/src/types';
 
 export interface ProviderStatus {
-  gemini: 'configured' | 'missing' | 'failing';
-  groq: 'configured' | 'missing' | 'failing';
-  nvidia: 'configured' | 'missing' | 'failing';
+  groq1: 'configured' | 'missing' | 'failing';
+  groq2: 'configured' | 'missing' | 'failing';
+  groq3: 'configured' | 'missing' | 'failing';
+  gemini?: 'configured' | 'missing' | 'failing';
+  groq?: 'configured' | 'missing' | 'failing';
+  nvidia?: 'configured' | 'missing' | 'failing';
 }
 
 interface AppContextType {
   role: Role;
   setRole: (role: Role) => void;
-  mode: 'live' | 'replay';
-  setMode: (mode: 'live' | 'replay') => void;
   speedMode: 'fast' | 'thorough';
   setSpeedMode: (speed: 'fast' | 'thorough') => void;
   theme: 'light' | 'dark';
@@ -32,18 +33,20 @@ const AppContext = createContext<AppContextType | null>(null);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [role, setRoleState] = useState<Role>('manager');
-  const [mode, setMode] = useState<'live' | 'replay'>('live');
   const [speedMode, setSpeedMode] = useState<'fast' | 'thorough'>('fast');
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const [hasAccess, setHasAccess] = useState<boolean>(false);
   const [isAccessModalOpen, setIsAccessModalOpen] = useState<boolean>(false);
   const [providers, setProviders] = useState<ProviderStatus>({
+    groq1: 'missing',
+    groq2: 'missing',
+    groq3: 'missing',
     gemini: 'missing',
     groq: 'missing',
     nvidia: 'missing',
   });
 
-  const demoDate = process.env.NEXT_PUBLIC_DEMO_TODAY || '2026-10-24';
+  const demoDate = process.env.NEXT_PUBLIC_DEMO_TODAY || new Date().toISOString().slice(0, 10);
 
   useEffect(() => {
     // Check local storage for preferences
@@ -123,13 +126,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (res.ok) {
         const data = await res.json();
         setProviders(data.providers);
-        if (data.modeSuggestion === 'replay') {
-          setMode('replay');
-        }
       }
     } catch {
       // offline fallback
-      setProviders({ gemini: 'missing', groq: 'missing', nvidia: 'missing' });
+      setProviders({
+        groq1: 'missing',
+        groq2: 'missing',
+        groq3: 'missing',
+        gemini: 'missing',
+        groq: 'missing',
+        nvidia: 'missing',
+      });
     }
   };
 
@@ -138,8 +145,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       value={{
         role,
         setRole,
-        mode,
-        setMode,
         speedMode,
         setSpeedMode,
         theme,

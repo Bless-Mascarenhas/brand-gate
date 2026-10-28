@@ -18,8 +18,6 @@ export const TopBar: React.FC = () => {
   const {
     role,
     setRole,
-    mode,
-    setMode,
     speedMode,
     setSpeedMode,
     theme,
@@ -66,8 +64,8 @@ export const TopBar: React.FC = () => {
 
       {/* Right Controls */}
       <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-        {/* Pinned Demo Date */}
-        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 dark:bg-slate-800 rounded-lg text-xs font-mono text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700" title="Pinned system date so seeded campaigns stay valid/expired as designed">
+        {/* System Demo Date */}
+        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 dark:bg-slate-800 rounded-lg text-xs font-mono text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700" title="System date for validity windows (defaults to current date or DEMO_TODAY)">
           <Calendar className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-300" />
           <span>{demoDate}</span>
         </div>
@@ -86,37 +84,27 @@ export const TopBar: React.FC = () => {
           <span className="capitalize">{speedMode}</span>
         </button>
 
-        {/* Live vs Replay Mode */}
-        <button
-          onClick={() => setMode(mode === 'live' ? 'replay' : 'live')}
-          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border transition ${
-            mode === 'live'
-              ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300'
-              : 'bg-sky-50 dark:bg-sky-950/40 border-sky-300 dark:border-sky-800 text-sky-700 dark:text-sky-300'
-          }`}
-          title="Click to toggle between Live LLM calls and Pre-recorded Offline Replay"
-        >
-          <span className={`w-2 h-2 rounded-full ${mode === 'live' ? 'bg-emerald-500 animate-pulse' : 'bg-sky-500'}`} />
-          <span className="uppercase tracking-wider">{mode}</span>
-        </button>
-
         {/* Provider Status Chips */}
         <div className="hidden lg:flex items-center gap-1.5 px-2 py-1 bg-slate-100 dark:bg-slate-800/60 rounded-lg border border-slate-200 dark:border-slate-700/60">
           <Cpu className="w-3.5 h-3.5 text-slate-600 dark:text-slate-400" />
-          {(['gemini', 'groq', 'nvidia'] as const).map((p) => {
-            const status = providers[p];
+          {([
+            { id: 'groq1', name: 'Groq 1', role: 'Drafter', model: 'GPT OSS 120B' },
+            { id: 'groq2', name: 'Groq 2', role: 'Reviewer A', model: 'GPT OSS 20B' },
+            { id: 'groq3', name: 'Groq 3', role: 'Reviewer B', model: 'Qwen 3.8 27B' },
+          ] as const).map((p) => {
+            const status = providers[p.id];
             const isOk = status === 'configured';
             return (
               <span
-                key={p}
+                key={p.id}
                 className={`text-[10px] font-mono px-1.5 py-0.5 rounded uppercase font-semibold ${
                   isOk
                     ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'
                     : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
                 }`}
-                title={`${p === 'groq' ? 'GPT-OSS via Groq' : p}: ${status} (keys kept on server)`}
+                title={`${p.name} [${p.model}] (${p.role}): ${status} (keys kept on server)`}
               >
-                {p === 'groq' ? 'GPT-OSS' : p}
+                {p.name}
               </span>
             );
           })}

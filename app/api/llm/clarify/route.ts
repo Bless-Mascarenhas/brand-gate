@@ -22,9 +22,9 @@ export async function POST(req: NextRequest) {
   if (!clause) return NextResponse.json({ error: `Unknown clause ${parsed.data.clauseId}` }, { status: 404 });
 
   const { system, user } = buildClarifyPrompt(clause, parsed.data.evidence);
-  const result = await callLLM({ provider: 'gemini', system, user, schema: OutSchema, purpose: 'clarification suggestion', clauseIdsSent: [clause.id] });
+  const result = await callLLM({ provider: 'groq1', system, user, schema: OutSchema, purpose: 'clarification suggestion', clauseIdsSent: [clause.id] });
   if (!result.ok) {
-    return NextResponse.json({ error: result.error, modeSuggestion: result.modeSuggestion, log: result.log }, { status: 503 });
+    return NextResponse.json({ error: result.error, log: result.log }, { status: 503 });
   }
   return NextResponse.json({ ...result.data, model: result.log.model, log: result.log });
 }

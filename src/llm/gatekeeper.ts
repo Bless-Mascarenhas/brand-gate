@@ -73,7 +73,7 @@ export async function verifyLlmAccess(req: NextRequest): Promise<{ authorized: b
       authorized: false,
       response: NextResponse.json(
         {
-          error: 'Unauthorized. Please provide the DEMO_ACCESS_CODE to use live LLM endpoints or switch to Replay Mode.',
+          error: 'Unauthorized. Please provide the DEMO_ACCESS_CODE to use live LLM endpoints.',
           requiresAccessCode: true,
         },
         { status: 401 }
@@ -87,7 +87,7 @@ export async function verifyLlmAccess(req: NextRequest): Promise<{ authorized: b
     return {
       authorized: false,
       response: NextResponse.json(
-        { error: `Rate limit reached (${perMinute} LLM requests per minute). Wait a minute or switch to Replay Mode.`, rateLimited: true, modeSuggestion: 'replay' },
+        { error: `Rate limit reached (${perMinute} LLM requests per minute). Please wait a minute before retrying.`, rateLimited: true },
         { status: 429, headers: { 'Retry-After': '60' } }
       ),
     };
@@ -100,9 +100,8 @@ export async function verifyLlmAccess(req: NextRequest): Promise<{ authorized: b
       authorized: false,
       response: NextResponse.json(
         {
-          error: `Daily LLM call budget (${maxBudget}) exhausted for today. Please switch to Replay Mode to run demonstrations offline.`,
+          error: `Daily LLM call budget (${maxBudget}) exhausted for today.`,
           budgetExhausted: true,
-          modeSuggestion: 'replay',
         },
         { status: 429 }
       ),

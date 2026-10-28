@@ -9,7 +9,7 @@ export interface TourStep { path: string; target: string; title: string; body: s
 export const TOUR_STEPS: TourStep[] = [
   { path: '/start', target: 'architecture', title: '1 of 5 · How a post is governed', body: 'Deterministic gates run first, two reviewers judge tone and messaging, code verifies every citation and computes the verdict, and a human always decides. Select any box for details.' },
   { path: '/company', target: 'pack-hash', title: '2 of 5 · The governed knowledge base', body: 'Eight policy documents, approved facts with validity windows and 47 machine rules. The pack hash identifies exactly which policy version reviewed a post.' },
-  { path: '/verify', target: 'verify-run', title: '3 of 5 · Verify any post', body: 'Pick one of the 12 sample posts and run it. Without API keys, Replay mode plays a recorded run, clearly labelled "Recorded run, not live".' },
+  { path: '/verify', target: 'verify-run', title: '3 of 5 · Verify any post', body: 'Pick one of the 12 example input posts or write your own, then run it live through deterministic gates, independent reviewers, and citation verification.' },
   { path: '/compare', target: 'compare-scenarios', title: '4 of 5 · Bare AI vs AI + policies vs governed', body: 'Six scenarios that tempt violations, scored by the same independent scorer, plus the benchmark measured by scripts/benchmark.ts.' },
   { path: '/workflow', target: 'review-queue', title: '5 of 5 · Humans approve, everything is logged', body: 'Required approvers come from the escalation matrix, only a Manager can override a critical finding, and every action lands in an append-only audit log.' },
 ];

@@ -64,7 +64,7 @@ export interface AmbiguityRow {
   totalChecks: number;
   /** (disputed + overrides + rejections) / totalChecks; null when the clause was never checked. */
   index: number | null;
-  evidence: { kind: 'disputed' | 'human_override' | 'human_rejection'; text: string; sample: boolean }[];
+  evidence: { kind: 'disputed' | 'human_override' | 'human_rejection'; text: string }[];
 }
 
 /**
@@ -74,6 +74,9 @@ export interface AmbiguityRow {
  */
 export function ambiguityForClause(events: InsightEvent[], clauseId: string): AmbiguityRow {
   const row: AmbiguityRow = { clauseId, disputed: 0, overrides: 0, rejections: 0, totalChecks: 0, index: null, evidence: [] };
+  if (!events || events.length === 0) {
+    return row;
+  }
   for (const c of checks(events)) {
     const cited = c.checkedClauseIds.includes(clauseId) || c.findings.some((f) => f.clauseId === clauseId);
     if (!cited) continue;
@@ -81,7 +84,7 @@ export function ambiguityForClause(events: InsightEvent[], clauseId: string): Am
     for (const f of c.findings) {
       if (f.clauseId === clauseId && f.agreement === 'disputed') {
         row.disputed++;
-        row.evidence.push({ kind: 'disputed', text: f.quote ? `Reviewers disagreed on “${f.quote}”` : 'Reviewers disagreed', sample: c.sample });
+        row.evidence.push({ kind: 'disputed', text: f.quote ? `Reviewers disagreed on “${f.quote}”` : 'Reviewers disagreed' });
       }
     }
   }
@@ -89,7 +92,7 @@ export function ambiguityForClause(events: InsightEvent[], clauseId: string): Am
     if (!h.clauseIds.includes(clauseId)) continue;
     if (h.kind === 'human_override') row.overrides++;
     else row.rejections++;
-    row.evidence.push({ kind: h.kind, text: `${h.role}: ${h.reason}`, sample: h.sample });
+    row.evidence.push({ kind: h.kind, text: `${h.role}: ${h.reason}` });
   }
   row.index = row.totalChecks === 0 ? null : (row.disputed + row.overrides + row.rejections) / row.totalChecks;
   return row;
@@ -97,6 +100,7 @@ export function ambiguityForClause(events: InsightEvent[], clauseId: string): Am
 
 /** All clauses with a defined index, highest first. Clauses never checked are excluded (index null). */
 export function ambiguityRanking(events: InsightEvent[], clauseIds: string[]): AmbiguityRow[] {
+  if (!events || events.length === 0) return [];
   return clauseIds
     .map((id) => ambiguityForClause(events, id))
     .filter((r) => r.index !== null && r.index > 0)
@@ -144,10 +148,9 @@ export function humanDecisionsByRole(events: InsightEvent[]): { role: Role; over
   }));
 }
 
-export function eventCounts(events: InsightEvent[]): { sample: number; live: number; checks: number; human: number } {
+export function eventCounts(events: InsightEvent[]): { total: number; checks: number; human: number } {
   return {
-    sample: events.filter((e) => e.sample).length,
-    live: events.filter((e) => !e.sample).length,
+    total: events.length,
     checks: checks(events).length,
     human: humans(events).length,
   };

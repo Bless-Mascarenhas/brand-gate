@@ -87,10 +87,10 @@ export async function runGovernanceLoop(input: GovernanceLoopInput): Promise<Gov
         prompt,
         language,
         format,
-        festival,
+        festival: festival || undefined,
         iteration: iter,
         previousFindings: feedbackList,
-        originalPurpose,
+        originalPurpose: originalPurpose || undefined,
       }),
     });
 

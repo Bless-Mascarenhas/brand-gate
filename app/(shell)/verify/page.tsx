@@ -20,17 +20,18 @@ import { useApp } from '@/src/ui/context/AppContext';
 import { usePipeline } from '@/src/pipeline';
 import { PolicyPack, PostContent } from '@/src/types';
 import { SAMPLE_POSTS, SamplePostItem } from '@/data/samples/samplePosts';
-import { SampleReplayPanel } from '@/src/ui/components/ReplayViewer';
 import { ArchitectureDiagram } from '@/src/ui/components/ArchitectureDiagram';
 import { AiBadge } from '@/src/ui/components/AiBadge';
-import { sampleReplayId } from '@/src/replay/schema';
+import { workflowPostFromVerify } from '@/src/build/toWorkflow';
+import { saveWorkflowPost } from '@/src/workflow/store';
 
 export default function VerifyPage() {
-  const { demoDate, speedMode, mode, setMode } = useApp();
+  const { demoDate, speedMode, role } = useApp();
   const [pack, setPack] = useState<PolicyPack | null>(null);
   const [selectedSampleId, setSelectedSampleId] = useState<number>(1);
   const [activeTab, setActiveTab] = useState<'findings' | 'debate' | 'diff' | 'trace' | 'dataflow'>('findings');
   const [isDebateExpanded, setIsDebateExpanded] = useState(true);
+  const [savedToWorkflow, setSavedToWorkflow] = useState<boolean>(false);
 
   // Form input state
   const [caption, setCaption] = useState<string>(SAMPLE_POSTS[0].post.caption);
@@ -53,12 +54,7 @@ export default function VerifyPage() {
     fixSuggestions,
     runPipeline,
     resetPipeline,
-  } = usePipeline({ demoDate, speedMode, mode });
-
-  // "Run the demo" from Start here lands on /verify?demo=… and must always play a recording (no keys needed).
-  useEffect(() => {
-    if (new URLSearchParams(window.location.search).has('demo')) setMode('replay');
-  }, [setMode]);
+  } = usePipeline({ demoDate, speedMode });
 
   // Load Policy Pack on mount
   useEffect(() => {
@@ -79,11 +75,13 @@ export default function VerifyPage() {
     setFormat(sample.post.format);
     setPaidPartnership(Boolean(sample.post.paidPartnership));
     setLanguage(sample.post.language as any || 'en');
+    setSavedToWorkflow(false);
     resetPipeline();
   };
 
   const handleRun = () => {
     if (!pack) return;
+    setSavedToWorkflow(false);
     const post: PostContent = {
       caption,
       hashtags: hashtagsStr.split(/\s+/).filter(Boolean),
@@ -137,7 +135,7 @@ export default function VerifyPage() {
 
         <div className="flex items-center gap-2">
           <span className="text-xs font-mono text-slate-600 px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 dark:text-slate-400">
-            Mode: <strong className="text-indigo-600 dark:text-indigo-400 uppercase">{speedMode}</strong> ({mode})
+            Speed: <strong className="text-indigo-600 dark:text-indigo-400 uppercase">{speedMode}</strong>
           </span>
           {verdict && (
             <span
@@ -159,9 +157,9 @@ export default function VerifyPage() {
       <div>
         <div className="flex items-center justify-between mb-2">
           <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
-            12 Benchmark Sample Posts (Section 21)
+            12 Example Inputs (Section 21)
           </span>
-          <span className="text-[11px] text-slate-600 dark:text-slate-400">Click any card to load planted test scenario</span>
+          <span className="text-[11px] text-slate-600 dark:text-slate-400">Click any card to load example input scenario</span>
         </div>
         <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
           {SAMPLE_POSTS.map((sample) => {
@@ -178,7 +176,7 @@ export default function VerifyPage() {
               >
                 <div className="flex items-center justify-between w-full">
                   <span className={`text-[10px] font-bold uppercase font-mono ${isSelected ? 'text-indigo-200' : 'text-slate-600 dark:text-slate-400'}`}>
-                    Post #{sample.id}
+                    Example #{sample.id}
                   </span>
                   <span
                     className={`text-[9px] px-1 rounded uppercase font-semibold ${
@@ -307,17 +305,8 @@ export default function VerifyPage() {
 
             {/* Action Buttons */}
             <div className="flex gap-2 pt-2" data-tour="verify-run">
-              {mode === 'replay' && (
-                <button
-                  onClick={() => setMode('live')}
-                  className="flex-1 py-3 px-4 border border-amber-400 text-amber-700 dark:text-amber-300 font-bold text-xs rounded-xl"
-                >
-                  Replay mode: showing the recorded run for sample #{selectedSampleId}. Switch to live
-                </button>
-              )}
               <button
                 onClick={handleRun}
-                hidden={mode === 'replay'}
                 disabled={status === 'running' || !pack}
                 className="flex-1 py-3 px-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-indigo-600/20 transition flex items-center justify-center gap-2 disabled:opacity-50"
               >
@@ -349,8 +338,6 @@ export default function VerifyPage() {
 
         {/* Right Column (7 Cols): Stepper, Verdict, Tabs (Findings, Debate, Diff, Data-Flow) */}
         <div className="lg:col-span-7 space-y-5">
-          {mode === 'replay' && <SampleReplayPanel key={selectedSampleId} id={sampleReplayId(selectedSampleId)} />}
-          <div className={mode === 'replay' ? 'hidden' : 'space-y-5'}>
           <details className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800" open>
             <summary className="cursor-pointer text-xs font-bold uppercase text-slate-600 dark:text-slate-400">Architecture — the active step lights up during a live run</summary>
             <div className="mt-3"><ArchitectureDiagram activeStep={status === 'running' ? currentStep : null} title="Live verification pipeline" /></div>
@@ -421,6 +408,32 @@ export default function VerifyPage() {
                     {verdict.status === 'BLOCKED' && <XCircle className="w-5 h-5 text-red-700 dark:text-red-300" />}
                     <span>{verdict.status}</span>
                   </div>
+                  <button
+                    onClick={async () => {
+                      if (!pack || !verdict) return;
+                      const wfPost = workflowPostFromVerify({
+                        post: { caption, hashtags: hashtagsStr.split(/\s+/).filter(Boolean), altText, format, paidPartnership, language },
+                        verdict,
+                        findings: verifiedFindings,
+                        packHash: pack.hash,
+                        role,
+                        title: caption.slice(0, 50) || `Verified Post #${selectedSampleId}`,
+                      });
+                      await saveWorkflowPost(wfPost);
+                      setSavedToWorkflow(true);
+                    }}
+                    disabled={savedToWorkflow}
+                    className="text-xs px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold flex items-center gap-1.5 transition shadow disabled:opacity-60 shrink-0"
+                  >
+                    {savedToWorkflow ? (
+                      <>
+                        <CheckCircle className="w-3.5 h-3.5" />
+                        <span>Saved to Workflow</span>
+                      </>
+                    ) : (
+                      <span>Send to Workflow</span>
+                    )}
+                  </button>
                 </div>
               </div>
 
@@ -765,7 +778,6 @@ export default function VerifyPage() {
                 )}
               </div>
             )}
-          </div>
           </div>
         </div>
       </div>

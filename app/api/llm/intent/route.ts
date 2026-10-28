@@ -15,8 +15,8 @@ export async function POST(req: NextRequest) {
     const read = await readJsonBody(req, RequestSchemas.intent);
     if (!read.ok) return read.response;
     const body = read.data;
-    const originalPost: PostContent | undefined = body.originalPost;
-    let originalPurpose: Purpose | undefined = body.originalPurpose;
+    const originalPost: PostContent | undefined = body.originalPost || undefined;
+    let originalPurpose: Purpose | undefined = (body.originalPurpose as Purpose) || undefined;
     const revisedCaption: string = body.revisedCaption || '';
 
     if (!originalPurpose && originalPost) {

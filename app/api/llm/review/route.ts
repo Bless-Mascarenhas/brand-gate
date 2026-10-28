@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { readJsonBody, RequestSchemas } from '@/src/llm/http';
 import { verifyLlmAccess } from '@/src/llm/gatekeeper';
-import { callLLM } from '@/src/llm/callLLM';
+import { callLLM, LlmProvider } from '@/src/llm/callLLM';
 import { buildReviewerPrompt } from '@/src/llm/prompts/reviewer';
 import { getPolicyPack, getRoutedClausesForCategories } from '@/src/kb';
 import { Category, PostContent } from '@/src/types';
@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     const read = await readJsonBody(req, RequestSchemas.review);
     if (!read.ok) return read.response;
     const body = read.data;
-    const provider: 'gemini' | 'groq' | 'nvidia' = body.provider || 'gemini';
+    const provider: LlmProvider = (body.provider as LlmProvider) || 'groq2';
     const post: PostContent = body.post;
     const categories: Category[] = body.categories || [
       'tone',
@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
       'claims',
       'regional',
     ];
-    const perceptionText: string | undefined = body.perceptionText;
+    const perceptionText: string | undefined = body.perceptionText || undefined;
 
     if (!post) {
       return NextResponse.json({ error: 'Missing post data in request body' }, { status: 400 });
@@ -55,7 +55,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           error: result.error,
-          modeSuggestion: result.modeSuggestion,
           log: result.log,
         },
         { status: 503 }

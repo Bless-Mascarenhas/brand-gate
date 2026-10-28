@@ -4,21 +4,18 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { Scale, Clock, Cpu, Play, History, AlertTriangle } from 'lucide-react';
+import { Scale, Clock, Cpu, Play, AlertTriangle } from 'lucide-react';
 import { Finding, LlmCallLog, Rule, Verdict } from '@/src/types';
 import { COMPARE_SCENARIOS } from '@/src/compare/scenarios';
 import { CompareMetrics, compareMetrics, runCost } from '@/src/compare/metrics';
-import { CompareReplay, Provenance, compareReplayId } from '@/src/replay/schema';
-import { ProvenanceBadge, RecordedBanner, ReplayError, useReplay } from '@/src/ui/components/ReplayViewer';
 import { useApp } from '@/src/ui/context/AppContext';
-import benchmark from '@/data/benchmark/results.json';
 
 type ColumnKey = 'bare' | 'policies' | 'governed';
 
 interface ColumnView {
   key: ColumnKey;
   label: string;
-  source: 'live' | Provenance;
+  source: 'live';
   status: 'idle' | 'running' | 'done' | 'error';
   post?: { caption: string; hashtags: string[]; altText?: string };
   metrics?: CompareMetrics;
@@ -43,12 +40,11 @@ const verdictClass = (v?: string) =>
   v === 'BLOCKED' ? 'text-red-600 dark:text-red-400' : v === 'REVISE' ? 'text-amber-700 dark:text-amber-400' : 'text-emerald-700 dark:text-emerald-400';
 
 export default function ComparePage() {
-  const { mode, setMode, speedMode, setIsAccessModalOpen } = useApp();
+  const { speedMode, setIsAccessModalOpen } = useApp();
   const [scenarioId, setScenarioId] = useState(COMPARE_SCENARIOS[0].id);
   const [rules, setRules] = useState<Pick<Rule, 'id' | 'type'>[] | null>(null);
-  const [live, setLive] = useState<ColumnView[]>(() => (['bare', 'policies', 'governed'] as ColumnKey[]).map(idle));
+  const [columns, setColumns] = useState<ColumnView[]>(() => (['bare', 'policies', 'governed'] as ColumnKey[]).map(idle));
   const scenario = COMPARE_SCENARIOS.find((s) => s.id === scenarioId)!;
-  const replay = useReplay<CompareReplay>(mode === 'replay' ? compareReplayId(scenarioId) : null);
 
   useEffect(() => {
     fetch('/api/pack').then((r) => r.json()).then((p) => setRules(p.rules)).catch(() => setRules(null));
@@ -56,7 +52,7 @@ export default function ComparePage() {
 
   const runLive = async () => {
     if (!rules) return;
-    setLive((cols) => cols.map((c) => ({ ...idle(c.key), status: 'running' })));
+    setColumns((cols) => cols.map((c) => ({ ...idle(c.key), status: 'running' })));
     const call = async (key: ColumnKey): Promise<ColumnView> => {
       const started = performance.now();
       const url = key === 'governed' ? '/api/compare/governed' : '/api/llm/baseline';
@@ -82,18 +78,11 @@ export default function ComparePage() {
     const keys: ColumnKey[] = ['bare', 'policies', 'governed'];
     await Promise.all(keys.map(async (k) => {
       const col = await call(k);
-      setLive((cols) => cols.map((c) => (c.key === k ? col : c)));
+      setColumns((cols) => cols.map((c) => (c.key === k ? col : c)));
     }));
   };
 
-  const replayColumns: ColumnView[] | null = replay.replay
-    ? replay.replay.columns.map((c) => ({
-        key: c.key, label: c.label, source: c.provenance, status: 'done', post: c.post, metrics: c.metrics, findings: c.findings,
-        pipelineVerdict: c.pipelineVerdict, llmCalls: c.llmCalls, wallMs: c.wallMs, note: c.note,
-      }))
-    : null;
-  const columns = mode === 'replay' ? replayColumns : live;
-  const anyError = mode === 'live' && live.some((c) => c.status === 'error');
+  const anyError = columns.some((c) => c.status === 'error');
 
   return (
     <div className="space-y-6">
@@ -111,18 +100,10 @@ export default function ComparePage() {
       <section data-tour="compare-scenarios" className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-200">Scenario</h2>
-          <div role="radiogroup" aria-label="Run mode" className="flex gap-1 text-xs">
-            {(['live', 'replay'] as const).map((m) => (
-              <button key={m} role="radio" aria-checked={mode === m} onClick={() => setMode(m)}
-                className={`px-3 py-1 rounded-md border ${mode === m ? 'bg-indigo-600 text-white border-indigo-600' : 'border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300'}`}>
-                {m === 'live' ? 'Live models' : 'Replay (recorded)'}
-              </button>
-            ))}
-          </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
           {COMPARE_SCENARIOS.map((s) => (
-            <button key={s.id} onClick={() => { setScenarioId(s.id); setLive((cols) => cols.map((c) => idle(c.key))); }} aria-pressed={scenarioId === s.id}
+            <button key={s.id} onClick={() => { setScenarioId(s.id); setColumns((cols) => cols.map((c) => idle(c.key))); }} aria-pressed={scenarioId === s.id}
               className={`text-left p-3 rounded-lg border text-xs transition ${scenarioId === s.id ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-950/40' : 'border-slate-200 dark:border-slate-700 hover:border-indigo-300'}`}>
               <div className="font-semibold text-slate-800 dark:text-slate-100">{s.label}</div>
               <div className="text-slate-600 dark:text-slate-400 mt-0.5">{s.tempts}</div>
@@ -132,33 +113,22 @@ export default function ComparePage() {
         <div className="text-xs p-3 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
           <strong>Brief sent to all three:</strong> {scenario.brief}
         </div>
-        {mode === 'live' ? (
-          <button onClick={runLive} disabled={!rules || live.some((c) => c.status === 'running')}
-            className="w-full py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold disabled:opacity-50 flex items-center justify-center gap-2">
-            <Play className="w-4 h-4" />{live.some((c) => c.status === 'running') ? 'Running three systems…' : 'Run live comparison (uses real model calls)'}
-          </button>
-        ) : (
-          <p className="text-xs text-slate-600 flex items-center gap-1 dark:text-slate-400"><History className="w-3.5 h-3.5" />Replay shows a recorded run for this scenario; no model is called.</p>
-        )}
+        <button onClick={runLive} disabled={!rules || columns.some((c) => c.status === 'running')}
+          className="w-full py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold disabled:opacity-50 flex items-center justify-center gap-2">
+          <Play className="w-4 h-4" />{columns.some((c) => c.status === 'running') ? 'Running three systems live…' : 'Run live comparison (uses real model calls)'}
+        </button>
         {anyError && (
           <div role="alert" className="text-xs p-3 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 text-amber-800 dark:text-amber-300 flex flex-wrap items-center gap-2">
             <AlertTriangle className="w-4 h-4" />
-            One or more systems could not run live (missing keys, access code, provider failure or exhausted budget).
-            {live.some((c) => c.needsAccess) && <button onClick={() => setIsAccessModalOpen(true)} className="underline">Enter access code</button>}
-            <button onClick={() => setMode('replay')} className="px-2 py-1 rounded bg-amber-700 text-white font-semibold">Switch to Replay mode</button>
+            One or more systems encountered an error during live execution (missing keys, provider timeout, or provider failure).
+            {columns.some((c) => c.needsAccess) && <button onClick={() => setIsAccessModalOpen(true)} className="underline font-semibold ml-1">Enter access code</button>}
           </div>
         )}
       </section>
 
-      {mode === 'replay' && replay.loading && <p className="text-xs text-slate-600 dark:text-slate-400">Loading recorded run…</p>}
-      {mode === 'replay' && replay.error && <ReplayError error={replay.error} />}
-      {mode === 'replay' && replay.replay && <RecordedBanner replay={replay.replay} />}
-
-      {columns && (
-        <div className="grid md:grid-cols-3 gap-4">
-          {columns.map((c) => <Column key={c.key} col={c} />)}
-        </div>
-      )}
+      <div className="grid md:grid-cols-3 gap-4">
+        {columns.map((c) => <Column key={c.key} col={c} />)}
+      </div>
 
       <TradeOffs columns={columns} />
       <BenchmarkSection />
@@ -173,12 +143,17 @@ function Column({ col }: { col: ColumnView }) {
     <div className={`bg-white dark:bg-slate-900 border rounded-xl p-4 space-y-3 ${col.key === 'governed' ? 'border-indigo-300 dark:border-indigo-700' : 'border-slate-200 dark:border-slate-800'}`}>
       <div className="flex items-center justify-between gap-2">
         <div className="font-bold text-slate-900 dark:text-white">{col.label}</div>
-        {col.source === 'live' ? <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300">Live run</span> : <ProvenanceBadge provenance={col.source} />}
+        <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300">Live call</span>
       </div>
       <p className="text-[11px] text-slate-600 dark:text-slate-400">{col.note}</p>
-      {col.status === 'idle' && <p className="text-xs text-slate-600 dark:text-slate-400">Not run yet.</p>}
-      {col.status === 'running' && <p className="text-xs text-indigo-600 animate-pulse dark:text-indigo-300">Running…</p>}
-      {col.status === 'error' && <p role="alert" className="text-xs text-red-600 dark:text-red-400">{col.error}</p>}
+      {col.status === 'idle' && <p className="text-xs text-slate-600 dark:text-slate-400">Not run yet. Click &quot;Run live comparison&quot; above.</p>}
+      {col.status === 'running' && <p className="text-xs text-indigo-600 animate-pulse dark:text-indigo-300">Running live call…</p>}
+      {col.status === 'error' && (
+        <div role="alert" className="p-3 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-xs text-red-700 dark:text-red-300 space-y-1">
+          <div className="font-bold flex items-center gap-1"><AlertTriangle className="w-3.5 h-3.5" /> Call Failed</div>
+          <div>{col.error}</div>
+        </div>
+      )}
       {m && (
         <>
           <div className="flex items-end gap-3">
@@ -249,10 +224,53 @@ type SplitMetrics = { tp: number; fp: number; fn: number; precision: number | nu
 const pct = (x: number | null | undefined) => (x === null || x === undefined ? 'n/a' : `${Math.round(x * 100)}%`);
 
 function BenchmarkSection() {
-  const meta = benchmark.meta;
-  const gov = benchmark.systems.governed.metrics as unknown as Record<string, SplitMetrics>;
-  const baseRun = benchmark.systems.baseline.status === 'ran';
-  const base = baseRun ? ((benchmark.systems.baseline as unknown as { metrics: Record<string, SplitMetrics> }).metrics) : null;
+  const [benchmarkData, setBenchmarkData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/benchmark')
+      .then((r) => r.json())
+      .then((res) => {
+        if (res.available && res.data) {
+          setBenchmarkData(res.data);
+        } else {
+          setBenchmarkData(null);
+        }
+      })
+      .catch(() => setBenchmarkData(null))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <section className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 space-y-4">
+        <h2 className="font-bold text-slate-800 dark:text-white">Benchmark</h2>
+        <p className="text-xs text-slate-600 dark:text-slate-400">Checking for benchmark results…</p>
+      </section>
+    );
+  }
+
+  if (!benchmarkData) {
+    return (
+      <section className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 space-y-4">
+        <div>
+          <h2 className="font-bold text-slate-800 dark:text-white">Benchmark</h2>
+          <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+            Evaluates the governed system against a baseline across 60 labelled posts.
+          </p>
+        </div>
+        <div className="p-8 text-center text-xs text-slate-600 dark:text-slate-400 border border-dashed border-slate-200 dark:border-slate-800 rounded-xl space-y-1">
+          <div className="font-semibold text-slate-700 dark:text-slate-300">No benchmark run yet</div>
+          <div>Run <code className="font-mono bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-indigo-600 dark:text-indigo-400">npm run benchmark</code> with provider keys configured to produce real live metrics.</div>
+        </div>
+      </section>
+    );
+  }
+
+  const meta = benchmarkData.meta;
+  const gov = benchmarkData.systems.governed.metrics as unknown as Record<string, SplitMetrics>;
+  const baseRun = benchmarkData.systems.baseline.status === 'ran';
+  const base = baseRun ? ((benchmarkData.systems.baseline as unknown as { metrics: Record<string, SplitMetrics> }).metrics) : null;
   const split = gov.test ? 'test' : 'all';
   const cats = Object.keys(gov[split].perCategory).sort();
   const chart = cats.map((c) => ({ category: c, governed: gov[split].perCategory[c].recall === null ? 0 : Math.round(gov[split].perCategory[c].recall! * 100), ...(base ? { baseline: base[split].perCategory[c]?.recall == null ? 0 : Math.round(base[split].perCategory[c].recall! * 100) } : {}) }));
@@ -261,12 +279,12 @@ function BenchmarkSection() {
   return (
     <section className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 space-y-4">
       <div>
-        <h2 className="font-bold text-slate-800 dark:text-white">Benchmark (pre-computed)</h2>
+        <h2 className="font-bold text-slate-800 dark:text-white">Benchmark Results</h2>
         <p className="text-xs text-slate-600 dark:text-slate-400">
           Computed on {meta.computedAt.slice(0, 10)} from <code>scripts/benchmark.ts</code> (commit {meta.gitCommit}); run it yourself with <code>npm run benchmark</code>.
           Execution: <strong>{meta.execution.replace('_', ' ')}</strong>. Labels human-reviewed: <strong>{meta.labelsHumanReviewed}</strong>. Showing the held-out {split} split.
         </p>
-        <ul className="mt-1 text-xs text-amber-700 dark:text-amber-300 list-disc pl-4">{meta.caveats.map((c, i) => <li key={i}>{c}</li>)}</ul>
+        <ul className="mt-1 text-xs text-amber-700 dark:text-amber-300 list-disc pl-4">{meta.caveats.map((c: string, i: number) => <li key={i}>{c}</li>)}</ul>
       </div>
       <div className="grid sm:grid-cols-2 gap-3">
         {systems.map(([name, m]) => (
@@ -279,7 +297,7 @@ function BenchmarkSection() {
                 <span>Hallucinated citations {m.hallucinatedCitations}</span><span>Caught only by gates {m.caughtOnlyByGates}</span>
                 <span>TP / FP / FN</span><span>{m.tp} / {m.fp} / {m.fn}</span>
               </div>
-            ) : <p className="text-slate-600 dark:text-slate-400">Not run — {(benchmark.systems.baseline as { reason?: string }).reason}. No numbers are shown rather than invented ones.</p>}
+            ) : <p className="text-slate-600 dark:text-slate-400">Not run — {(benchmarkData.systems.baseline as { reason?: string }).reason}. No numbers are shown rather than invented ones.</p>}
           </div>
         ))}
       </div>

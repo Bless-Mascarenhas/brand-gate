@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { readJsonBody, RequestSchemas } from '@/src/llm/http';
 import { verifyLlmAccess } from '@/src/llm/gatekeeper';
-import { callLLM } from '@/src/llm/callLLM';
+import { callLLM, LlmProvider } from '@/src/llm/callLLM';
 import { buildCrosscheckPrompt } from '@/src/llm/prompts/crosscheck';
 import { getPolicyPack, getRoutedClausesForCategories } from '@/src/kb';
 import { Finding, PostContent, Category } from '@/src/types';
@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     const read = await readJsonBody(req, RequestSchemas.crosscheck);
     if (!read.ok) return read.response;
     const body = read.data;
-    const provider: 'gemini' | 'groq' | 'nvidia' = body.provider || 'gemini';
+    const provider: LlmProvider = (body.provider as LlmProvider) || 'groq3';
     const otherProvider: string = body.otherProvider || 'Other Reviewer';
     const findings: Finding[] = body.findings || [];
     const post: PostContent = body.post;
@@ -53,7 +53,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           error: result.error,
-          modeSuggestion: result.modeSuggestion,
           log: result.log,
         },
         { status: 503 }

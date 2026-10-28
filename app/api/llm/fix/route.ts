@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
       correctedHashtags: string[];
       diffSummary: string;
     }>({
-      provider: 'gemini',
+      provider: 'groq1',
       system,
       user,
       purpose: 'Generate minimal surgical fixes for findings',
@@ -41,7 +41,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           error: result.error,
-          modeSuggestion: result.modeSuggestion,
           log: result.log,
         },
         { status: 503 }

@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
   const { system, user } = buildBaselineGeneratorPrompt(parsed.data.variant, scenario.brief, pack);
   const started = Date.now();
   const result = await callLLM({
-    provider: 'gemini',
+    provider: 'groq1',
     system,
     user,
     schema: OutSchema,
@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
     clauseIdsSent: parsed.data.variant === 'policies' ? pack.clauses.map((c) => c.id) : [],
   });
   if (!result.ok || !result.data) {
-    return NextResponse.json({ error: result.error, modeSuggestion: result.modeSuggestion ?? 'replay', log: result.log }, { status: 503 });
+    return NextResponse.json({ error: result.error, log: result.log }, { status: 503 });
   }
   return NextResponse.json({
     variant: parsed.data.variant,

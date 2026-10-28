@@ -28,7 +28,7 @@ export async function readJsonBody<S extends ZodTypeAny>(req: NextRequest, schem
   return { ok: true, data: parsed.data };
 }
 
-const Provider = z.enum(['gemini', 'groq', 'nvidia']);
+const Provider = z.enum(['gemini', 'groq', 'nvidia', 'groq1', 'groq2', 'groq3']);
 const ShortText = (max: number) => z.string().max(max);
 const Findings = z.array(FindingSchema).max(50);
 
@@ -38,23 +38,23 @@ export const ImageDataUrl = z
   .regex(/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/, 'must be a base64 JPEG, PNG or WebP data URL');
 
 export const RequestSchemas = {
-  gates: z.object({ post: PostContentSchema, demoDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional() }),
-  review: z.object({ provider: Provider.optional(), post: PostContentSchema, categories: z.array(CategorySchema).max(10).optional(), perceptionText: ShortText(5000).optional() }),
-  crosscheck: z.object({ provider: Provider.optional(), otherProvider: ShortText(100).optional(), findings: Findings.optional(), post: PostContentSchema }),
-  fix: z.object({ post: PostContentSchema, findings: Findings.optional() }),
-  intent: z.object({ originalPost: PostContentSchema.optional(), originalPurpose: PurposeSchema.partial().extend({ summary: z.string().default(''), requiredElements: z.array(z.string()).default([]) }).optional(), revisedCaption: ShortText(5000).optional() }),
+  gates: z.object({ post: PostContentSchema, demoDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional() }),
+  review: z.object({ provider: Provider.optional(), post: PostContentSchema, categories: z.array(CategorySchema).max(10).nullable().optional(), perceptionText: ShortText(5000).nullable().optional() }),
+  crosscheck: z.object({ provider: Provider.optional(), otherProvider: ShortText(100).nullable().optional(), findings: Findings.nullable().optional(), post: PostContentSchema }),
+  fix: z.object({ post: PostContentSchema, findings: Findings.nullable().optional() }),
+  intent: z.object({ originalPost: PostContentSchema.nullable().optional(), originalPurpose: PurposeSchema.partial().extend({ summary: z.string().default(''), requiredElements: z.array(z.string()).default([]) }).nullable().optional(), revisedCaption: ShortText(5000).nullable().optional() }),
   generate: z.object({
     prompt: z.string().min(1).max(2000),
-    language: z.enum(['en', 'hinglish']).optional(),
-    format: z.enum(['feed_4_5', 'feed_1_1', 'story_9_16']).optional(),
-    festival: ShortText(50).optional(),
-    iteration: z.number().int().min(1).max(5).optional(),
-    previousFindings: z.array(ShortText(1000)).max(50).optional(),
-    originalPurpose: z.record(z.unknown()).optional(),
+    language: z.enum(['en', 'hinglish']).nullable().optional(),
+    format: z.enum(['feed_4_5', 'feed_1_1', 'story_9_16']).nullable().optional(),
+    festival: ShortText(50).nullable().optional(),
+    iteration: z.number().int().min(1).max(5).nullable().optional(),
+    previousFindings: z.array(ShortText(1000)).max(50).nullable().optional(),
+    originalPurpose: z.record(z.unknown()).nullable().optional(),
   }),
-  image: z.object({ prompt: ShortText(4000).optional(), format: ShortText(20).optional(), festival: ShortText(50).optional() }),
+  image: z.object({ prompt: ShortText(4000).nullable().optional(), format: ShortText(20).nullable().optional(), festival: ShortText(50).nullable().optional() }),
   perceive: z.object({
-    imageDataUrl: ImageDataUrl.optional(),
-    imageMeta: z.object({ width: z.number().positive(), height: z.number().positive(), bytes: z.number().nonnegative() }).optional(),
+    imageDataUrl: ImageDataUrl.nullable().optional(),
+    imageMeta: z.object({ width: z.number().positive(), height: z.number().positive(), bytes: z.number().nonnegative() }).nullable().optional(),
   }),
 };

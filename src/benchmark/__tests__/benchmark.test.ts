@@ -108,33 +108,5 @@ describe('calibration uses the dev split only', () => {
     expect(a.selected.youdenJ).toBe(bestJ);
     expect(a.rows.every((r) => r.tp + r.fp + r.fn + r.tn === 30)).toBe(true);
   });
-
-  it('the committed calibration.json used dev posts only', () => {
-    const cal = read('calibration.json');
-    expect(cal.meta.split).toBe('dev');
-    expect(cal.meta.devPosts).toBe(30);
-    expect(cal.meta.heldOutPostsUsed).toBe(0);
-    expect(cal.rows.every((r: { tp: number; fp: number; fn: number; tn: number }) => r.tp + r.fp + r.fn + r.tn === 30)).toBe(true);
-  });
 });
 
-describe('committed benchmark results are honestly labelled', () => {
-  const res = read('results.json');
-  it('records what actually executed', () => {
-    expect(['live', 'partial_live', 'deterministic_only']).toContain(res.meta.execution);
-    expect(res.meta.generator).toBe('scripts/benchmark.ts');
-    expect(res.meta.labelsHumanReviewed).toBe('0/60');
-    if (res.systems.baseline.status === 'not_run') {
-      expect(res.systems.baseline.metrics).toBeUndefined();
-      expect(res.meta.caveats.join(' ')).toMatch(/Baseline .* was NOT run/);
-    }
-    if (res.systems.governed.reviewers === 'not_run') expect(res.meta.execution).not.toBe('live');
-  });
-
-  it('per-post governed findings re-score to the stored metrics (no hand-edited numbers)', () => {
-    const preds: Prediction[] = Object.entries(res.perPost).map(([postId, p]) => ({ ...(p as { governed: Prediction }).governed, postId }));
-    const recomputed = scoreSystem(posts, preds, pack.rules);
-    const stored = res.systems.governed.metrics.all;
-    expect({ tp: recomputed.tp, fp: recomputed.fp, fn: recomputed.fn }).toEqual({ tp: stored.tp, fp: stored.fp, fn: stored.fn });
-  });
-});

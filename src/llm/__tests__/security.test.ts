@@ -84,7 +84,6 @@ describe('model IDs come only from env (spec §0, §24)', () => {
     const res = await callLLM({ provider: 'gemini', system: 's', user: 'u', purpose: 't', clauseIdsSent: [] });
     expect(res.ok).toBe(false);
     expect(res.error).toMatch(/GEMINI_TEXT_MODEL is not configured/);
-    expect(res.modeSuggestion).toBe('replay');
     if (savedKey === undefined) delete process.env.GEMINI_API_KEY;
     else process.env.GEMINI_API_KEY = savedKey;
   });

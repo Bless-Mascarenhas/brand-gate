@@ -19,10 +19,10 @@ export async function POST(req: NextRequest) {
     const prompt: string = body.prompt;
     const language = body.language || 'en';
     const format = body.format || 'feed_4_5';
-    const festival = body.festival;
+    const festival = body.festival || undefined;
     const iteration = body.iteration || 1;
     const previousFindings = body.previousFindings || [];
-    const originalPurpose = body.originalPurpose;
+    const originalPurpose = body.originalPurpose || undefined;
 
     if (!prompt) {
       return NextResponse.json({ error: 'Missing prompt in request' }, { status: 400 });
@@ -47,8 +47,8 @@ export async function POST(req: NextRequest) {
       originalPurpose,
     });
 
-    // Attempt Gemini with a 10s fast-race; if Gemini is slow/rate-limited, fallback immediately to Groq
-    const geminiCall = callLLM<{
+    // Attempt Groq Slot 1 (Drafter) with a 15s fast-race; if slow, fallback to Groq Slot 2
+    const drafterCall = callLLM<{
       caption: string;
       hashtags: string[];
       altText: string;
@@ -56,19 +56,19 @@ export async function POST(req: NextRequest) {
       marketingScript: string;
       purpose: any;
     }>({
-      provider: 'gemini',
+      provider: 'groq1',
       system,
       user,
       purpose: `Post drafting generation (Iteration ${iteration})`,
       clauseIdsSent: clauseIds,
     });
 
-    const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 10000));
-    const raceResult = await Promise.race([geminiCall, timeoutPromise]);
+    const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 15000));
+    const raceResult = await Promise.race([drafterCall, timeoutPromise]);
 
     let finalResult = raceResult && raceResult.ok ? raceResult : null;
 
-    if (!finalResult && process.env.GROQ_API_KEY?.trim()) {
+    if (!finalResult && (process.env.GROQ_API_KEY_2?.trim() || process.env.GROQ_API_KEY?.trim())) {
       finalResult = await callLLM<{
         caption: string;
         hashtags: string[];
@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
         marketingScript: string;
         purpose: any;
       }>({
-        provider: 'groq',
+        provider: 'groq2',
         system,
         user,
         purpose: `Post drafting generation fast fallback (Iteration ${iteration})`,
@@ -86,14 +86,13 @@ export async function POST(req: NextRequest) {
     }
 
     if (!finalResult) {
-      finalResult = await geminiCall;
+      finalResult = await drafterCall;
     }
 
     if (!finalResult.ok) {
       return NextResponse.json(
         {
           error: finalResult.error,
-          modeSuggestion: finalResult.modeSuggestion,
           log: finalResult.log,
         },
         { status: 503 }

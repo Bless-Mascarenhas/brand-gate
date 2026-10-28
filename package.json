@@ -10,10 +10,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "check": "tsc --noEmit && eslint . && vitest run && next build",
-    "seed": "vite-node --config vitest.config.ts scripts/make-seed.ts",
     "benchmark": "vite-node --config vitest.config.ts scripts/benchmark.ts",
     "calibrate": "vite-node --config vitest.config.ts scripts/calibrate.ts",
-    "record-replay": "vite-node --config vitest.config.ts scripts/record-replay.ts",
     "smoke": "vite-node --config vitest.config.ts scripts/smoke.ts"
   },
   "dependencies": {

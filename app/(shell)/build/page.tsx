@@ -254,7 +254,7 @@ export default function BuildPage() {
     const feedback = `[Human Change Request - Reason: ${changeReason}] ${changeFeedback}`;
     void appendInsightEvents([
       {
-        kind: 'human_rejection', id: `build-rej-${Date.now()}`, ts: new Date().toISOString(), sample: false, role,
+        kind: 'human_rejection', id: `build-rej-${Date.now()}`, ts: new Date().toISOString(), role,
         clauseIds: Array.from(new Set(currentOutput.findings.map((f) => f.clauseId))),
         reason: `${changeReason}: ${changeFeedback || '(no detail)'}`,
       },
@@ -281,7 +281,7 @@ export default function BuildPage() {
     // Approved with logged override
     void appendInsightEvents([
       {
-        kind: 'human_override', id: `build-ovr-${Date.now()}`, ts: new Date().toISOString(), sample: false, role,
+        kind: 'human_override', id: `build-ovr-${Date.now()}`, ts: new Date().toISOString(), role,
         clauseIds: Array.from(new Set(currentOutput.findings.map((f) => f.clauseId))),
         reason: overrideJustification.trim(),
       },

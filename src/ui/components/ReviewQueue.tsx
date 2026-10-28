@@ -51,7 +51,7 @@ function waitingOn(p: WorkflowPost): Role[] {
 
 export default function ReviewQueue() {
   const { role } = useApp();
-  const user = `${role}-demo`;
+  const user = role === 'creator' ? 'Creator' : role === 'manager' ? 'Manager' : 'Reviewer';
   const [posts, setPosts] = useState<WorkflowPost[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -136,21 +136,25 @@ export default function ReviewQueue() {
           </label>
         ))}
         <button
-          onClick={async () => { if (confirm('Discard all workflow changes in this browser and restore the 6 sample posts?')) { setPosts(await resetWorkflow()); setSelectedId(null); } }}
+          onClick={async () => { if (confirm('Clear all posts in the workflow queue?')) { setPosts(await resetWorkflow()); setSelectedId(null); } }}
           className="ml-auto text-xs flex items-center gap-1 px-3 py-1.5 rounded-md border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
         >
-          <RotateCcw className="w-3.5 h-3.5" /> Reset sample data
+          <RotateCcw className="w-3.5 h-3.5" /> Clear queue
         </button>
       </div>
 
       <div className="grid lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] gap-4">
         {/* Queue */}
         <div className="space-y-2">
-          {filtered.length === 0 && (
-            <div className="text-sm text-slate-600 dark:text-slate-400 p-6 text-center rounded-xl border border-dashed border-slate-300 dark:border-slate-700">
-              No posts match these filters. Clear a filter, or create one from Build.
+          {posts && posts.length === 0 ? (
+            <div className="text-sm text-slate-600 dark:text-slate-400 p-8 text-center rounded-xl border border-dashed border-slate-300 dark:border-slate-700">
+              No posts yet. Create one in Build or Verify.
             </div>
-          )}
+          ) : filtered.length === 0 ? (
+            <div className="text-sm text-slate-600 dark:text-slate-400 p-6 text-center rounded-xl border border-dashed border-slate-300 dark:border-slate-700">
+              No posts match these filters. Clear a filter, or create one in Build or Verify.
+            </div>
+          ) : null}
           {filtered.map((p) => {
             const open = openFindings(p);
             return (
@@ -164,7 +168,6 @@ export default function ReviewQueue() {
                   <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 shrink-0">{p.state}</span>
                 </div>
                 <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-slate-600 dark:text-slate-400">
-                  {p.isSampleData && <span className="px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 font-semibold">sample data</span>}
                   <span>v{p.currentRevision.versionNumber} · score {p.currentRevision.score}</span>
                   {open.map((f) => <span key={f.id} className={`px-1.5 py-0.5 rounded ${sevClass[f.severity]}`}>{f.severity} {f.clauseId}</span>)}
                   {waitingOn(p).length > 0 && <span>· waiting on {waitingOn(p).join(' + ')}</span>}
@@ -237,7 +240,6 @@ function PostDetail({ post, ctx, run, actionError, ruleClauses }: { post: Workfl
       <div>
         <div className="flex items-center justify-between gap-2">
           <h2 className="font-bold text-lg text-slate-900 dark:text-white">{post.title}</h2>
-          {post.isSampleData && <span className="text-[10px] px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 font-semibold">SAMPLE DATA</span>}
         </div>
         <p className="text-xs text-slate-600 dark:text-slate-400">State <strong>{post.state}</strong> · author {post.author} · v{post.currentRevision.versionNumber} · score {post.currentRevision.score} ({post.currentRevision.verdict.status})</p>
       </div>

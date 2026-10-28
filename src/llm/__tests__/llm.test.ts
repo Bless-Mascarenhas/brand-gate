@@ -39,13 +39,15 @@ describe('LLM Layer & Contract Tests (Phase 4)', () => {
     });
   });
 
-  describe('callLLM Provider Failure & Replay Fallback Contracts', () => {
-    it('returns typed error and suggests Replay mode when API key is missing', async () => {
-      const originalKey = process.env.GEMINI_API_KEY;
-      delete process.env.GEMINI_API_KEY;
+  describe('callLLM Provider Failure Contracts', () => {
+    it('returns typed error when Groq 1 API key is missing', async () => {
+      const orig1 = process.env.GROQ_API_KEY_1;
+      const origOld = process.env.GROQ_API_KEY;
+      delete process.env.GROQ_API_KEY_1;
+      delete process.env.GROQ_API_KEY;
 
       const result = await callLLM({
-        provider: 'gemini',
+        provider: 'groq1',
         system: 'System prompt',
         user: 'User prompt',
         purpose: 'Unit test missing key',
@@ -53,49 +55,53 @@ describe('LLM Layer & Contract Tests (Phase 4)', () => {
       });
 
       expect(result.ok).toBe(false);
-      expect(result.modeSuggestion).toBe('replay');
-      expect(result.error).toContain('GEMINI_API_KEY is not configured');
+      expect(result.error).toContain('GROQ_API_KEY_1 is not configured');
       expect(result.log.ok).toBe(false);
 
-      if (originalKey) process.env.GEMINI_API_KEY = originalKey;
+      if (orig1) process.env.GROQ_API_KEY_1 = orig1;
+      if (origOld) process.env.GROQ_API_KEY = origOld;
     });
 
-    it('returns typed error and suggests Replay mode when Groq key is missing', async () => {
-      const originalKey = process.env.GROQ_API_KEY;
+    it('returns typed error when Groq 2 key is missing', async () => {
+      const orig2 = process.env.GROQ_API_KEY_2;
+      const origOld = process.env.GROQ_API_KEY;
+      delete process.env.GROQ_API_KEY_2;
       delete process.env.GROQ_API_KEY;
 
       const result = await callLLM({
-        provider: 'groq',
+        provider: 'groq2',
         system: 'System prompt',
         user: 'User prompt',
-        purpose: 'Unit test Groq missing key',
+        purpose: 'Unit test Groq 2 missing key',
         clauseIdsSent: ['BV-001'],
       });
 
       expect(result.ok).toBe(false);
-      expect(result.modeSuggestion).toBe('replay');
-      expect(result.error).toContain('GROQ_API_KEY is not configured');
+      expect(result.error).toContain('GROQ_API_KEY_2 is not configured');
 
-      if (originalKey) process.env.GROQ_API_KEY = originalKey;
+      if (orig2) process.env.GROQ_API_KEY_2 = orig2;
+      if (origOld) process.env.GROQ_API_KEY = origOld;
     });
 
-    it('returns typed error and suggests Replay mode when NVIDIA key is missing', async () => {
-      const originalKey = process.env.NVIDIA_API_KEY;
-      delete process.env.NVIDIA_API_KEY;
+    it('returns typed error when Groq 3 key is missing', async () => {
+      const orig3 = process.env.GROQ_API_KEY_3;
+      const origOld = process.env.GROQ_API_KEY;
+      delete process.env.GROQ_API_KEY_3;
+      delete process.env.GROQ_API_KEY;
 
       const result = await callLLM({
-        provider: 'nvidia',
+        provider: 'groq3',
         system: 'System prompt',
         user: 'User prompt',
-        purpose: 'Unit test NVIDIA missing key',
+        purpose: 'Unit test Groq 3 missing key',
         clauseIdsSent: ['BV-001'],
       });
 
       expect(result.ok).toBe(false);
-      expect(result.modeSuggestion).toBe('replay');
-      expect(result.error).toContain('NVIDIA_API_KEY is not configured');
+      expect(result.error).toContain('GROQ_API_KEY_3 is not configured');
 
-      if (originalKey) process.env.NVIDIA_API_KEY = originalKey;
+      if (orig3) process.env.GROQ_API_KEY_3 = orig3;
+      if (origOld) process.env.GROQ_API_KEY = origOld;
     });
   });
 

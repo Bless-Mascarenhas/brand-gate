@@ -1,7 +1,7 @@
 // src/pipeline/governed.ts
 /**
- * Server-side governed pipeline used by Compare (Column C), the benchmark and
- * the replay recorder. Same order and the same pure functions as the client
+ * Server-side governed pipeline used by Compare (Column C) and the benchmark.
+ * Same order and the same pure functions as the client
  * `usePipeline` hook: gates → independent reviewers → citation verifier →
  * (thorough: cross-check) → consensus → scoring. The LLM caller is injectable
  * so tests can prove which prompts went where without network calls.
@@ -111,7 +111,7 @@ export async function runGovernedReview(post: PostContent, pack: PolicyPack, opt
     }
     const called = Number(useA) + Number(useB);
     const label = (used: boolean, n: number) => (used ? String(n) : 'not run');
-    steps.push({ step: 'Independent Review', status: errors.length === called ? 'failed' : 'completed', message: `Reviewer A (GROQ_MODEL): ${label(useA, rawA.length)}, Reviewer B (NVIDIA_MODEL): ${label(useB, rawB.length)}` });
+    steps.push({ step: 'Independent Review', status: errors.length === called ? 'failed' : 'completed', message: `Reviewer A (Groq 2): ${label(useA, rawA.length)}, Reviewer B (Groq 3): ${label(useB, rawB.length)}` });
   }
 
   const raw = [...rawA, ...rawB];

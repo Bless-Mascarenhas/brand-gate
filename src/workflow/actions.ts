@@ -102,7 +102,7 @@ export function requestChanges(
     `[${input.reason}] ${input.text}${clauseIds.length ? ` (clauses: ${clauseIds.join(', ')})` : ''}`
   );
   const events: HumanEvent[] = clauseIds.length
-    ? [{ kind: 'human_rejection', id: `${post.id}-rej-${moved.auditLog.length}`, ts: at, sample: false, role: ctx.role, clauseIds, reason: input.text, postId: post.id }]
+    ? [{ kind: 'human_rejection', id: `${post.id}-rej-${moved.auditLog.length}`, ts: at, role: ctx.role, clauseIds, reason: input.text, postId: post.id }]
     : [];
   return { post: moved, events };
 }
@@ -136,7 +136,7 @@ export function overrideFinding(post: WorkflowPost, ctx: ActionContext, findingI
   );
   return {
     post: next,
-    events: [{ kind: 'human_override', id: `${post.id}-ovr-${next.auditLog.length}`, ts: at, sample: false, role: ctx.role, clauseIds: [finding.clauseId], reason: justification.trim(), postId: post.id }],
+    events: [{ kind: 'human_override', id: `${post.id}-ovr-${next.auditLog.length}`, ts: at, role: ctx.role, clauseIds: [finding.clauseId], reason: justification.trim(), postId: post.id }],
   };
 }
 

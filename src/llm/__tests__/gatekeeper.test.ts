@@ -30,25 +30,25 @@ describe('LLM Gatekeeper', () => {
     expect((await verifyLlmAccess(req({ cookie: `bg_access=${code()}` }))).authorized).toBe(true);
   });
 
-  it('rate-limits per IP and suggests Replay', async () => {
+  it('rate-limits per IP', async () => {
     process.env.RATE_LIMIT_PER_MINUTE = '2';
     const a = { 'x-demo-access-code': code(), 'x-forwarded-for': '10.0.0.1' };
     expect((await verifyLlmAccess(req(a))).authorized).toBe(true);
     expect((await verifyLlmAccess(req(a))).authorized).toBe(true);
     const third = await verifyLlmAccess(req(a));
     expect(third.response?.status).toBe(429);
-    expect(await third.response?.json()).toMatchObject({ rateLimited: true, modeSuggestion: 'replay' });
+    expect(await third.response?.json()).toMatchObject({ rateLimited: true });
     // a different client is unaffected
     expect((await verifyLlmAccess(req({ ...a, 'x-forwarded-for': '10.0.0.2' }))).authorized).toBe(true);
   });
 
-  it('enforces the daily call budget and suggests Replay', async () => {
+  it('enforces the daily call budget', async () => {
     process.env.DAILY_CALL_BUDGET = '1';
     const h = { 'x-demo-access-code': code(), 'x-forwarded-for': '10.0.0.3' };
     expect((await verifyLlmAccess(req(h))).authorized).toBe(true);
     const res = await verifyLlmAccess(req(h));
     expect(res.response?.status).toBe(429);
-    expect(await res.response?.json()).toMatchObject({ budgetExhausted: true, modeSuggestion: 'replay' });
+    expect(await res.response?.json()).toMatchObject({ budgetExhausted: true });
   });
 
   it('in-memory counters expire after their window', async () => {

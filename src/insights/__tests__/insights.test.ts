@@ -16,6 +16,7 @@ import {
 import { appendInsightEvents, loadAllEvents } from '@/src/insights/store';
 import { StorageAdapter } from '@/src/storage';
 import { getPolicyPack } from '@/src/kb';
+import { templateClarification, buildClarifyPrompt } from '@/src/llm/prompts/clarify';
 
 const check = (over: Partial<CheckEvent>): CheckEvent => ({
   kind: 'check', id: Math.random().toString(36), ts: '2026-10-21T10:00:00.000Z', origin: 'verify', pass: 'first',
@@ -141,8 +142,7 @@ describe('live events persistence', () => {
 });
 
 describe('clarification suggestions', () => {
-  it('template fallback is deterministic, de-duplicates evidence and points to EM-005', async () => {
-    const { templateClarification, buildClarifyPrompt } = await import('@/src/llm/prompts/clarify');
+  it('template fallback is deterministic, de-duplicates evidence and points to EM-005', () => {
     const clause = getPolicyPack().clauses.find((c) => c.id === 'BV-007')!;
     const ev = ['Reviewers disagreed on “lowkey insane”', 'Reviewers disagreed on “lowkey insane”', 'manager: fine'];
     const t = templateClarification(clause, ev);

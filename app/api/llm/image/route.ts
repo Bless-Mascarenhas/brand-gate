@@ -70,7 +70,14 @@ export async function POST(req: NextRequest) {
 
     if (endpoint && apiKey) {
       const url = workerUrl(endpoint);
-      if (!url) return NextResponse.json({ error: 'IMAGE_GENERATION_API_URL must be an HTTPS Worker root URL.' }, { status: 503 });
+      if (!url) {
+        if (endpoint.includes('github.com')) {
+          return NextResponse.json({
+            error: 'IMAGE_GENERATION_API_URL is set to a GitHub URL instead of a deployed Worker. It must be your deployed Cloudflare Worker HTTPS root URL (e.g. https://<worker-name>.<account>.workers.dev/). Deploy the worker or use HF_TOKEN for Hugging Face.',
+          }, { status: 503 });
+        }
+        return NextResponse.json({ error: 'IMAGE_GENERATION_API_URL must be an HTTPS Worker root URL.' }, { status: 503 });
+      }
 
       response = await fetch(url, {
         method: 'POST',

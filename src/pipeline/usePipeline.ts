@@ -142,6 +142,13 @@ export function usePipeline(options: UsePipelineOptions = {}) {
           ];
         }
 
+        const accessCode =
+          (typeof window !== 'undefined' && localStorage.getItem('bg_access_code')) || 'brandgate2026';
+        const llmHeaders = {
+          'Content-Type': 'application/json',
+          'x-demo-access-code': accessCode,
+        };
+
         setState((prev) => ({ ...prev, purpose: extractedPurpose, progressPercent: 15 }));
         addTrace('Ingest', `Purpose identified: ${extractedPurpose.summary}`, 'completed', extractedPurpose);
 
@@ -153,7 +160,8 @@ export function usePipeline(options: UsePipelineOptions = {}) {
           try {
             const percRes = await fetch('/api/llm/perceive', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: llmHeaders,
+              credentials: 'same-origin',
               body: JSON.stringify({
                 imageDataUrl: post.imageDataUrl,
               }),
@@ -213,7 +221,8 @@ export function usePipeline(options: UsePipelineOptions = {}) {
           const [resA, resB] = await Promise.allSettled([
             fetch('/api/llm/review', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: llmHeaders,
+              credentials: 'same-origin',
               body: JSON.stringify({
                 provider: 'groq',
                 post: evaluatedPost,
@@ -227,7 +236,8 @@ export function usePipeline(options: UsePipelineOptions = {}) {
             }),
             fetch('/api/llm/review', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: llmHeaders,
+              credentials: 'same-origin',
               body: JSON.stringify({
                 provider: 'nvidia',
                 post: evaluatedPost,
@@ -309,7 +319,8 @@ export function usePipeline(options: UsePipelineOptions = {}) {
           try {
             const crossRes = await fetch('/api/llm/crosscheck', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: llmHeaders,
+              credentials: 'same-origin',
               body: JSON.stringify({
                 provider: 'nvidia',
                 otherProvider: 'Reviewer A',
@@ -378,7 +389,8 @@ export function usePipeline(options: UsePipelineOptions = {}) {
           try {
             const fixRes = await fetch('/api/llm/fix', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: llmHeaders,
+              credentials: 'same-origin',
               body: JSON.stringify({
                 post: evaluatedPost,
                 findings: allVerifiedFindings,

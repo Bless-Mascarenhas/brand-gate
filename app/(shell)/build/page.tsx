@@ -48,6 +48,63 @@ const InstagramIcon: React.FC<{ className?: string }> = ({ className = 'w-4 h-4'
   </svg>
 );
 
+function createBrandedStudioCard(format: string, festival: string, promptText: string): string {
+  if (typeof window === 'undefined') return '';
+  const canvas = document.createElement('canvas');
+  const width = 1080;
+  const height = format === 'feed_1_1' ? 1080 : format === 'feed_4_5' ? 1350 : 1920;
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return '';
+
+  // Background editorial gradient
+  const grad = ctx.createLinearGradient(0, 0, width, height);
+  grad.addColorStop(0, '#0E7C7B'); // Thrift Teal
+  grad.addColorStop(0.5, '#0a4f4e');
+  grad.addColorStop(1, '#1B1B1F'); // Ink
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, width, height);
+
+  // Subtle studio lighting vignette & geometric accent circles
+  ctx.save();
+  ctx.globalAlpha = 0.15;
+  ctx.fillStyle = '#F2A900'; // Marigold glow
+  ctx.beginPath();
+  ctx.arc(width * 0.8, height * 0.35, 360, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = '#FAF6EE'; // Paper glow
+  ctx.beginPath();
+  ctx.arc(width * 0.2, height * 0.65, 300, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  // Subtle editorial framing border
+  ctx.save();
+  ctx.strokeStyle = 'rgba(250, 246, 238, 0.25)';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(50, 50, width - 100, height - 100);
+
+  // Centered editorial text card
+  ctx.fillStyle = '#F2A900';
+  ctx.font = 'bold 30px system-ui, -apple-system, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(festival ? `✨ ${festival.toUpperCase()} FESTIVAL EDITORIAL ✨` : '✨ PRE-LOVED CURATED COLLECTION ✨', width / 2, height / 2 - 50);
+
+  ctx.fillStyle = '#FAF6EE';
+  ctx.font = '600 44px system-ui, -apple-system, sans-serif';
+  const cleanPrompt = (promptText || 'Vintage Jackets & Denim').slice(0, 42);
+  ctx.fillText(cleanPrompt, width / 2, height / 2 + 15);
+
+  ctx.fillStyle = 'rgba(250, 246, 238, 0.75)';
+  ctx.font = '300 26px system-ui, -apple-system, sans-serif';
+  ctx.fillText('Thrift-It Studio • Bandra West, Mumbai', width / 2, height / 2 + 70);
+  ctx.restore();
+
+  return canvas.toDataURL('image/jpeg', 0.9);
+}
+
 interface ChatMessage {
   id: string;
   sender: 'user' | 'assistant';
@@ -237,6 +294,25 @@ export default function BuildPage() {
       } catch (error) {
         visualFailure = error instanceof Error ? error.message : 'Image generation or composition failed.';
         setImageError(visualFailure);
+        try {
+          const fallbackBase = createBrandedStudioCard(format, festival !== 'None' ? festival : '', inputPrompt || 'Curated Pre-Loved Style');
+          const offerBannerText =
+            festival === 'Diwali'
+              ? 'DIWALI THRIFT FEST • UP TO 30% OFF • BANDRA POP-UP'
+              : loopResult.purpose?.offer
+                ? `${loopResult.purpose.offer.toUpperCase()} • BANDRA POP-UP`
+                : 'CURATED PRE-LOVED CLOTHING • BANDRA, MUMBAI';
+          finalComposited = await compositeBrandPost({
+            baseImageSrc: fallbackBase,
+            format,
+            offerText: offerBannerText,
+            wordmarkBandColor: 'paper',
+            showOfferBand: true,
+          });
+          setCompositedImage(finalComposited);
+        } catch {
+          // ignore fallback composite errors
+        }
       }
 
       // Save to IndexedDB
@@ -627,12 +703,12 @@ export default function BuildPage() {
               <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700">
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-xs font-semibold text-slate-900 dark:text-white">Visual agent</span>
-                  <span className={`text-[10px] font-bold ${imageError ? 'text-amber-700 dark:text-amber-300' : compositedImage ? 'text-emerald-700 dark:text-emerald-300' : agentPhase === 'visual' ? 'text-indigo-700 dark:text-indigo-300' : 'text-slate-600 dark:text-slate-300'}`}>
-                    {imageError ? 'Unavailable' : compositedImage ? 'Complete' : agentPhase === 'visual' ? 'Working' : 'Waiting'}
+                  <span className={`text-[10px] font-bold ${imageError ? (compositedImage ? 'text-amber-700 dark:text-amber-300' : 'text-amber-700 dark:text-amber-300') : compositedImage ? 'text-emerald-700 dark:text-emerald-300' : agentPhase === 'visual' ? 'text-indigo-700 dark:text-indigo-300' : 'text-slate-600 dark:text-slate-300'}`}>
+                    {imageError ? (compositedImage ? 'Studio Fallback' : 'Unavailable') : compositedImage ? 'Complete' : agentPhase === 'visual' ? 'Working' : 'Waiting'}
                   </span>
                 </div>
                 <p className="mt-1 text-[11px] text-slate-600 dark:text-slate-300">
-                  {imageError || currentOutput?.imagePrompt.prompt || 'Builds a validated visual direction after policy review.'}
+                  {imageError ? (compositedImage ? `Composited branded studio fallback (${imageError})` : imageError) : currentOutput?.imagePrompt.prompt || 'Builds a validated visual direction after policy review.'}
                 </p>
               </div>
             </div>
@@ -796,7 +872,16 @@ export default function BuildPage() {
                     )}
                   </div>
 
-                  {compositedImage && <div><AiBadge what="AI-generated image · brand overlays added in your browser" /></div>}
+                  {compositedImage && (
+                    <div>
+                      <AiBadge what={imageError ? 'Studio Card · Thrift-It Brand Overlays' : 'AI-generated image · brand overlays added in your browser'} />
+                    </div>
+                  )}
+                  {compositedImage && imageError && (
+                    <div className="text-[11px] text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 p-2 rounded-lg border border-amber-200 dark:border-amber-800">
+                      <strong>Studio Fallback Rendered:</strong> {imageError}
+                    </div>
+                  )}
                   {compositedImage && (
                     <a
                       href={compositedImage}

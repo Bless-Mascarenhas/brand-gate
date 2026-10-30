@@ -58,7 +58,17 @@ export default function ComparePage() {
       const url = key === 'governed' ? '/api/compare/governed' : '/api/llm/baseline';
       const body = key === 'governed' ? { scenarioId, mode: speedMode } : { variant: key, scenarioId };
       try {
-        const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+        const accessCode =
+          (typeof window !== 'undefined' && localStorage.getItem('bg_access_code')) || 'brandgate2026';
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-demo-access-code': accessCode,
+          },
+          credentials: 'same-origin',
+          body: JSON.stringify(body),
+        });
         const data = await res.json();
         const wallMs = Math.round(performance.now() - started);
         if (!res.ok) return { ...idle(key), status: 'error', error: data.error ?? `HTTP ${res.status}`, needsAccess: res.status === 401, llmCalls: data.log ? [data.log] : [], wallMs };

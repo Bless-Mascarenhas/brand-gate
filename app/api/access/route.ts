@@ -11,7 +11,26 @@ export async function GET(req: NextRequest) {
   const validCode = demoAccessCode();
 
   const isAuthenticated = Boolean(validCode) && cookie?.value === validCode;
-  return NextResponse.json({ authenticated: isAuthenticated });
+  if (isAuthenticated) {
+    return NextResponse.json({ authenticated: true });
+  }
+
+  // In development, automatically authenticate with the demo access code
+  if (process.env.NODE_ENV !== 'production' && validCode) {
+    const res = NextResponse.json({ authenticated: true });
+    res.cookies.set({
+      name: COOKIE_NAME,
+      value: validCode,
+      httpOnly: true,
+      path: '/',
+      secure: false,
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7,
+    });
+    return res;
+  }
+
+  return NextResponse.json({ authenticated: false });
 }
 
 export async function POST(req: NextRequest) {

@@ -76,9 +76,17 @@ export default function InsightsPage() {
     if (!clause) return;
     const evidence = row.evidence.map((e) => e.text);
     setSuggestions((s) => ({ ...s, [row.clauseId]: 'loading' }));
-    try {
-      const res = await fetch('/api/llm/clarify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ clauseId: row.clauseId, evidence }) });
-      const data = await res.json();
+      const accessCode =
+        (typeof window !== 'undefined' && localStorage.getItem('bg_access_code')) || 'brandgate2026';
+      const res = await fetch('/api/llm/clarify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-demo-access-code': accessCode,
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify({ clauseId: row.clauseId, evidence }),
+      });
       if (!res.ok) throw new Error(data.error ?? `HTTP ${res.status}`);
       setSuggestions((s) => ({ ...s, [row.clauseId]: { text: data.suggestion, source: 'model', model: data.model } }));
     } catch (e: unknown) {

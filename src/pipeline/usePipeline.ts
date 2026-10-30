@@ -143,7 +143,7 @@ export function usePipeline(options: UsePipelineOptions = {}) {
         }
 
         const accessCode =
-          (typeof window !== 'undefined' && localStorage.getItem('bg_access_code')) || 'brandgate2026';
+          (typeof window !== 'undefined' && localStorage.getItem('bg_access_code')) || '';
         const llmHeaders = {
           'Content-Type': 'application/json',
           'x-demo-access-code': accessCode,

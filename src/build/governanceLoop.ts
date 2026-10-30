@@ -82,7 +82,7 @@ export async function runGovernanceLoop(input: GovernanceLoopInput): Promise<Gov
   for (let iter = 1; iter <= maxIterations; iter++) {
     // 1. Call generator endpoint
     const accessCode =
-      (typeof window !== 'undefined' && localStorage.getItem('bg_access_code')) || 'brandgate2026';
+      (typeof window !== 'undefined' && localStorage.getItem('bg_access_code')) || '';
 
     const res: Response = await fetch('/api/llm/generate', {
       method: 'POST',

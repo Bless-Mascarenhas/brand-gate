@@ -82,15 +82,19 @@ All keys stay on the server; nothing uses a `NEXT_PUBLIC_` prefix except the non
 
 | Variable | Purpose |
 |---|---|
-| `GEMINI_API_KEY`, `GEMINI_TEXT_MODEL` | Optional Gemini text fallback for legacy routes/scripts |
+| `GROQ_API_KEY_1`, `GROQ_MODEL_1`, `GROQ_BASE_URL_1` | Groq Slot 1: Primary Drafter & Generator (Build, Fixes, Clarify, Baseline, Intent, Perceive) |
+| `GROQ_API_KEY_2`, `GROQ_MODEL_2`, `GROQ_BASE_URL_2` | Groq Slot 2: Reviewer A (Independent Policy, Tone, and Terminology Review) |
+| `GROQ_API_KEY_3`, `GROQ_MODEL_3`, `GROQ_BASE_URL_3` | Groq Slot 3: Reviewer B & Cross-Check (Second Auditor & Debate Cross-Examiner) |
 | `IMAGE_GENERATION_API_URL`, `IMAGE_GENERATION_API_KEY` | HTTPS root URL for your deployed image Worker and its matching `API_KEY` secret; server-side only |
-| `GROQ_API_KEY`, `GROQ_BASE_URL`, `GROQ_MODEL` | Reviewer A (Groq: set base URL to `https://api.groq.com/openai/v1`, model `openai/gpt-oss-120b`) |
-| `NVIDIA_API_KEY`, `NVIDIA_BASE_URL`, `NVIDIA_MODEL` | Reviewer B |
-| `DEMO_ACCESS_CODE` | Gates every LLM endpoint (httpOnly cookie) |
-| `DEMO_TODAY` | Pinned date so offers stay valid/expired as designed (2026-10-24) |
+| `VISION_API_KEY`, `VISION_MODEL`, `VISION_BASE_URL` | Vision analysis for Evaluate uploads (vision-capable provider) |
+| `GEMINI_API_KEY`, `GEMINI_TEXT_MODEL` | Optional Gemini text fallback for legacy routes/scripts |
+| `NVIDIA_API_KEY`, `NVIDIA_MODEL` | Optional NVIDIA fallback for Slot 3 / Reviewer B |
+| `DEMO_ACCESS_CODE` | Gates every LLM endpoint (httpOnly cookie; required in production) |
+| `DEMO_TODAY` | Optional system date for validity windows (defaults to the real current date; set e.g. 2026-10-24 to pin) |
 | `DAILY_CALL_BUDGET`, `RATE_LIMIT_PER_MINUTE` | Abuse controls |
 | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | Optional shared counters |
-| `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_STORAGE_MODE=supabase` | Optional shared storage (run `docs/supabase/001_brand_gate_kv.sql` first) |
+| `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_STORAGE_MODE=supabase` | Optional shared storage (run `docs/supabase/001_brand_gate_kv.sql` first) |
+| `GROQ_TOKENS_PER_MINUTE` | Optional scripts-only rate pacing |
 
 ## Deploy to Vercel
 

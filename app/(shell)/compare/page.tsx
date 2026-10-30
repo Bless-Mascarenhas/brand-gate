@@ -59,7 +59,7 @@ export default function ComparePage() {
       const body = key === 'governed' ? { scenarioId, mode: speedMode } : { variant: key, scenarioId };
       try {
         const accessCode =
-          (typeof window !== 'undefined' && localStorage.getItem('bg_access_code')) || 'brandgate2026';
+          (typeof window !== 'undefined' && localStorage.getItem('bg_access_code')) || '';
         const res = await fetch(url, {
           method: 'POST',
           headers: {

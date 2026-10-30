@@ -253,7 +253,7 @@ export default function BuildPage() {
       let visualFailure: string | null = null;
       try {
         const accessCode =
-          (typeof window !== 'undefined' && localStorage.getItem('bg_access_code')) || 'brandgate2026';
+          (typeof window !== 'undefined' && localStorage.getItem('bg_access_code')) || '';
 
         const imageRes = await fetch('/api/llm/image', {
           method: 'POST',

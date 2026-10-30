@@ -51,6 +51,15 @@ describe('LLM Gatekeeper', () => {
     expect(await res.response?.json()).toMatchObject({ budgetExhausted: true });
   });
 
+  it('charges multiple internal model calls to the daily budget', async () => {
+    process.env.DAILY_CALL_BUDGET = '2';
+    const h = { 'x-demo-access-code': code(), 'x-forwarded-for': '10.0.0.4' };
+    expect((await verifyLlmAccess(req(h), 2)).authorized).toBe(true);
+    const next = await verifyLlmAccess(req(h));
+    expect(next.response?.status).toBe(429);
+    expect(await next.response?.json()).toMatchObject({ budgetExhausted: true });
+  });
+
   it('in-memory counters expire after their window', async () => {
     expect(await incrementCounter('k', 60, 0)).toBe(1);
     expect(await incrementCounter('k', 60, 1000)).toBe(2);

@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ZodTypeAny, z } from 'zod';
 import { CategorySchema, FindingSchema, PostContentSchema, PurposeSchema } from '@/src/types';
+import { MIN_GENERATION_BRIEF_LENGTH } from '@/src/llm/schemas';
 
 /** Vercel's request limit is ~4.5 MB; posts may carry a client-compressed image. */
 export const MAX_BODY_BYTES = 4_500_000;
@@ -44,7 +45,7 @@ export const RequestSchemas = {
   fix: z.object({ post: PostContentSchema, findings: Findings.nullable().optional() }),
   intent: z.object({ originalPost: PostContentSchema.nullable().optional(), originalPurpose: PurposeSchema.partial().extend({ summary: z.string().default(''), requiredElements: z.array(z.string()).default([]) }).nullable().optional(), revisedCaption: ShortText(5000).nullable().optional() }),
   generate: z.object({
-    prompt: z.string().min(1).max(2000),
+    prompt: z.string().trim().min(MIN_GENERATION_BRIEF_LENGTH, `Add at least ${MIN_GENERATION_BRIEF_LENGTH} characters of useful context.`).max(2000),
     language: z.enum(['en', 'hinglish']).nullable().optional(),
     format: z.enum(['feed_4_5', 'feed_1_1', 'story_9_16']).nullable().optional(),
     festival: ShortText(50).nullable().optional(),
@@ -52,9 +53,13 @@ export const RequestSchemas = {
     previousFindings: z.array(ShortText(1000)).max(50).nullable().optional(),
     originalPurpose: z.record(z.unknown()).nullable().optional(),
   }),
-  image: z.object({ prompt: ShortText(4000).nullable().optional(), format: ShortText(20).nullable().optional(), festival: ShortText(50).nullable().optional() }),
+  image: z.object({
+    prompt: z.string().trim().min(20).max(4000),
+    negativePrompt: ShortText(800).nullable().optional(),
+    format: z.enum(['feed_4_5', 'feed_1_1', 'story_9_16', 'reel_9_16']).optional(),
+    festival: ShortText(50).nullable().optional(),
+  }),
   perceive: z.object({
-    imageDataUrl: ImageDataUrl.nullable().optional(),
-    imageMeta: z.object({ width: z.number().positive(), height: z.number().positive(), bytes: z.number().nonnegative() }).nullable().optional(),
+    imageDataUrl: ImageDataUrl,
   }),
 };

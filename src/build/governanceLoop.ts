@@ -9,6 +9,7 @@ import { evaluatePost } from '@/src/rules/engine';
 import { verifyCitations } from '@/src/verify/citationVerifier';
 import { computeScoreAndVerdict } from '@/src/verify/scoring';
 import { verifyIntentPreservation } from '@/src/verify/intent';
+import { DraftSelectionSummary, ImagePromptSpec, ImagePromptSpecSchema } from '@/src/llm/schemas';
 
 export interface IterationResult {
   iteration: number;
@@ -20,6 +21,7 @@ export interface IterationResult {
   intentPreserved: boolean;
   fixedIssuesCount: number;
   summary: string;
+  draftSelection?: DraftSelectionSummary;
 }
 
 export interface GovernanceLoopInput {
@@ -38,11 +40,13 @@ export interface GovernanceLoopOutput {
   governedPost: PostContent;
   purpose: Purpose;
   marketingScript: string;
-  imagePrompt: string;
+  imagePrompt: ImagePromptSpec;
   iterations: IterationResult[];
   verdict: Verdict;
   findings: Finding[];
   converged: boolean;
+  draftSelection?: DraftSelectionSummary;
+  generationWarning?: string;
 }
 
 /**
@@ -63,10 +67,14 @@ export async function runGovernanceLoop(input: GovernanceLoopInput): Promise<Gov
   } = input;
 
   const iterations: IterationResult[] = [];
+  let bestIteration: IterationResult | null = null;
+  let bestMarketingScript = '';
+  let bestImagePrompt: ImagePromptSpec = { prompt: '', negativePrompt: '' };
   let currentPost: PostContent | null = null;
   let originalPurpose: Purpose | null = null;
   let marketingScript = '';
-  let imagePrompt = '';
+  let imagePrompt: ImagePromptSpec = { prompt: '', negativePrompt: '' };
+  let generationWarning: string | undefined;
   let lastScore = 0;
   let previousFindingsCount = 0;
   let feedbackList: string[] = [];
@@ -96,13 +104,32 @@ export async function runGovernanceLoop(input: GovernanceLoopInput): Promise<Gov
 
     if (!res.ok) {
       const errJson = await res.json().catch(() => ({}));
+      if (iterations.length > 0) {
+        generationWarning = errJson.error || `A later draft iteration failed with status ${res.status}; keeping the last successful draft.`;
+        break;
+      }
       throw new Error(errJson.error || `Generator failed with status ${res.status}`);
     }
 
-    const data = (await res.json()) as { draft: any };
+    const data = (await res.json().catch(() => null)) as { draft?: any; selection?: DraftSelectionSummary } | null;
+    if (!data?.draft) {
+      if (iterations.length > 0) {
+        generationWarning = 'A later draft response was incomplete; keeping the last successful draft.';
+        break;
+      }
+      throw new Error('The draft provider returned an incomplete response. Please retry.');
+    }
     const draft = data.draft;
     marketingScript = draft.marketingScript || marketingScript;
-    imagePrompt = draft.imagePrompt || imagePrompt;
+    const parsedImagePrompt = ImagePromptSpecSchema.safeParse(draft.imagePrompt);
+    if (!parsedImagePrompt.success) {
+      if (iterations.length > 0) {
+        generationWarning = 'A later draft returned an invalid image prompt; keeping the last successful draft.';
+        break;
+      }
+      throw new Error('The model returned an invalid image prompt. Please try again.');
+    }
+    imagePrompt = parsedImagePrompt.data;
 
     if (!originalPurpose) {
       originalPurpose = draft.purpose || {
@@ -153,9 +180,15 @@ export async function runGovernanceLoop(input: GovernanceLoopInput): Promise<Gov
       intentPreserved: intentRes.requiredElementsPreserved,
       fixedIssuesCount,
       summary,
+      draftSelection: data.selection,
     };
 
     iterations.push(iterResult);
+    if (!bestIteration || iterResult.score > bestIteration.score) {
+      bestIteration = iterResult;
+      bestMarketingScript = marketingScript;
+      bestImagePrompt = imagePrompt;
+    }
     if (onIteration) onIteration(iterResult);
 
     // Stop condition: clean post reaching READY_FOR_HUMAN
@@ -177,7 +210,7 @@ export async function runGovernanceLoop(input: GovernanceLoopInput): Promise<Gov
     });
   }
 
-  const lastIter = iterations[iterations.length - 1];
+  const lastIter = bestIteration || iterations[iterations.length - 1];
 
   return {
     initialDraft: iterations[0].post,
@@ -186,11 +219,13 @@ export async function runGovernanceLoop(input: GovernanceLoopInput): Promise<Gov
       summary: prompt,
       requiredElements: [],
     },
-    marketingScript,
-    imagePrompt,
+    marketingScript: bestMarketingScript,
+    imagePrompt: bestImagePrompt,
     iterations,
     verdict: lastIter.verdict,
     findings: lastIter.findings,
     converged: lastIter.verdict.status === 'READY_FOR_HUMAN',
+    draftSelection: lastIter.draftSelection,
+    generationWarning,
   };
 }

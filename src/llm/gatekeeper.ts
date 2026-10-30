@@ -9,7 +9,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const memCounters = new Map<string, { count: number; expiresAt: number }>();
 
-async function upstashIncr(key: string, ttlSeconds: number): Promise<number | null> {
+async function upstashIncr(key: string, ttlSeconds: number, incrementBy: number): Promise<number | null> {
   const url = process.env.UPSTASH_REDIS_REST_URL?.trim();
   const token = process.env.UPSTASH_REDIS_REST_TOKEN?.trim();
   if (!url || !token) return null;
@@ -17,7 +17,7 @@ async function upstashIncr(key: string, ttlSeconds: number): Promise<number | nu
     const res = await fetch(`${url.replace(/\/$/, '')}/pipeline`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify([['INCR', key], ['EXPIRE', key, String(ttlSeconds), 'NX']]),
+      body: JSON.stringify([['INCRBY', key, String(incrementBy)], ['EXPIRE', key, String(ttlSeconds), 'NX']]),
       cache: 'no-store',
     });
     if (!res.ok) return null;
@@ -29,15 +29,16 @@ async function upstashIncr(key: string, ttlSeconds: number): Promise<number | nu
 }
 
 /** Increment a windowed counter and return the new count. */
-export async function incrementCounter(key: string, ttlSeconds: number, now = Date.now()): Promise<number> {
-  const remote = await upstashIncr(key, ttlSeconds);
+export async function incrementCounter(key: string, ttlSeconds: number, now = Date.now(), incrementBy = 1): Promise<number> {
+  if (!Number.isInteger(incrementBy) || incrementBy < 1) throw new RangeError('Counter increment must be a positive integer.');
+  const remote = await upstashIncr(key, ttlSeconds, incrementBy);
   if (remote !== null) return remote;
   const entry = memCounters.get(key);
   if (!entry || entry.expiresAt <= now) {
-    memCounters.set(key, { count: 1, expiresAt: now + ttlSeconds * 1000 });
-    return 1;
+    memCounters.set(key, { count: incrementBy, expiresAt: now + ttlSeconds * 1000 });
+    return incrementBy;
   }
-  entry.count++;
+  entry.count += incrementBy;
   return entry.count;
 }
 
@@ -67,7 +68,7 @@ export function clientIp(req: NextRequest): string {
   return req.headers.get('x-forwarded-for')?.split(',')[0].trim() || req.headers.get('x-real-ip')?.trim() || 'unknown';
 }
 
-export async function verifyLlmAccess(req: NextRequest): Promise<{ authorized: boolean; response?: NextResponse }> {
+export async function verifyLlmAccess(req: NextRequest, budgetCost = 1): Promise<{ authorized: boolean; response?: NextResponse }> {
   if (!hasDemoAccess(req)) {
     return {
       authorized: false,
@@ -95,7 +96,7 @@ export async function verifyLlmAccess(req: NextRequest): Promise<{ authorized: b
 
   const maxBudget = Number(process.env.DAILY_CALL_BUDGET || 400);
   const day = new Date().toISOString().slice(0, 10);
-  if ((await incrementCounter(`bg:budget:${day}`, 86400)) > maxBudget) {
+  if ((await incrementCounter(`bg:budget:${day}`, 86400, Date.now(), budgetCost)) > maxBudget) {
     return {
       authorized: false,
       response: NextResponse.json(

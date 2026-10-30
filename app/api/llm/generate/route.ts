@@ -1,15 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { RunnableParallel } from '@langchain/core/runnables';
 import { readJsonBody, RequestSchemas } from '@/src/llm/http';
 import { verifyLlmAccess } from '@/src/llm/gatekeeper';
 import { callLLM } from '@/src/llm/callLLM';
 import { buildGeneratorPrompt } from '@/src/llm/prompts/generator';
 import { getPolicyPack, getRoutedClausesForCategories } from '@/src/kb';
+import { evaluatePost } from '@/src/rules/engine';
+import { computeScoreAndVerdict } from '@/src/verify/scoring';
+import { GeneratedDraft, GeneratedDraftSchema } from '@/src/llm/schemas';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
-  const auth = await verifyLlmAccess(req);
+  const auth = await verifyLlmAccess(req, 2);
   if (!auth.authorized) return auth.response!;
 
   try {
@@ -23,10 +27,6 @@ export async function POST(req: NextRequest) {
     const iteration = body.iteration || 1;
     const previousFindings = body.previousFindings || [];
     const originalPurpose = body.originalPurpose || undefined;
-
-    if (!prompt) {
-      return NextResponse.json({ error: 'Missing prompt in request' }, { status: 400 });
-    }
 
     const pack = getPolicyPack();
     const routedClauses = getRoutedClausesForCategories(
@@ -47,61 +47,58 @@ export async function POST(req: NextRequest) {
       originalPurpose,
     });
 
-    // Attempt Groq Slot 1 (Drafter) with a 15s fast-race; if slow, fallback to Groq Slot 2
-    const drafterCall = callLLM<{
-      caption: string;
-      hashtags: string[];
-      altText: string;
-      imagePrompt: string;
-      marketingScript: string;
-      purpose: any;
-    }>({
-      provider: 'groq1',
-      system,
-      user,
-      purpose: `Post drafting generation (Iteration ${iteration})`,
-      clauseIdsSent: clauseIds,
+    const candidates = await RunnableParallel.from({
+      groq1: () => callLLM<GeneratedDraft>({
+        provider: 'groq1', system, user, schema: GeneratedDraftSchema,
+        purpose: `Independent post draft A (iteration ${iteration})`, clauseIdsSent: clauseIds,
+      }),
+      groq2: () => callLLM<GeneratedDraft>({
+        provider: 'groq2', system, user, schema: GeneratedDraftSchema,
+        purpose: `Independent post draft B (iteration ${iteration})`, clauseIdsSent: clauseIds,
+      }),
+    }).invoke({});
+
+    const providerLabels = { groq1: 'Groq 1', groq2: 'Groq 2' } as const;
+    const demoDate = process.env.DEMO_TODAY || '2026-10-24';
+    const scored = (['groq1', 'groq2'] as const).flatMap((provider) => {
+      const result = candidates[provider];
+      if (!result.ok || !result.data) return [];
+      const draft = result.data;
+      const post = { caption: draft.caption, hashtags: draft.hashtags, altText: draft.altText, format, language };
+      const gates = evaluatePost(post, pack, demoDate);
+      const findings = gates.findings.map((finding) => ({ ...finding, verified: true, agreement: 'deterministic' as const }));
+      const scoredDraft = computeScoreAndVerdict(findings, gates.gatesFailed);
+      return [{ provider, result, draft, score: scoredDraft.score, verdict: scoredDraft.verdict.status }];
     });
 
-    const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 15000));
-    const raceResult = await Promise.race([drafterCall, timeoutPromise]);
+    const summaries = (['groq1', 'groq2'] as const).map((provider) => {
+      const candidate = scored.find((item) => item.provider === provider);
+      return candidate
+        ? { provider: providerLabels[provider], status: 'available' as const, score: candidate.score, verdict: candidate.verdict }
+        : {
+          provider: providerLabels[provider],
+          status: 'unavailable' as const,
+          reason: candidates[provider].error || 'The provider returned no valid draft.',
+        };
+    });
 
-    let finalResult = raceResult && raceResult.ok ? raceResult : null;
-
-    if (!finalResult && (process.env.GROQ_API_KEY_2?.trim() || process.env.GROQ_API_KEY?.trim())) {
-      finalResult = await callLLM<{
-        caption: string;
-        hashtags: string[];
-        altText: string;
-        imagePrompt: string;
-        marketingScript: string;
-        purpose: any;
-      }>({
-        provider: 'groq2',
-        system,
-        user,
-        purpose: `Post drafting generation fast fallback (Iteration ${iteration})`,
-        clauseIdsSent: clauseIds,
-      });
+    if (scored.length === 0) {
+      return NextResponse.json({
+        error: `Draft generation failed. ${summaries.map(({ provider, reason }) => `${provider}: ${reason}`).join(' ')}`,
+        candidates: summaries,
+      }, { status: 503 });
     }
 
-    if (!finalResult) {
-      finalResult = await drafterCall;
-    }
-
-    if (!finalResult.ok) {
-      return NextResponse.json(
-        {
-          error: finalResult.error,
-          log: finalResult.log,
-        },
-        { status: 503 }
-      );
-    }
+    const selected = scored.reduce((best, candidate) => candidate.score > best.score ? candidate : best);
 
     return NextResponse.json({
-      draft: finalResult.data,
-      log: finalResult.log,
+      draft: selected.draft,
+      log: selected.result.log,
+      selection: {
+        strategy: 'deterministic-policy-score',
+        selectedProvider: providerLabels[selected.provider],
+        candidates: summaries,
+      },
     });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });

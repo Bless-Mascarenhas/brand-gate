@@ -100,14 +100,18 @@ describe('governed column runs the real verification pipeline', () => {
     expect(res.score.verdict.status).toBe('READY_FOR_HUMAN');
   });
 
-  it('thorough mode cross-examines and reports debate outcomes', async () => {
+  it('thorough mode runs reciprocal cross-examination and reports debate outcomes', async () => {
     const { llm, calls } = mockLlm((p) => {
-      if (p.purpose.includes('crosscheck')) return { evaluations: [{ findingId: 'groq-0', stance: 'disagree', reason: 'fine' }] };
-      if (p.provider === 'groq') return { findings: [{ category: 'tone', severity: 'major', clauseId: 'BV-007', clauseQuote: 'Keep the tone friendly but not too casual', postField: 'caption', postQuote: 'Tap the link', explanation: 'x' }] };
-      return { findings: [] };
+      if (p.purpose.includes('crosscheck')) {
+        const findingId = p.provider === 'groq' ? 'nvidia-0' : 'groq-0';
+        return { evaluations: [{ findingId, stance: 'disagree', reason: 'The cited clause does not support this finding.' }] };
+      }
+      return { findings: [{ category: 'tone', severity: 'major', clauseId: 'BV-007', clauseQuote: 'Keep the tone friendly but not too casual', postField: 'caption', postQuote: 'Tap the link', explanation: 'x' }] };
     });
     const res = await runGovernedReview(clean, pack, { llm, mode: 'thorough' });
-    expect(calls.filter((c) => c.purpose.includes('crosscheck'))).toHaveLength(1);
+    expect(calls.filter((c) => c.purpose.includes('crosscheck'))).toHaveLength(2);
+    expect(calls.find((c) => c.purpose.includes('crosscheck') && c.provider === 'groq')?.user).toContain('Reviewer B');
+    expect(calls.find((c) => c.purpose.includes('crosscheck') && c.provider === 'nvidia')?.user).toContain('Reviewer A');
     expect(res.debateDisputed).toBe(1);
     expect(res.findings.find((f) => f.clauseId === 'BV-007')?.agreement).toBe('disputed');
     expect(res.score.score).toBe(100); // disputed → zero penalty

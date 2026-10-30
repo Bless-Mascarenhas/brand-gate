@@ -31,15 +31,13 @@ Brand Gate reviews content **before** publication against approved policies, fac
 ## Architecture
 
 ```
-Content (Build / Verify) ──► Deterministic gates (server, pure TS) ──► Reviewer A (Groq) ─┐
-          ▲                         ▲                                Reviewer B (NVIDIA) ┤
-     Gemini (draft, image,     Knowledge base (8 docs, facts, rules, routing map)         ▼
-     perception)                                         Citation verifier (code) ─► Cross-examination (thorough)
+Create: validated brief ─► Groq 1 + Groq 2 drafts (LangChain parallel) ─► deterministic policy-score selection ─► Cloudflare Workers AI image Worker
+Evaluate: post ─► deterministic gates ─► Reviewer A + B (LangChain parallel) ─► citation verifier
                                                                     ▼
-                                         Consensus (code) ─► Score & verdict (code) ─► Human approval ─► Mock publish
+                          reciprocal cross-examination (thorough) ─► consensus & score (code) ─► human decision
 ```
 
-Deterministic gates first, LLM judgement second, human decision last. No model decides a verdict, and nothing is ever published automatically. Pipeline steps are small server routes orchestrated from the browser, so no single request runs long. Details: `docs/DECISIONS.md` and the Transparency page.
+Deterministic gates and citation checks constrain model findings; in thorough mode each reviewer challenges the other reviewer's verified findings. Code selects generated drafts by deterministic policy score and computes the final verdict. A human makes the final decision, and nothing is published automatically. Provider calls and free quotas depend on server configuration and current provider terms. Details: `docs/DECISIONS.md` and the Transparency page.
 
 ## Technology and providers
 
@@ -48,7 +46,7 @@ Deterministic gates first, LLM judgement second, human decision last. No model d
 | App | Next.js 16 (App Router), React 19, TypeScript strict, Tailwind CSS, lucide-react, recharts |
 | Validation, diffs, storage | zod, diff, idb-keyval (IndexedDB) |
 | Images | sharp (server: analysis, EXIF stripping), HTML canvas (client: brand overlays) |
-| Models | Google Gemini via `@google/genai` (text, vision, image); Groq (`openai/gpt-oss-120b`) and NVIDIA GLM via the `openai` SDK with custom base URLs |
+| Models | Groq 1 and Groq 2 draft independently; Groq/NVIDIA reviewer slots run reciprocal debate; a self-hosted Cloudflare Workers AI Worker generates images; LangChain Core orchestrates parallel runnables |
 | Optional | Upstash Redis (rate-limit counters), Supabase (shared storage) |
 | Tests | Vitest |
 
@@ -84,7 +82,8 @@ All keys stay on the server; nothing uses a `NEXT_PUBLIC_` prefix except the non
 
 | Variable | Purpose |
 |---|---|
-| `GEMINI_API_KEY`, `GEMINI_TEXT_MODEL`, `GEMINI_VISION_MODEL`, `GEMINI_IMAGE_MODEL` | Gemini; model IDs must be set explicitly (no defaults in code) |
+| `GEMINI_API_KEY`, `GEMINI_TEXT_MODEL` | Optional Gemini text fallback for legacy routes/scripts |
+| `IMAGE_GENERATION_API_URL`, `IMAGE_GENERATION_API_KEY` | HTTPS root URL for your deployed image Worker and its matching `API_KEY` secret; server-side only |
 | `GROQ_API_KEY`, `GROQ_BASE_URL`, `GROQ_MODEL` | Reviewer A (Groq: set base URL to `https://api.groq.com/openai/v1`, model `openai/gpt-oss-120b`) |
 | `NVIDIA_API_KEY`, `NVIDIA_BASE_URL`, `NVIDIA_MODEL` | Reviewer B |
 | `DEMO_ACCESS_CODE` | Gates every LLM endpoint (httpOnly cookie) |
@@ -95,7 +94,7 @@ All keys stay on the server; nothing uses a `NEXT_PUBLIC_` prefix except the non
 
 ## Deploy to Vercel
 
-Import this GitHub repository in Vercel and keep the project root set to `.`. Vercel detects Next.js automatically; leave the build command at `npm run build`. Add the required model keys and model IDs from `.env.example` in the Vercel project settings. Set `DEMO_ACCESS_CODE` to a private production value. Optional services such as Supabase and Upstash only need configuration when enabled. Keep all provider keys server-side without a `NEXT_PUBLIC_` prefix.
+Import this GitHub repository in Vercel and keep the project root set to `.`. Vercel detects Next.js automatically; leave the build command at `npm run build`. Add the required model keys and model IDs from `.env.example` in the Vercel project settings. For images, deploy the [Cloudflare Worker API](https://github.com/saurav-z/free-image-generation-api), set its `API_KEY` secret, enable Workers AI with binding name `AI`, then configure the Worker URL and matching key here. Confirm current Cloudflare quotas and terms for your account. Set `DEMO_ACCESS_CODE` to a private production value. Optional services such as Supabase and Upstash only need configuration when enabled. Keep all provider keys server-side without a `NEXT_PUBLIC_` prefix.
 
 ## Development and tests
 

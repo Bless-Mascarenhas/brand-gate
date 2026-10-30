@@ -1,4 +1,4 @@
-import { ZodSchema } from 'zod';
+import { ZodType } from 'zod';
 import OpenAI from 'openai';
 import { LlmCallLog } from '@/src/types';
 import { parseJsonSafe } from './jsonRepair';
@@ -9,7 +9,7 @@ export interface CallLlmParams<T> {
   provider: LlmProvider;
   system: string;
   user: string;
-  schema?: ZodSchema<T>;
+  schema?: ZodType<T, any, any>;
   purpose: string;
   clauseIdsSent: string[];
 }
@@ -20,7 +20,21 @@ export interface CallLlmResult<T> {
   rawText?: string;
   log: LlmCallLog;
   error?: string;
+  failureCode?: LlmFailureCode;
 }
+
+export type LlmFailureCode =
+  | 'configuration'
+  | 'authentication'
+  | 'permission'
+  | 'model_not_found'
+  | 'invalid_request'
+  | 'rate_limited'
+  | 'provider_unavailable'
+  | 'timeout'
+  | 'network'
+  | 'invalid_json'
+  | 'invalid_schema';
 
 export const TIMEOUT_MS = 45000; // 45 s per call
 
@@ -107,6 +121,37 @@ function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function providerFailure(err: unknown): { code: LlmFailureCode; message: string } {
+  const error = err as { status?: number; statusCode?: number; code?: string; name?: string };
+  const status = error?.status || error?.statusCode;
+  const code = error?.code?.toLowerCase() || '';
+  const name = error?.name?.toLowerCase() || '';
+
+  if (name.includes('timeout') || code.includes('timeout') || code === 'etimedout') {
+    return { code: 'timeout', message: 'The provider timed out. Please retry.' };
+  }
+  if (code === 'json_validate_failed') {
+    return { code: 'invalid_json', message: 'The provider could not validate the JSON response for this request. Retry or use a shorter brief.' };
+  }
+  if (status === 401) return { code: 'authentication', message: 'The provider rejected its server API key. Check the configured credentials.' };
+  if (status === 403) return { code: 'permission', message: 'The provider denied access. Check the key permissions and account status.' };
+  if (status === 404) return { code: 'model_not_found', message: 'The provider could not find the configured model or endpoint. Check the model ID and base URL.' };
+  if (status === 400 || status === 413) {
+    const providerCode = error?.code && /^[a-z0-9_-]{1,60}$/i.test(error.code) ? `, ${error.code}` : '';
+    return { code: 'invalid_request', message: `The provider rejected the request (HTTP ${status}${providerCode}). Check model compatibility and request size.` };
+  }
+  if (status === 429) return { code: 'rate_limited', message: 'The provider rate limit or quota was reached. Please retry later.' };
+  if (typeof status === 'number' && status >= 500) return { code: 'provider_unavailable', message: 'The provider is temporarily unavailable. Please retry.' };
+  return { code: 'network', message: 'The provider could not be reached. Check the server network and provider endpoint.' };
+}
+
+export function shouldRetryProviderError(err: unknown): boolean {
+  const error = err as { status?: number; statusCode?: number; code?: string };
+  const status = error?.status || error?.statusCode;
+  const code = typeof error?.code === 'string' ? error.code.toLowerCase() : '';
+  return status === 429 || (typeof status === 'number' && status >= 500) || code === 'json_validate_failed';
+}
+
 function resolveSlot(provider: LlmProvider) {
   const slot = PROVIDER_SLOTS[provider] || PROVIDER_SLOTS.groq1;
   const apiKey =
@@ -143,6 +188,7 @@ export async function callLLM<T = any>(params: CallLlmParams<T>): Promise<CallLl
     return {
       ok: false,
       error: `${keyName} is not configured on the server.`,
+      failureCode: 'configuration',
       log: {
         provider,
         model: modelName,
@@ -167,6 +213,7 @@ export async function callLLM<T = any>(params: CallLlmParams<T>): Promise<CallLl
     return {
       ok: false,
       error: `${modelEnvName} is not configured on the server.`,
+      failureCode: 'configuration',
       log: { provider, model: '(not configured)', purpose, clauseIdsSent, ms: Date.now() - startTime, ok: false },
     };
   }
@@ -208,18 +255,18 @@ export async function callLLM<T = any>(params: CallLlmParams<T>): Promise<CallLl
       break;
     } catch (err: any) {
       lastError = err;
-      // Retry only on rate limit (429) or server error (5xx)
-      const status = err?.status || err?.statusCode;
-      if (status !== 429 && (!status || status < 500)) {
+      if (!shouldRetryProviderError(err)) {
         break;
       }
     }
   }
 
   if (lastError || !rawResponseText) {
+    const failure = providerFailure(lastError);
     return {
       ok: false,
-      error: `${slot.label} unavailable (${lastError?.message || 'Empty response'}).`,
+      error: `${slot.label}: ${failure.message}`,
+      failureCode: failure.code,
       log: {
         provider,
         model: modelName,
@@ -250,7 +297,8 @@ export async function callLLM<T = any>(params: CallLlmParams<T>): Promise<CallLl
   if (!finalParsed.success) {
     return {
       ok: false,
-      error: `Invalid JSON returned by ${provider}: ${finalParsed.error}`,
+      error: `${slot.label} returned malformed JSON. Please retry.`,
+      failureCode: 'invalid_json',
       rawText: rawResponseText,
       log: {
         provider,
@@ -268,9 +316,11 @@ export async function callLLM<T = any>(params: CallLlmParams<T>): Promise<CallLl
   if (schema) {
     const valResult = schema.safeParse(finalParsed.data);
     if (!valResult.success) {
+      const invalidFields = [...new Set(valResult.error.issues.map((issue) => issue.path.join('.')).filter(Boolean))].slice(0, 4);
       return {
         ok: false,
-        error: `JSON schema validation failed: ${valResult.error.message}`,
+        error: `${slot.label} returned output that failed schema validation${invalidFields.length ? ` (${invalidFields.join(', ')})` : ''}. Please retry.`,
+        failureCode: 'invalid_schema',
         rawText: rawResponseText,
         data: finalParsed.data,
         log: {

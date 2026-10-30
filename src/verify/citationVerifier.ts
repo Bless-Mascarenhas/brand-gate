@@ -52,7 +52,8 @@ export interface VerificationResult {
 export function verifyCitations(
   candidateFindings: Finding[],
   pack: PolicyPack,
-  post: PostContent
+  post: PostContent,
+  imageEvidence = ''
 ): VerificationResult {
   const verifiedFindings: Finding[] = [];
   const droppedFindings: Finding[] = [];
@@ -65,7 +66,7 @@ export function verifyCitations(
     caption: post.caption || '',
     hashtags: (post.hashtags || []).join(' '),
     alt_text: post.altText || '',
-    image: '', // images can have text detected in perception
+    image: imageEvidence,
     meta: `${post.format || ''} ${post.imageMeta ? `${post.imageMeta.width}x${post.imageMeta.height} (${(post.imageMeta.width / post.imageMeta.height).toFixed(2)})` : ''}`,
   };
 

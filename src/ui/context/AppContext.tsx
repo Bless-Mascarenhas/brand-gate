@@ -49,11 +49,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const demoDate = process.env.NEXT_PUBLIC_DEMO_TODAY || new Date().toISOString().slice(0, 10);
 
   useEffect(() => {
-    // Check local storage for preferences
-    const savedRole = localStorage.getItem('bg_role') as Role;
+    // Storage may be disabled or full; preferences must never prevent app startup.
+    let savedRole: Role | null = null;
+    let savedTheme: 'light' | 'dark' = 'dark';
+    try {
+      savedRole = localStorage.getItem('bg_role') as Role;
+      savedTheme = (localStorage.getItem('bg_theme') as 'light' | 'dark') || 'dark';
+    } catch {
+      // Keep in-memory defaults.
+    }
     if (savedRole) setRoleState(savedRole);
-
-    const savedTheme = (localStorage.getItem('bg_theme') as 'light' | 'dark') || 'dark';
     setTheme(savedTheme);
     if (savedTheme === 'dark') {
       document.documentElement.classList.add('dark');
@@ -68,13 +73,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const setRole = (newRole: Role) => {
     setRoleState(newRole);
-    localStorage.setItem('bg_role', newRole);
+    try { localStorage.setItem('bg_role', newRole); } catch { /* preference remains in memory */ }
   };
 
   const toggleTheme = () => {
     const nextTheme = theme === 'dark' ? 'light' : 'dark';
     setTheme(nextTheme);
-    localStorage.setItem('bg_theme', nextTheme);
+    try { localStorage.setItem('bg_theme', nextTheme); } catch { /* preference remains in memory */ }
     if (nextTheme === 'dark') {
       document.documentElement.classList.add('dark');
     } else {

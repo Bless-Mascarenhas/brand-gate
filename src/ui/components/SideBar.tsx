@@ -4,25 +4,15 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  Compass,
   Building2,
   Sparkles,
   ShieldCheck,
-  Scale,
-  ListTodo,
-  BarChart3,
-  FileCode2,
 } from 'lucide-react';
 
 export const navItems = [
-  { href: '/start', label: '1. Start here', icon: Compass, badge: 'Tour' },
-  { href: '/company', label: '2. Company', icon: Building2, badge: '8 Docs' },
-  { href: '/build', label: '3. Build', icon: Sparkles, badge: 'AI Chat' },
-  { href: '/verify', label: '4. Verify', icon: ShieldCheck, badge: 'Pipeline' },
-  { href: '/compare', label: '5. Compare', icon: Scale, badge: 'Benchmark' },
-  { href: '/workflow', label: '6. Workflow', icon: ListTodo, badge: 'Queue' },
-  { href: '/insights', label: '7. Insights', icon: BarChart3, badge: 'Ambiguity' },
-  { href: '/transparency', label: '8. Transparency', icon: FileCode2, badge: 'Audit' },
+  { href: '/company', label: 'Company Documents', icon: Building2, badge: 'Policies' },
+  { href: '/build', label: 'Create', icon: Sparkles, badge: 'Draft' },
+  { href: '/verify', label: 'Evaluate', icon: ShieldCheck, badge: 'Review' },
 ];
 
 export const SideBar: React.FC = () => {
@@ -55,7 +45,7 @@ export const SideBar: React.FC = () => {
         <nav className="p-3 space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = pathname === item.href || (item.href !== '/start' && pathname.startsWith(item.href));
+            const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
             return (
               <Link
                 key={item.href}

@@ -6,6 +6,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { getContrastRatio } from '@/src/rules/color';
 import { STEP_TO_NODE, NODES } from '@/src/ui/components/ArchitectureDiagram';
 import { TOUR_STEPS } from '@/src/ui/components/GuidedTour';
+import { navItems } from '@/src/ui/components/SideBar';
 import { TABS } from '@/src/ui/components/TransparencyTabs';
 import { SafeMarkdown, parseBlocks } from '@/src/ui/components/SafeMarkdown';
 import { addFeedback, clearFeedback, feedbackExport, loadFeedback } from '@/src/feedback/store';
@@ -75,13 +76,22 @@ describe('architecture diagram', () => {
 });
 
 describe('guided tour', () => {
-  it('has five steps whose targets exist on the pages they navigate to', () => {
-    expect(TOUR_STEPS).toHaveLength(5);
+  it('has three steps whose targets exist on the pages they navigate to', () => {
+    expect(TOUR_STEPS).toHaveLength(3);
     const all = UI_FILES.map((f) => fs.readFileSync(f, 'utf8')).join('\n');
     for (const s of TOUR_STEPS) {
       expect(all).toContain(`data-tour="${s.target}"`);
       expect(fs.existsSync(path.join(ROOT, 'app', '(shell)', s.path.slice(1), 'page.tsx'))).toBe(true);
     }
+  });
+
+  it('exposes only Company Documents, Create, and Evaluate in the primary navigation', () => {
+    expect(navItems.map(({ href, label }) => [href, label])).toEqual([
+      ['/company', 'Company Documents'],
+      ['/build', 'Create'],
+      ['/verify', 'Evaluate'],
+    ]);
+    expect(fs.readFileSync(path.join(ROOT, 'app/page.tsx'), 'utf8')).toContain("redirect('/build')");
   });
 });
 

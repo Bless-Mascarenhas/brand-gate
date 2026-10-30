@@ -40,6 +40,9 @@ export default function VerifyPage() {
   const [format, setFormat] = useState<'feed_4_5' | 'feed_1_1' | 'story_9_16' | 'reel_9_16'>('feed_4_5');
   const [paidPartnership, setPaidPartnership] = useState<boolean>(false);
   const [language, setLanguage] = useState<'en' | 'hinglish'>('en');
+  const [imageDataUrl, setImageDataUrl] = useState<string | undefined>();
+  const [imageName, setImageName] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const {
     status,
@@ -50,6 +53,7 @@ export default function VerifyPage() {
     reviewerBFindings,
     verifiedFindings,
     verdict,
+    error,
     hallucinationsBlocked,
     fixSuggestions,
     runPipeline,
@@ -75,22 +79,55 @@ export default function VerifyPage() {
     setFormat(sample.post.format);
     setPaidPartnership(Boolean(sample.post.paidPartnership));
     setLanguage(sample.post.language as any || 'en');
+    setImageDataUrl(undefined);
+    setImageName(null);
+    setUploadError(null);
     setSavedToWorkflow(false);
     resetPipeline();
   };
 
   const handleRun = () => {
     if (!pack) return;
+    if (caption.trim().length < 3) {
+      setUploadError('Add a caption or context of at least 3 characters before evaluating. Text-only evaluation is supported.');
+      return;
+    }
     setSavedToWorkflow(false);
+    setUploadError(null);
     const post: PostContent = {
       caption,
       hashtags: hashtagsStr.split(/\s+/).filter(Boolean),
       altText,
+      imageDataUrl,
       format,
       paidPartnership,
       language,
     };
     runPipeline(post, pack);
+  };
+
+  const handleImageChange = (file: File | undefined) => {
+    setUploadError(null);
+    if (!file) return;
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      setUploadError('Choose a JPEG, PNG, or WebP image. The server will verify the actual file format too.');
+      return;
+    }
+    if (file.size === 0 || file.size > 3_000_000) {
+      setUploadError('Choose a non-empty image no larger than 3 MB.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onerror = () => setUploadError('The selected image could not be read. Please choose another file.');
+    reader.onload = () => {
+      if (typeof reader.result !== 'string') {
+        setUploadError('The selected image could not be read. Please choose another file.');
+        return;
+      }
+      setImageDataUrl(reader.result);
+      setImageName(file.name);
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleApplySafeFixes = () => {
@@ -126,10 +163,10 @@ export default function VerifyPage() {
         <div>
           <h1 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
             <ShieldCheck className="w-6 h-6 text-indigo-600 dark:text-indigo-300" />
-            Verify: Multi-Model Audit Pipeline
+            Evaluate a post
           </h1>
           <p className="text-sm text-slate-600 dark:text-slate-400">
-            Upload or paste social posts. Deterministic gates execute first, followed by two independent LLM reviewers (Reviewer A, Reviewer B), verbatim citation checks, and code-governed scoring.
+            Review a social post against deterministic policy gates, model findings, verified citations, and a code-computed score.
           </p>
         </div>
 
@@ -262,6 +299,34 @@ export default function VerifyPage() {
               />
             </div>
 
+            <div className="space-y-2">
+              <div className="flex items-baseline justify-between gap-3">
+                <label htmlFor="evaluate-image" className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  Post image <span className="font-normal text-slate-600 dark:text-slate-400">(optional; JPEG, PNG, or WebP, max 3 MB)</span>
+                </label>
+                {imageDataUrl && (
+                  <button type="button" onClick={() => { setImageDataUrl(undefined); setImageName(null); setUploadError(null); }} className="text-xs font-semibold text-indigo-600 hover:underline dark:text-indigo-300">
+                    Remove image
+                  </button>
+                )}
+              </div>
+              <input
+                id="evaluate-image"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={(event) => handleImageChange(event.target.files?.[0])}
+                className="block w-full text-xs text-slate-700 dark:text-slate-300 file:mr-3 file:rounded-lg file:border-0 file:bg-indigo-50 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-indigo-700 hover:file:bg-indigo-100 dark:file:bg-indigo-950 dark:file:text-indigo-300"
+              />
+              {imageDataUrl && (
+                <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 p-2 dark:border-slate-700 dark:bg-slate-800">
+                  <img src={imageDataUrl} alt="Selected post preview" className="h-16 w-16 rounded-lg object-cover" />
+                  <p className="min-w-0 truncate text-xs text-slate-600 dark:text-slate-300">{imageName}</p>
+                </div>
+              )}
+              <p className="text-[11px] text-slate-600 dark:text-slate-400">Text-only evaluation is allowed. When an image is attached, it is re-encoded before a configured vision provider receives it; it is not retained by this flow.</p>
+              {uploadError && <p role="alert" className="text-xs font-medium text-red-700 dark:text-red-300">{uploadError}</p>}
+            </div>
+
             {/* Format & Partnership Toggles */}
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div>
@@ -323,6 +388,7 @@ export default function VerifyPage() {
                 )}
               </button>
             </div>
+            {error && <p role="alert" className="rounded-lg bg-red-50 p-3 text-xs font-medium text-red-700 dark:bg-red-950/40 dark:text-red-300">{error} You can adjust the input and retry.</p>}
           </div>
 
           {/* Quick Scenario Note */}

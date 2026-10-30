@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import {
   PostContent,
   Finding,
@@ -71,6 +71,7 @@ export function usePipeline(options: UsePipelineOptions = {}) {
     fixSuggestions: null,
     error: null,
   });
+  const isRunningRef = useRef(false);
 
   const addTrace = (
     step: string,
@@ -95,6 +96,8 @@ export function usePipeline(options: UsePipelineOptions = {}) {
 
   const runPipeline = useCallback(
     async (post: PostContent, pack: PolicyPack, runOpts: { pass?: 'first' | 'after_fix' } = {}) => {
+      if (isRunningRef.current) return;
+      isRunningRef.current = true;
       setState({
         status: 'running',
         currentStep: 'Initializing',
@@ -144,7 +147,8 @@ export function usePipeline(options: UsePipelineOptions = {}) {
 
         // STEP 2: PERCEIVE (If Image Exists)
         let perceptionData: any = null;
-        if (post.imageDataUrl || post.imageMeta) {
+        let evaluatedPost = post;
+        if (post.imageDataUrl) {
           addTrace('Perceive', 'Analyzing image dimensions, aspect ratio, palette, and visual elements...', 'running');
           try {
             const percRes = await fetch('/api/llm/perceive', {
@@ -152,15 +156,18 @@ export function usePipeline(options: UsePipelineOptions = {}) {
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 imageDataUrl: post.imageDataUrl,
-                imageMeta: post.imageMeta,
               }),
             });
             if (percRes.ok) {
               const pData = await percRes.json();
               perceptionData = pData.perception;
+              evaluatedPost = { ...post, imageDataUrl: pData.sanitizedImageDataUrl, imageMeta: pData.imageMeta };
+            } else {
+              const error = await percRes.json().catch(() => ({}));
+              throw new Error(error.error || 'Image analysis failed.');
             }
           } catch (e: any) {
-            console.warn('Perception fetch error:', e.message);
+            throw new Error(e.message || 'Image analysis failed.');
           }
           setState((prev) => ({ ...prev, perception: perceptionData, progressPercent: 25 }));
           addTrace('Perceive', `Perception completed (Aspect ratio: ${perceptionData?.aspectRatio || '4:5'})`, 'completed', perceptionData);
@@ -173,7 +180,7 @@ export function usePipeline(options: UsePipelineOptions = {}) {
         const gatesRes = await fetch('/api/gates', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ post, demoDate }),
+          body: JSON.stringify({ post: evaluatedPost, demoDate }),
         });
 
         let gateResult = { passed: true, score: 100, findings: [] as Finding[], gatesFailed: [] as string[] };
@@ -209,7 +216,7 @@ export function usePipeline(options: UsePipelineOptions = {}) {
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 provider: 'groq',
-                post,
+                post: evaluatedPost,
                 categories: ['tone', 'terminology', 'messaging', 'claims', 'regional'],
                 perceptionText: perceptionData ? JSON.stringify(perceptionData) : undefined,
               }),
@@ -223,7 +230,7 @@ export function usePipeline(options: UsePipelineOptions = {}) {
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 provider: 'nvidia',
-                post,
+                post: evaluatedPost,
                 categories: ['tone', 'terminology', 'messaging', 'claims', 'regional'],
                 perceptionText: perceptionData ? JSON.stringify(perceptionData) : undefined,
               }),
@@ -280,7 +287,8 @@ export function usePipeline(options: UsePipelineOptions = {}) {
         // STEP 5: CITATION VERIFICATION & HALLUCINATION BLOCKER
         addTrace('Citation Verifier', 'Verifying clause existence, verbatim clause quotes, and post quotes...', 'running');
         const rawLlmFindings = [...reviewerAFindings, ...reviewerBFindings];
-        const verification = verifyCitations(rawLlmFindings, pack, post);
+        const imageEvidence = perceptionData ? [...(perceptionData.visibleText || []), ...(perceptionData.claimsInImage || [])].join(' ') : '';
+        const verification = verifyCitations(rawLlmFindings, pack, evaluatedPost, imageEvidence);
 
         setState((prev) => ({
           ...prev,
@@ -306,7 +314,7 @@ export function usePipeline(options: UsePipelineOptions = {}) {
                 provider: 'nvidia',
                 otherProvider: 'Reviewer A',
                 findings: verification.verifiedFindings.filter((f) => f.source === 'groq'),
-                post,
+                post: evaluatedPost,
               }),
             });
             if (crossRes.ok) {
@@ -372,7 +380,7 @@ export function usePipeline(options: UsePipelineOptions = {}) {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                post,
+                post: evaluatedPost,
                 findings: allVerifiedFindings,
               }),
             });
@@ -388,8 +396,8 @@ export function usePipeline(options: UsePipelineOptions = {}) {
 
         // Fallback deterministic fix suggestions if API fails or offline
         if (!fixes && allVerifiedFindings.length > 0) {
-          let correctedCap = post.caption;
-          const correctedTags = [...post.hashtags];
+          let correctedCap = evaluatedPost.caption;
+          const correctedTags = [...evaluatedPost.hashtags];
           for (const f of allVerifiedFindings) {
             if (f.suggestedFix && f.postQuote && correctedCap.includes(f.postQuote)) {
               correctedCap = correctedCap.replace(new RegExp(f.postQuote, 'i'), f.suggestedFix);
@@ -453,6 +461,8 @@ export function usePipeline(options: UsePipelineOptions = {}) {
           error: err.message || 'Pipeline failed',
           progressPercent: 100,
         }));
+      } finally {
+        isRunningRef.current = false;
       }
     },
     [demoDate, speedMode, state.traceEvents]

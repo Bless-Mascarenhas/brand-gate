@@ -12,7 +12,7 @@ export const maxDuration = 60;
 const BodySchema = z.object({ scenarioId: z.string(), mode: z.enum(['fast', 'thorough']).default('fast') });
 
 export async function POST(req: NextRequest) {
-  const auth = await verifyLlmAccess(req);
+  const auth = await verifyLlmAccess(req, 10);
   if (!auth.authorized) return auth.response!;
 
   const parsed = BodySchema.safeParse(await req.json().catch(() => null));

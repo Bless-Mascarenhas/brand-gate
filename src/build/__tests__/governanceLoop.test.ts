@@ -1,10 +1,11 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { getPolicyPack } from '@/src/kb';
 import { evaluatePost } from '@/src/rules/engine';
 import { verifyCitations } from '@/src/verify/citationVerifier';
 import { computeScoreAndVerdict } from '@/src/verify/scoring';
 import { verifyIntentPreservation, extractPurposeFromPost } from '@/src/verify/intent';
 import { PostContent, Purpose } from '@/src/types';
+import { runGovernanceLoop } from '@/src/build/governanceLoop';
 
 describe('Phase 6: Governance Loop & Intent Preservation', () => {
   const pack = getPolicyPack();
@@ -88,5 +89,41 @@ describe('Phase 6: Governance Loop & Intent Preservation', () => {
     expect(intentRes.preservationScore).toBeGreaterThanOrEqual(4);
     expect(intentRes.requiredElementsPreserved).toBe(true);
     expect(intentRes.missingElements).toHaveLength(0);
+  });
+
+  it('keeps the best completed draft when a later provider iteration fails', async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        draft: {
+          caption: 'Cheap vintage jackets at ThriftIt today. Tap the link in bio. #ThriftIt',
+          hashtags: ['#ThriftIt'],
+          altText: 'A vintage jacket on a clothing rack in a Mumbai studio.',
+          imagePrompt: {
+            prompt: 'Editorial photograph of a vintage jacket in natural light in a Bandra studio.',
+            negativePrompt: 'text, logos',
+          },
+          purpose: { summary: 'Promote a jacket collection', requiredElements: ['Thrift-It'] },
+        },
+        selection: { strategy: 'deterministic-policy-score', selectedProvider: 'Groq 1', candidates: [] },
+      }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ error: 'Second round unavailable' }), { status: 503 }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    try {
+      const output = await runGovernanceLoop({
+        prompt: 'Promote vintage jackets to Mumbai college students with confirmed product details.',
+        pack,
+        demoDate: DEMO_DATE,
+        maxIterations: 3,
+      });
+
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      expect(output.iterations).toHaveLength(1);
+      expect(output.governedPost.caption).toContain('Cheap vintage jackets');
+      expect(output.imagePrompt.prompt).toContain('Editorial photograph');
+      expect(output.generationWarning).toContain('Second round unavailable');
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });

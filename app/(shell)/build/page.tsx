@@ -30,6 +30,7 @@ import { AiBadge } from '@/src/ui/components/AiBadge';
 import { saveWorkflowPost } from '@/src/workflow/store';
 import { appendInsightEvents } from '@/src/insights/store';
 import { workflowPostFromBuild, checkEventsFromBuild } from '@/src/build/toWorkflow';
+import { MIN_GENERATION_BRIEF_LENGTH } from '@/src/llm/schemas';
 
 const InstagramIcon: React.FC<{ className?: string }> = ({ className = 'w-4 h-4' }) => (
   <svg
@@ -62,6 +63,7 @@ export default function BuildPage() {
   const [pack, setPack] = useState<PolicyPack | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputPrompt, setInputPrompt] = useState('');
+  const [briefError, setBriefError] = useState<string | null>(null);
   const [language, setLanguage] = useState<'en' | 'hinglish'>('en');
   const [format, setFormat] = useState<'feed_4_5' | 'feed_1_1' | 'story_9_16'>('feed_4_5');
   const [festival, setFestival] = useState<string>('Diwali');
@@ -73,6 +75,9 @@ export default function BuildPage() {
   const [currentIterations, setCurrentIterations] = useState<IterationResult[]>([]);
   const [currentOutput, setCurrentOutput] = useState<GovernanceLoopOutput | null>(null);
   const [compositedImage, setCompositedImage] = useState<string | null>(null);
+  const [imageError, setImageError] = useState<string | null>(null);
+  const [agentPhase, setAgentPhase] = useState<'idle' | 'drafting' | 'governing' | 'visual' | 'complete' | 'error'>('idle');
+  const [agentError, setAgentError] = useState<string | null>(null);
 
   // Review & Workflow state
   const [approvedPost, setApprovedPost] = useState<GovernanceLoopOutput | null>(null);
@@ -117,18 +122,31 @@ export default function BuildPage() {
 
   const handleQuickPrompt = (qp: (typeof quickPrompts)[0]) => {
     setInputPrompt(qp.text);
+    setBriefError(null);
     if (qp.language) setLanguage(qp.language);
     if (qp.festival) setFestival(qp.festival);
   };
 
   const handleGenerate = async (customPrompt?: string) => {
-    const promptToRun = customPrompt || inputPrompt;
-    if (!promptToRun.trim() || !pack || isGenerating) return;
+    const promptToRun = (customPrompt ?? inputPrompt).trim();
+    if (isGenerating) return;
+    if (promptToRun.length < MIN_GENERATION_BRIEF_LENGTH) {
+      setBriefError(`Add a topic and enough context (${MIN_GENERATION_BRIEF_LENGTH} characters minimum). Suggested format: topic + audience + key details or offer.`);
+      return;
+    }
+    if (!pack) {
+      setBriefError('Company Documents are still loading. Please retry in a moment.');
+      return;
+    }
+    setBriefError(null);
 
     setIsGenerating(true);
     setCurrentIterations([]);
     setCurrentOutput(null);
     setCompositedImage(null);
+    setImageError(null);
+    setAgentPhase('drafting');
+    setAgentError(null);
     setApprovedPost(null);
     setIsChangeRequestOpen(false);
     setIsOverrideOpen(false);
@@ -156,11 +174,13 @@ export default function BuildPage() {
         maxIterations: 3,
         onIteration: (iter) => {
           setCurrentIterations((prev) => [...prev, iter]);
+          setAgentPhase('governing');
           setActiveStepText(`Governing iteration ${iter.iteration}: Score ${iter.score}/100...`);
         },
       });
 
       setCurrentOutput(loopResult);
+      setAgentPhase('visual');
 
       // Save into Workflow (revision per iteration) and record the run for Insights.
       try {
@@ -170,46 +190,54 @@ export default function BuildPage() {
         console.warn('Failed to save build run to workflow/insights:', e.message);
       }
 
-      // 2. Generate Base Image via Gemini Image endpoint
-      setActiveStepText('2. Generating editorial imagery with Gemini Image model...');
-      const accessCode =
-        (typeof window !== 'undefined' && localStorage.getItem('bg_access_code')) || 'brandgate2026';
+      // 2. Generate and composite the visual. A failure here does not invalidate the governed text draft.
+      setActiveStepText('2. Generating an image from the validated visual brief...');
+      let finalComposited: string | null = null;
+      let visualFailure: string | null = null;
+      try {
+        const accessCode =
+          (typeof window !== 'undefined' && localStorage.getItem('bg_access_code')) || 'brandgate2026';
 
-      const imageRes = await fetch('/api/llm/image', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-demo-access-code': accessCode,
-        },
-        credentials: 'same-origin',
-        body: JSON.stringify({
-          prompt: loopResult.imagePrompt || 'Vintage clothing in natural daylight Bandra studio',
+        const imageRes = await fetch('/api/llm/image', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-demo-access-code': accessCode,
+          },
+          credentials: 'same-origin',
+          body: JSON.stringify({
+            prompt: loopResult.imagePrompt.prompt,
+            negativePrompt: loopResult.imagePrompt.negativePrompt,
+            format,
+            festival: festival !== 'None' ? festival : undefined,
+          }),
+        });
+
+        const imageData = await imageRes.json();
+        if (!imageRes.ok || !imageData.imageDataUrl) {
+          throw new Error(imageData.error || 'Image generation failed. Configure the image Worker and retry.');
+        }
+
+        setActiveStepText('3. Client-side canvas compositing of official wordmark & offer bands...');
+        const offerBannerText =
+          festival === 'Diwali'
+            ? 'DIWALI THRIFT FEST • UP TO 30% OFF • BANDRA POP-UP'
+            : loopResult.purpose?.offer
+              ? `${loopResult.purpose.offer.toUpperCase()} • BANDRA POP-UP`
+              : 'CURATED PRE-LOVED CLOTHING • BANDRA, MUMBAI';
+
+        finalComposited = await compositeBrandPost({
+          baseImageSrc: imageData.imageDataUrl,
           format,
-          festival: festival !== 'None' ? festival : undefined,
-        }),
-      });
-
-      const imageData = await imageRes.json();
-      const rawImage = imageData.imageDataUrl;
-
-      // 3. Client-Side HTML Canvas Compositing (strictly client-side)
-      setActiveStepText('3. Client-side canvas compositing of official wordmark & offer bands...');
-      const offerBannerText =
-        festival === 'Diwali'
-          ? 'DIWALI THRIFT FEST • UP TO 30% OFF • BANDRA POP-UP'
-          : loopResult.purpose?.offer
-            ? `${loopResult.purpose.offer.toUpperCase()} • BANDRA POP-UP`
-            : 'CURATED PRE-LOVED CLOTHING • BANDRA, MUMBAI';
-
-      const finalComposited = await compositeBrandPost({
-        baseImageSrc: rawImage,
-        format,
-        offerText: offerBannerText,
-        wordmarkBandColor: 'paper',
-        showOfferBand: true,
-      });
-
-      setCompositedImage(finalComposited);
+          offerText: offerBannerText,
+          wordmarkBandColor: 'paper',
+          showOfferBand: true,
+        });
+        setCompositedImage(finalComposited);
+      } catch (error) {
+        visualFailure = error instanceof Error ? error.message : 'Image generation or composition failed.';
+        setImageError(visualFailure);
+      }
 
       // Save to IndexedDB
       await storage.setItem(`draft_${Date.now()}`, {
@@ -221,20 +249,28 @@ export default function BuildPage() {
         timestamp: Date.now(),
       });
 
+      const selection = loopResult.draftSelection;
+      const providers = selection?.candidates.filter((candidate) => candidate.status === 'available').map((candidate) => candidate.provider).join(' and ');
+      const providerSummary = selection ? ` Draft candidates: ${providers || 'none'}; selected ${selection.selectedProvider} by deterministic policy score.` : '';
+      const warning = loopResult.generationWarning ? ` ${loopResult.generationWarning}` : '';
+      const visualWarning = visualFailure ? ` Governed text is ready, but image generation is unavailable: ${visualFailure}` : '';
       const assistantMsg: ChatMessage = {
         id: `msg-${Date.now() + 1}`,
         sender: 'assistant',
-        text: `Draft post generated and verified across ${loopResult.iterations.length} iteration(s). Compliance score: ${loopResult.verdict.score}/100 (${loopResult.verdict.status}).`,
+        text: `Draft post generated and verified across ${loopResult.iterations.length} iteration(s). Compliance score: ${loopResult.verdict.score}/100 (${loopResult.verdict.status}).${providerSummary}${warning}${visualWarning}`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         output: loopResult,
       };
       setMessages((prev) => [...prev, assistantMsg]);
+      setAgentPhase('complete');
     } catch (err: any) {
-      console.error('Generation failed:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      setAgentPhase('error');
+      setAgentError(errorMessage);
       const errMsg: ChatMessage = {
         id: `msg-${Date.now() + 1}`,
         sender: 'assistant',
-        text: `Error during generation: ${err.message || 'Unknown error'}. Please check API access code or try a quick prompt.`,
+        text: `Generation failed: ${errorMessage}`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
       setMessages((prev) => [...prev, errMsg]);
@@ -305,6 +341,23 @@ export default function BuildPage() {
     }
   };
 
+  const lastIteration = currentIterations[currentIterations.length - 1];
+  const candidateStatus = (provider: string) => {
+    const candidate = currentOutput?.draftSelection?.candidates.find((item) => item.provider === provider);
+    if (candidate) return candidate;
+    if (agentPhase === 'drafting' || agentPhase === 'governing') return { provider, status: 'working' as const, reason: undefined };
+    if (agentPhase === 'error') return { provider, status: 'unavailable' as const, reason: 'Draft run did not complete.' };
+    return { provider, status: 'waiting' as const, reason: undefined };
+  };
+  const phaseLabel = {
+    idle: 'Ready for brief',
+    drafting: 'Draft agents working',
+    governing: 'Policy review active',
+    visual: 'Preparing visual',
+    complete: 'Run complete',
+    error: 'Run stopped',
+  }[agentPhase];
+
   return (
     <div className="space-y-8 pb-12">
       {/* Top Header */}
@@ -312,10 +365,10 @@ export default function BuildPage() {
         <div>
           <h1 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
             <Sparkles className="w-6 h-6 text-indigo-600 dark:text-indigo-300" />
-            Build: Governed Content Studio
+            Create a social post
           </h1>
           <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
-            Brief &rarr; Draft &rarr; Gemini Imagen &rarr; Canvas Wordmark Compositing &rarr; Self-Governing Loop
+            Brief &rarr; Governed draft &rarr; Visual composition &rarr; Human review
           </p>
         </div>
 
@@ -456,7 +509,7 @@ export default function BuildPage() {
             </div>
 
             {/* Composer Input */}
-            <div className="pt-3 border-t border-slate-100 dark:border-slate-800">
+            <div data-tour="create-brief" className="pt-3 border-t border-slate-100 dark:border-slate-800">
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -467,25 +520,108 @@ export default function BuildPage() {
                 <input
                   type="text"
                   value={inputPrompt}
-                  onChange={(e) => setInputPrompt(e.target.value)}
-                  placeholder="e.g. Diwali teaser for Mumbai college students with up to 30% off..."
+                  onChange={(e) => { setInputPrompt(e.target.value); setBriefError(null); }}
+                  maxLength={2000}
+                  aria-invalid={Boolean(briefError)}
+                  aria-describedby={briefError ? 'brief-error' : undefined}
+                  placeholder="Describe the topic, audience, and key details..."
                   disabled={isGenerating}
                   className="w-full pl-3.5 pr-11 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
                 <button
                   type="submit"
-                  disabled={!inputPrompt.trim() || isGenerating}
+                  disabled={isGenerating || !pack}
                   className="absolute right-1.5 top-1.5 p-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white rounded-lg transition-all"
                 >
                   <Send className="w-3.5 h-3.5" />
                 </button>
               </form>
+              {briefError && <p id="brief-error" role="alert" className="mt-2 text-xs text-red-700 dark:text-red-300">{briefError} Example: “Weekend vintage denim drop for Mumbai college students; mention the Bandra pop-up and confirmed offer.”</p>}
             </div>
           </div>
         </div>
 
         {/* Right Column: Live Studio Review & Human Approval (7 cols) */}
         <div className="lg:col-span-7 space-y-6">
+          <section aria-live="polite" className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <Bot className="w-4 h-4 text-indigo-600 dark:text-indigo-300" />
+                Agent activity
+              </h2>
+              <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${agentPhase === 'error' ? 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300' : agentPhase === 'complete' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'}`}>
+                {phaseLabel}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {(['Groq 1', 'Groq 2'] as const).map((provider) => {
+                const candidate = candidateStatus(provider);
+                const isWorking = candidate.status === 'working';
+                const isUnavailable = candidate.status === 'unavailable';
+                return (
+                  <div key={provider} className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs font-semibold text-slate-900 dark:text-white">Draft agent · {provider}</span>
+                      <span className={`text-[10px] font-bold ${isUnavailable ? 'text-red-700 dark:text-red-300' : candidate.status === 'available' ? 'text-emerald-700 dark:text-emerald-300' : isWorking ? 'text-indigo-700 dark:text-indigo-300' : 'text-slate-600 dark:text-slate-300'}`}>
+                        {isWorking ? 'Working' : candidate.status === 'available' ? 'Ready' : isUnavailable ? 'Unavailable' : 'Waiting'}
+                      </span>
+                    </div>
+                    {candidate.status === 'available' ? (
+                      <p className="mt-1 text-[11px] text-slate-600 dark:text-slate-300">
+                        Policy score {candidate.score}/100 · {candidate.verdict?.replaceAll('_', ' ')}
+                      </p>
+                    ) : candidate.reason ? (
+                      <p className="mt-1 text-[11px] text-slate-600 dark:text-slate-300">{candidate.reason}</p>
+                    ) : (
+                      <p className="mt-1 text-[11px] text-slate-600 dark:text-slate-300">
+                        {isWorking ? 'Preparing an independent structured draft.' : 'Starts when you submit a brief.'}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-semibold text-slate-900 dark:text-white">Policy gate</span>
+                  <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300">
+                    {lastIteration ? 'Checked' : agentPhase === 'governing' ? 'Working' : 'Waiting'}
+                  </span>
+                </div>
+                <p className="mt-1 text-[11px] text-slate-600 dark:text-slate-300">
+                  {lastIteration
+                    ? `Iteration ${lastIteration.iteration}: ${lastIteration.findings.length} verified finding(s), score ${lastIteration.score}/100.`
+                    : agentPhase === 'governing'
+                      ? 'Applying deterministic rules and verifying policy citations.'
+                      : 'Checks the generated draft against active policy and facts.'}
+                </p>
+              </div>
+
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-semibold text-slate-900 dark:text-white">Visual agent</span>
+                  <span className={`text-[10px] font-bold ${imageError ? 'text-amber-700 dark:text-amber-300' : compositedImage ? 'text-emerald-700 dark:text-emerald-300' : agentPhase === 'visual' ? 'text-indigo-700 dark:text-indigo-300' : 'text-slate-600 dark:text-slate-300'}`}>
+                    {imageError ? 'Unavailable' : compositedImage ? 'Complete' : agentPhase === 'visual' ? 'Working' : 'Waiting'}
+                  </span>
+                </div>
+                <p className="mt-1 text-[11px] text-slate-600 dark:text-slate-300">
+                  {imageError || currentOutput?.imagePrompt.prompt || 'Builds a validated visual direction after policy review.'}
+                </p>
+              </div>
+            </div>
+
+            {currentOutput?.draftSelection && (
+              <div className="pt-3 border-t border-slate-200 dark:border-slate-700">
+                <p className="text-xs font-semibold text-slate-900 dark:text-white">Selection evidence</p>
+                <p className="mt-1 text-[11px] text-slate-600 dark:text-slate-300">
+                  Selected {currentOutput.draftSelection.selectedProvider} using deterministic policy scores; candidate scores and verdicts are shown above.
+                </p>
+              </div>
+            )}
+            {agentError && <p role="alert" className="text-xs text-red-700 dark:text-red-300">{agentError}</p>}
+          </section>
+
           {/* Iteration Progress Cards */}
           {currentIterations.length > 0 && (
             <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-3">
@@ -620,6 +756,12 @@ export default function BuildPage() {
                         alt={currentOutput.governedPost.altText || 'Composited Thrift-It post'}
                         className="w-full h-auto object-cover max-h-[420px]"
                       />
+                    ) : imageError ? (
+                      <div role="status" className="min-h-64 p-6 flex flex-col items-center justify-center gap-2 text-center text-slate-700 dark:text-slate-300">
+                        <AlertTriangle className="w-6 h-6 text-amber-700 dark:text-amber-300" />
+                        <strong className="text-xs">Generated image unavailable</strong>
+                        <span className="text-xs">The governed text draft is ready for review. {imageError}</span>
+                      </div>
                     ) : (
                       <div className="h-64 flex flex-col items-center justify-center text-slate-600 text-xs dark:text-slate-400">
                         <RotateCcw className="w-6 h-6 animate-spin mb-2" />

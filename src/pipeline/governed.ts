@@ -7,6 +7,7 @@
  * so tests can prove which prompts went where without network calls.
  */
 import { CallLlmParams, CallLlmResult, callLLM } from '@/src/llm/callLLM';
+import { RunnableParallel } from '@langchain/core/runnables';
 import { buildReviewerPrompt } from '@/src/llm/prompts/reviewer';
 import { buildCrosscheckPrompt } from '@/src/llm/prompts/crosscheck';
 import { buildGeneratorPrompt } from '@/src/llm/prompts/generator';
@@ -102,7 +103,18 @@ export async function runGovernedReview(post: PostContent, pack: PolicyPack, opt
     };
     const useA = reviewerProviders.includes('groq');
     const useB = reviewerProviders.includes('nvidia');
-    const [a, b] = await Promise.all([useA ? call('groq') : null, useB ? call('nvidia') : null]);
+    let a: CallLlmResult<{ findings: Record<string, unknown>[] }> | null = null;
+    let b: CallLlmResult<{ findings: Record<string, unknown>[] }> | null = null;
+    if (useA && useB) {
+      const results = await RunnableParallel.from({
+        reviewerA: () => call('groq'),
+        reviewerB: () => call('nvidia'),
+      }).invoke({});
+      a = results.reviewerA;
+      b = results.reviewerB;
+    } else {
+      [a, b] = await Promise.all([useA ? call('groq') : null, useB ? call('nvidia') : null]);
+    }
     for (const [res, source, set] of [[a, 'groq', (x: Finding[]) => (rawA = x)], [b, 'nvidia', (x: Finding[]) => (rawB = x)]] as const) {
       if (!res) continue;
       llmCalls.push(res.log);
@@ -120,22 +132,51 @@ export async function runGovernedReview(post: PostContent, pack: PolicyPack, opt
 
   const verifiedA = verification.verifiedFindings.filter((f) => f.source === 'groq');
   const verifiedB = verification.verifiedFindings.filter((f) => f.source === 'nvidia');
+  let evaluationsFromA: CrosscheckEvaluation[] = [];
   let evaluationsFromB: CrosscheckEvaluation[] = [];
-  if (mode === 'thorough' && verifiedA.length > 0) {
-    const categories = Array.from(new Set(verifiedA.map((f) => f.category)));
+  const crosscheck = async (provider: 'groq' | 'nvidia', otherReviewerName: string, findingsToReview: Finding[]) => {
+    if (findingsToReview.length === 0) return null;
+    const categories = Array.from(new Set(findingsToReview.map((f) => f.category)));
     const routed = getRoutedClausesForCategories(categories, pack);
-    const { system, user } = buildCrosscheckPrompt({ otherReviewerName: 'Reviewer A', findingsToReview: verifiedA, routedClauses: routed, post });
-    const res = await llm<{ evaluations: CrosscheckEvaluation[] }>({ provider: 'nvidia', system, user, purpose: 'nvidia crosscheck on Reviewer A findings', clauseIdsSent: routed.map((c) => c.id) });
-    llmCalls.push(res.log);
-    if (res.ok) evaluationsFromB = Array.isArray(res.data?.evaluations) ? res.data!.evaluations : [];
-    else errors.push(res.error ?? 'crosscheck failed');
-    steps.push({ step: 'Cross-Examination', status: res.ok ? 'completed' : 'failed', message: `${evaluationsFromB.length} evaluations from Reviewer B` });
+    const { system, user } = buildCrosscheckPrompt({ otherReviewerName, findingsToReview, routedClauses: routed, post });
+    return llm<{ evaluations: CrosscheckEvaluation[] }>({
+      provider,
+      system,
+      user,
+      purpose: `${provider} crosscheck on ${otherReviewerName} findings`,
+      clauseIdsSent: routed.map((c) => c.id),
+    });
+  };
+
+  if (mode === 'thorough' && (verifiedA.length > 0 || verifiedB.length > 0)) {
+    const crosschecks = await RunnableParallel.from({
+      reviewerA: () => crosscheck('groq', 'Reviewer B', verifiedB),
+      reviewerB: () => crosscheck('nvidia', 'Reviewer A', verifiedA),
+    }).invoke({});
+    const fromA = crosschecks.reviewerA;
+    const fromB = crosschecks.reviewerB;
+    for (const [res, set] of [
+      [fromA, (values: CrosscheckEvaluation[]) => (evaluationsFromA = values)],
+      [fromB, (values: CrosscheckEvaluation[]) => (evaluationsFromB = values)],
+    ] as const) {
+      if (!res) continue;
+      llmCalls.push(res.log);
+      if (res.ok) set(Array.isArray(res.data?.evaluations) ? res.data.evaluations : []);
+      else errors.push(res.error ?? 'crosscheck failed');
+    }
+    const expected = Number(verifiedB.length > 0) + Number(verifiedA.length > 0);
+    const completed = Number(fromA?.ok) + Number(fromB?.ok);
+    steps.push({
+      step: 'Cross-Examination',
+      status: completed > 0 ? 'completed' : 'failed',
+      message: `Reviewer A challenged ${evaluationsFromA.length} findings; Reviewer B challenged ${evaluationsFromB.length} findings (${completed}/${expected} rounds completed)`,
+    });
   } else {
-    steps.push({ step: 'Cross-Examination', status: 'skipped', message: mode === 'fast' ? 'Fast mode: rebuttal round skipped' : 'No verified Reviewer A findings to cross-examine' });
+    steps.push({ step: 'Cross-Examination', status: 'skipped', message: mode === 'fast' ? 'Fast mode: rebuttal round skipped' : 'No verified findings to cross-examine' });
   }
 
-  const adjudicated = adjudicateConsensus({ reviewerAFindings: verifiedA, reviewerBFindings: verifiedB, evaluationsFromB });
-  const evaluated = new Set(evaluationsFromB.map((e) => e.findingId));
+  const adjudicated = adjudicateConsensus({ reviewerAFindings: verifiedA, reviewerBFindings: verifiedB, evaluationsFromA, evaluationsFromB });
+  const evaluated = new Set([...evaluationsFromA, ...evaluationsFromB].map((e) => e.findingId));
   const debateAgreed = adjudicated.filter((f) => evaluated.has(f.id) && f.agreement === 'agreed').length;
   const debateDisputed = adjudicated.filter((f) => evaluated.has(f.id) && f.agreement === 'disputed').length;
   steps.push({ step: 'Consensus', status: 'completed', message: `${adjudicated.length} LLM findings adjudicated` });

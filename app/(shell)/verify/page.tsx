@@ -124,8 +124,46 @@ export default function VerifyPage() {
         setUploadError('The selected image could not be read. Please choose another file.');
         return;
       }
-      setImageDataUrl(reader.result);
-      setImageName(file.name);
+      const dataUrl = reader.result;
+      const img = new Image();
+      img.onerror = () => setUploadError('The selected image could not be decoded. Please choose another file.');
+      img.onload = () => {
+        if (img.width < 16 || img.height < 16) {
+          setUploadError('The uploaded image must be at least 16 by 16 pixels.');
+          return;
+        }
+        try {
+          const canvas = document.createElement('canvas');
+          const sample = 32;
+          canvas.width = sample;
+          canvas.height = sample;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, sample, sample);
+            const d = ctx.getImageData(0, 0, sample, sample).data;
+            const r0 = d[0], g0 = d[1], b0 = d[2];
+            let isAllTransparent = true;
+            let diff = 0;
+            for (let i = 0; i < d.length; i += 4) {
+              if (d[i + 3] > 10) isAllTransparent = false;
+              diff += Math.abs(d[i] - r0) + Math.abs(d[i + 1] - g0) + Math.abs(d[i + 2] - b0);
+            }
+            if (isAllTransparent) {
+              setUploadError('The uploaded image appears completely blank or transparent. Please upload a real post image.');
+              return;
+            }
+            if (diff === 0 && ((r0 > 245 && g0 > 245 && b0 > 245) || (r0 < 10 && g0 < 10 && b0 < 10))) {
+              setUploadError('The uploaded image appears completely blank. Please upload a real post image.');
+              return;
+            }
+          }
+        } catch {
+          // Allow fall-through to server-side sharp validation
+        }
+        setImageDataUrl(dataUrl);
+        setImageName(file.name);
+      };
+      img.src = dataUrl;
     };
     reader.readAsDataURL(file);
   };

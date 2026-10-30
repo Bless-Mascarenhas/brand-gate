@@ -55,43 +55,51 @@ export function evaluatePost(
 
     // 1. INJECTION PATTERN
     if (rule.type === 'injection_pattern') {
-      const allText = `${caption} ${hashtagsString} ${altText}`.toLowerCase();
-      for (const term of rule.terms || []) {
-        if (allText.includes(term.toLowerCase())) {
-          let field: 'caption' | 'hashtags' | 'alt_text' = 'caption';
-          let postQuote = term;
+      const fieldsToCheck: Array<{ name: 'caption' | 'hashtags' | 'alt_text'; text: string }> = [
+        { name: 'caption', text: caption },
+        { name: 'hashtags', text: hashtagsString },
+        { name: 'alt_text', text: altText },
+      ];
 
-          if (caption.toLowerCase().includes(term.toLowerCase())) {
-            field = 'caption';
-            const idx = caption.toLowerCase().indexOf(term.toLowerCase());
-            postQuote = caption.slice(idx, idx + term.length);
-          } else if (hashtagsString.toLowerCase().includes(term.toLowerCase())) {
-            field = 'hashtags';
-            const idx = hashtagsString.toLowerCase().indexOf(term.toLowerCase());
-            postQuote = hashtagsString.slice(idx, idx + term.length);
-          } else if (altText.toLowerCase().includes(term.toLowerCase())) {
-            field = 'alt_text';
-            const idx = altText.toLowerCase().indexOf(term.toLowerCase());
-            postQuote = altText.slice(idx, idx + term.length);
+      let matched = false;
+      for (const field of fieldsToCheck) {
+        if (!field.text) continue;
+        const lower = field.text.toLowerCase();
+        const normalized = lower.replace(/[^a-z0-9]/g, '');
+
+        for (const term of rule.terms || []) {
+          const lowerTerm = term.toLowerCase();
+          const normTerm = lowerTerm.replace(/[^a-z0-9]/g, '');
+
+          let postQuote = '';
+          const idx = lower.indexOf(lowerTerm);
+          if (idx !== -1) {
+            postQuote = field.text.slice(idx, idx + term.length);
+          } else if (normTerm && normalized.includes(normTerm)) {
+            postQuote = field.text;
           }
 
-          findings.push({
-            id: `finding-${rule.id}-${Date.now()}-${findings.length}`,
-            source: 'gate',
-            category: rule.category,
-            severity: rule.severity,
-            clauseId: rule.clause,
-            clauseQuote: extractClauseQuote(clause, 'never'),
-            postField: field,
-            postQuote,
-            explanation: rule.message,
-            autoFixable: false,
-            confidence: 1.0,
-            verified: true,
-            agreement: 'deterministic',
-          });
-          break;
+          if (postQuote) {
+            findings.push({
+              id: `finding-${rule.id}-${Date.now()}-${findings.length}`,
+              source: 'gate',
+              category: rule.category,
+              severity: rule.severity,
+              clauseId: rule.clause,
+              clauseQuote: extractClauseQuote(clause, 'never'),
+              postField: field.name,
+              postQuote,
+              explanation: rule.message,
+              autoFixable: false,
+              confidence: 1.0,
+              verified: true,
+              agreement: 'deterministic',
+            });
+            matched = true;
+            break;
+          }
         }
+        if (matched) break;
       }
       continue;
     }

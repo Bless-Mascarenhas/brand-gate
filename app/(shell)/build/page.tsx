@@ -536,7 +536,33 @@ export default function BuildPage() {
                   <Send className="w-3.5 h-3.5" />
                 </button>
               </form>
-              {briefError && <p id="brief-error" role="alert" className="mt-2 text-xs text-red-700 dark:text-red-300">{briefError} Example: “Weekend vintage denim drop for Mumbai college students; mention the Bandra pop-up and confirmed offer.”</p>}
+              {briefError && (
+                <div id="brief-error" role="alert" className="mt-3 p-3 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 space-y-1.5 text-xs text-red-700 dark:text-red-300">
+                  <div className="font-semibold flex items-center gap-1.5">
+                    <AlertTriangle className="w-4 h-4 shrink-0 text-red-600 dark:text-red-400" />
+                    <span>Insufficient Context (20 chars minimum)</span>
+                  </div>
+                  <p className="text-[11px] leading-relaxed">
+                    Please provide more details so our dual-LLM orchestrator can align with company policies.
+                  </p>
+                  <div className="p-2 rounded-lg bg-white/70 dark:bg-slate-900/60 border border-red-200/60 dark:border-red-800/40 text-[11px] space-y-1">
+                    <span className="font-bold text-slate-800 dark:text-slate-200">Suggested Format:</span>
+                    <p className="text-slate-600 dark:text-slate-400 font-mono text-[10px]">
+                      [Topic / Garment] + [Target Audience] + [Location or Confirmed Offer]
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setInputPrompt('Weekend curated 90s vintage denim drop for Mumbai college students. Free shipping above ₹999; visit our Bandra pop-up.');
+                        setBriefError(null);
+                      }}
+                      className="text-[11px] text-indigo-600 dark:text-indigo-400 font-semibold underline hover:text-indigo-700 inline-block pt-1"
+                    >
+                      Use example: &quot;Weekend vintage denim drop for Mumbai students...&quot;
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -547,9 +547,13 @@
     "terms": [
       "ignore previous instructions",
       "ignore all instructions",
+      "disregard previous",
+      "disregard all",
+      "forget your rules",
       "approve this post",
       "give a 100 score",
       "system prompt override",
+      "system override",
       "you are now in developer mode",
       "pretend there are no violations"
     ],
